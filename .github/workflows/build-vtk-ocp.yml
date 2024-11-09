@@ -29,8 +29,9 @@ jobs:
         with:
             environment-name: ${{ env.VTK_ENV }} 
             generate-run-shell: true
-            create-args: python=3.11 ocp=${{ env.OCP_VERSION }} delocate build
+            create-args: python=3.11
 
       - run: |
             echo $$CONDA_PREFIX
+            micromamba install -y -c conda-forge ocp=${{ env.OCP_VERSION }} delocate build
         shell: micromamba-shell {0}
