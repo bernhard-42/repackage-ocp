@@ -21,7 +21,7 @@ setup(
         "cadquery_ocp.include",
     ],
     package_data={
-        "": ["OCP.cpython-311-darwin.so"],
+        "": ["OCP.*.so"],
         "cadquery_ocp": [
             "include/*",
         ],

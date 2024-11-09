@@ -22,12 +22,17 @@ jobs:
         include:
           - os: 'macos-13'
             vtk_internal_version: 9.2.1
+            delocate: delocate
           - os: 'macos-14'
             vtk_internal_version: 9.2.1
+            delocate: delocate
           - os: 'ubuntu-20.04'
             vtk_internal_version: 9.2.6
+            delocate: auditwheel patchelf
+            plat: manylinux_2_35_x86_64
           - os: 'windows-2019'
             vtk_internal_version: 9.2.6
+            delocate: delvewheel
 
     steps:
 
@@ -47,10 +52,20 @@ jobs:
         run: |
           micromamba create  -y -n ${{ env.VTK_ENV }} python=${{ matrix.python-version }}
           micromamba activate ${{ env.VTK_ENV }}
-          micromamba install -y -c conda-forge -c cadquery ocp=${{ env.OCP_VERSION }} delocate 
+          micromamba install -y -c conda-forge -c cadquery ocp=${{ env.OCP_VERSION }} ${{ matrix.delocate }} 
           pip install build
 
-      - name: Copy the VTK artifacts
+      - name: Copy the VTK artifacts for Ubuntu
+        if: ${{ runner.os == "Linux" }}
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.VTK_ENV }}
+          cd VTK
+          cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtk.py .
+          cp -r $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules .
+
+      - name: Copy the VTK artifacts for Mac
+        if: ${{ runner.os == "macOS" }}
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.VTK_ENV }}
@@ -70,10 +85,11 @@ jobs:
           mkdir -p cadquery_ocp/include
           touch cadquery_ocp/__init__.py
 
-          cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/OCP.cpython-*-darwin.so .
+          cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/OCP.cpython-*.so .
           cp $CONDA_PREFIX/include/opencascade/* cadquery_ocp/include
           
       - name: Remove FFMPEG support to avoid _iconv error
+        if: ${{ runner.os == "macOS"}}
         shell: bash -l {0}
         run: |
           cd VTK
@@ -87,7 +103,8 @@ jobs:
           cd VTK
           python -m build -n -w
 
-      - name: Delocate the cadquery_vtk wheel
+      - name: Delocate the cadquery_vtk wheel on macOS
+      if: ${{ runner.os == "macOS" }}
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.VTK_ENV }}
@@ -99,6 +116,18 @@ jobs:
               --wheel-dir=wheel \
               dist/*.whl
 
+      - name: Delocate the cadquery_vtk wheel on Linux
+      if: ${{ runner.os == "Linux" }}
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.VTK_ENV }}
+          cd VTK
+          env LD_LIBRARY_PATH=$CONDA_PREFIX/lib \
+              python -m auditwheel repair \
+              --plat=${{ matrix.plat }} \
+              --wheel-dir=wheel \
+              dist/*.whl
+
       # ==================== cadquery_ocp ====================
 
       - name: Create the OCP environment
@@ -106,7 +135,7 @@ jobs:
         run: |
           micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }} -y
           micromamba activate ${{ env.OCP_ENV }}
-          micromamba install delocate -y
+          micromamba install -y ${{ matrix.delocate }}
           pip install build
 
       - name: Install and verify the VTK wheel
@@ -117,12 +146,20 @@ jobs:
 
           python -c "import vtk; print('Success: VTK', vtk.vtkVersion().GetVTKVersion())"
         
-      - name: Patch the vtkmodules path into the OCP library
+      - name: Patch the vtkmodules path into the OCP library on macOS
+        if: ${{ runner.os == "macOS" }}
         shell: bash -l {0}
         run: |
           cd OCP
           install_name_tool -add_rpath @loader_path/vtkmodules/.dylibs OCP.*.so
           codesign --force --sign - OCP.*.so
+
+      - name: Patch the vtkmodules path into the OCP library on Linux
+        if: ${{ runner.os == "Linux" }}
+        shell: bash -l {0}
+        run: |
+          cd OCP
+          patchelf --add-rpath '$ORIGIN/cadquery_vtk.libs' OCP.cpython-311-x86_64-linux-gnu.so
 
       - name: Create the cadquery_ocp wheel
         shell: bash -l {0}
@@ -131,7 +168,8 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
           python -m build -w -n
 
-      - name:   Delocate the cadquery_ocp wheel
+      - name:   Delocate the cadquery_ocp wheel on macOS
+        if: ${{ runner.os == "macOS" }}
         shell: bash -l {0}
         run: |
           cd OCP
@@ -145,6 +183,21 @@ jobs:
               --wheel-dir=wheel \
               dist/*.whl
 
+      - name:   Delocate the cadquery_ocp wheel on Linux
+        if: ${{ runner.os == "Linux" }}
+        shell: bash -l {0}
+        run: |
+          cd OCP
+          micromamba activate ${{ env.OCP_ENV }}
+          
+          env LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$CONDA_PREFIX/../${{ env.VTK_ENV }}/lib \
+              python -m auditwheel \
+              repair \
+              --exclude libvtk \
+              --plat=${{ matrix.plat }} \
+              --wheel-dir=wheel \
+              dist/*.whl
+
       # ==================== test ====================
 
       - name: Create the test environment
@@ -152,8 +205,8 @@ jobs:
         run: |
           micromamba create -y -n test python=${{ matrix.python-version }}
           micromamba activate test
-          pip install pytest
-
+          pip install pytest docutils ipython
+          
       - name: Install VTK and OCP wheel
         shell: bash -l {0}
         run: |
@@ -175,8 +228,6 @@ jobs:
           micromamba activate test
           unset CONDA_PREFIX_1
           pip install .
-          pip install docutils ipython
-          # pip install pytest docutils ipython "multimethod>=1.11,<2.0" typish typing-extensions pyparsing path multimethod ezdxf nlopt casadi
 
       - name: Run tests
         shell: bash -l {0}
