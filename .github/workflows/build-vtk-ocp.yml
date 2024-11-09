@@ -84,7 +84,7 @@ jobs:
         run: |
           micromamba activate ${{ env.VTK_ENV }}
           cd VTK
-          # The order in DYLD_LIBRARY_PATH is important to get the 9.2.1 libs
+          # The order in `DYLD_LIBRARY_PATH` is important to get the 9.2.1 libs
           env MACOSX_DEPLOYMENT_TARGET=11.1 \
               DYLD_LIBRARY_PATH=./libs:$CONDA_PREFIX/lib \
               python -m delocate.cmd.delocate_wheel \
@@ -165,8 +165,10 @@ jobs:
           git clone https://github.com/cadquery/cadquery.git
           cd cadquery
           micromamba activate test
+          unset CONDA_PREFIX_1
           pip install .
-          pip install pytest docutils ipython
+          pip install docutils ipython
+          # pip install pytest docutils ipython "multimethod>=1.11,<2.0" typish typing-extensions pyparsing path multimethod ezdxf nlopt casadi
 
       - name: Run tests
         shell: bash -l {0}
