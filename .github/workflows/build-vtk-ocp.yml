@@ -56,7 +56,7 @@ jobs:
           pip install build
 
       - name: Copy the VTK artifacts for Ubuntu
-        if: ${{ runner.os == "Linux" }}
+        if: ${{ runner.os == 'Linux' }}
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.VTK_ENV }}
@@ -65,7 +65,7 @@ jobs:
           cp -r $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules .
 
       - name: Copy the VTK artifacts for Mac
-        if: ${{ runner.os == "macOS" }}
+        if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.VTK_ENV }}
@@ -89,7 +89,7 @@ jobs:
           cp $CONDA_PREFIX/include/opencascade/* cadquery_ocp/include
           
       - name: Remove FFMPEG support to avoid _iconv error
-        if: ${{ runner.os == "macOS"}}
+        if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
           cd VTK
@@ -104,7 +104,7 @@ jobs:
           python -m build -n -w
 
       - name: Delocate the cadquery_vtk wheel on macOS
-      if: ${{ runner.os == "macOS" }}
+        if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.VTK_ENV }}
@@ -117,7 +117,7 @@ jobs:
               dist/*.whl
 
       - name: Delocate the cadquery_vtk wheel on Linux
-      if: ${{ runner.os == "Linux" }}
+        if: ${{ runner.os == 'Linux' }}
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.VTK_ENV }}
@@ -147,7 +147,7 @@ jobs:
           python -c "import vtk; print('Success: VTK', vtk.vtkVersion().GetVTKVersion())"
         
       - name: Patch the vtkmodules path into the OCP library on macOS
-        if: ${{ runner.os == "macOS" }}
+        if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
           cd OCP
@@ -155,7 +155,7 @@ jobs:
           codesign --force --sign - OCP.*.so
 
       - name: Patch the vtkmodules path into the OCP library on Linux
-        if: ${{ runner.os == "Linux" }}
+        if: ${{ runner.os == 'Linux' }}
         shell: bash -l {0}
         run: |
           cd OCP
@@ -169,7 +169,7 @@ jobs:
           python -m build -w -n
 
       - name:   Delocate the cadquery_ocp wheel on macOS
-        if: ${{ runner.os == "macOS" }}
+        if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
           cd OCP
@@ -184,7 +184,7 @@ jobs:
               dist/*.whl
 
       - name:   Delocate the cadquery_ocp wheel on Linux
-        if: ${{ runner.os == "Linux" }}
+        if: ${{ runner.os == 'Linux' }}
         shell: bash -l {0}
         run: |
           cd OCP
