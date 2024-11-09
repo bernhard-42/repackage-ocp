@@ -126,7 +126,6 @@ python -c "import vtk"
 
 ```bash
 install_name_tool -add_rpath @loader_path/vtkmodules/.dylibs OCP.*.so
-# install_name_tool -add_rpath @loader_path/cadquery_ocp/lib OCP.*.so
 codesign --force --sign - OCP.*.so
 ```
 
