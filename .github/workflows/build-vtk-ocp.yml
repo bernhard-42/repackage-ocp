@@ -189,4 +189,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-ocp-${{ matrix.os }}-cp${{ matrix.python-version }}
-          path: VTK/wheel/*.whl      
+          path: OCP/wheel/*.whl      
