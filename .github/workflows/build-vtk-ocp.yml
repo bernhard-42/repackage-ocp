@@ -1,0 +1,36 @@
+name: Build VTK from source
+
+on:
+  workflow_dispatch
+
+env:
+  VTK_VERSION: 9.2.1
+  OCP_VERSION: 7.7.2
+  VTK_ENV: build_cadquery_vtk
+  OCP_ENV: build_cadquery_ocp
+
+jobs:
+  build:
+    name: Build with wrapper for Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        # os: ['ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019']
+        # python-version: ['3.10', '3.11', '3.12']
+        os: ['macos-14']
+        python-version: ['3.11']
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+            environment-name: ${{ env.VTK_ENV }} 
+            generate-run-shell: true
+            create-args: python=3.11 ocp=${{ env.OCP_VERSION }} delocate build
+
+      - run: |
+            echo $$CONDA_PREFIX
+        shell: micromamba-shell {0}
