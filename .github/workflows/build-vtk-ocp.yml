@@ -183,10 +183,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
-          path: VTK/build/dist/*.whl      
+          path: VTK/wheel/*.whl      
 
       - name: Upload cadquery_ocp wheel
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-ocp-${{ matrix.os }}-cp${{ matrix.python-version }}
-          path: VTK/build/dist/*.whl      
+          path: VTK/wheel/*.whl      
