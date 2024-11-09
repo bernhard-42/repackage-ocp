@@ -31,7 +31,12 @@ jobs:
             generate-run-shell: true
             create-args: python=3.11
 
-      - run: |
-            echo $$CONDA_PREFIX
-            micromamba install -y -c conda-forge ocp=${{ env.OCP_VERSION }} delocate build
+      - name: Check CONDA_PREFIX
         shell: micromamba-shell {0}
+        run: |
+            echo "CONDA_PREFIX: $CONDA_PREFIX"
+    
+      - name: Install OCP
+        shell: micromamba-shell {0}
+        run: |
+          micromamba install -y -c conda-forge ocp=${{ env.OCP_VERSION }} delocate build
