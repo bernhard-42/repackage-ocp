@@ -69,7 +69,7 @@ micromamba deactivate
 cd ..
 ```
 
-# ============= OCP ============
+# OCP
 
 ## Clean the environment
 
