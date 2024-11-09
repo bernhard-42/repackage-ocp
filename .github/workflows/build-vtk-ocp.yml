@@ -4,7 +4,6 @@ on:
   workflow_dispatch
 
 env:
-  VTK_VERSION: 9.2.1 # for macos-14
   OCP_VERSION: 7.7.2
   VTK_ENV: build_cadquery_vtk
   OCP_ENV: build_cadquery_ocp
@@ -18,8 +17,17 @@ jobs:
       matrix:
         # os: ['ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019']
         # python-version: ['3.10', '3.11', '3.12']
-        os: ['macos-14']
+        os: ['ubuntu-20.04']
         python-version: ['3.11']
+        include:
+          - os: 'macos-13'
+            vtk_internal_version: 9.2.1
+          - os: 'macos-14'
+            vtk_internal_version: 9.2.1
+          - os: 'ubuntu-20.04'
+            vtk_internal_version: 9.2.6
+          - os: 'windows-2019'
+            vtk_internal_version: 9.2.6
 
     steps:
 
@@ -51,7 +59,7 @@ jobs:
           cp -r $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules .
           mkdir libs
           # copy symlinks with name of the symlink
-          for l in $CONDA_PREFIX/lib/libvtk*${{ env.VTK_VERSION }}.dylib; do cp -L $l ./libs; done
+          for l in $CONDA_PREFIX/lib/libvtk*${{ matrix.vtk_internal_version }}.dylib; do cp -L $l ./libs; done
 
       - name: Copy the OCP artifacts         
         shell: bash -l {0}
@@ -79,7 +87,7 @@ jobs:
           cd VTK
           python -m build -n -w
 
-      - name: Delocate the wheel
+      - name: Delocate the cadquery_vtk wheel
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.VTK_ENV }}
@@ -123,7 +131,7 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
           python -m build -w -n
 
-      - name:  Delocate the libraries
+      - name:   Delocate the cadquery_ocp wheel
         shell: bash -l {0}
         run: |
           cd OCP
@@ -189,4 +197,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-ocp-${{ matrix.os }}-cp${{ matrix.python-version }}
-          path: VTK/wheel/*.whl      
+          path: OCP/wheel/*.whl      
