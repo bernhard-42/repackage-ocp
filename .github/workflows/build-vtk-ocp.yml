@@ -1,10 +1,10 @@
-name: Build VTK from source
+name: Repackage OCP
 
 on:
   workflow_dispatch
 
 env:
-  VTK_VERSION: 9.2.1
+  VTK_VERSION: 9.2.1 # for macos-14
   OCP_VERSION: 7.7.2
   VTK_ENV: build_cadquery_vtk
   OCP_ENV: build_cadquery_ocp
@@ -25,18 +25,166 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: mamba-org/setup-micromamba@v1
+      - name: Set up Python ${{ matrix.python-version }} via micromamba
+        uses: mamba-org/setup-micromamba@v1
         with:
-            environment-name: ${{ env.VTK_ENV }} 
-            generate-run-shell: true
-            create-args: python=3.11
+            log-level: debug
+            init-shell: bash
+            cache-downloads: true
 
-      - name: Check CONDA_PREFIX
-        shell: micromamba-shell {0}
-        run: |
-            echo "CONDA_PREFIX: $CONDA_PREFIX"
+      # ==================== cadquery_vtk ====================
     
       - name: Install OCP
-        shell: micromamba-shell {0}
+        shell: bash -l {0}
         run: |
-          micromamba install -y -c conda-forge ocp=${{ env.OCP_VERSION }} delocate build
+          micromamba create  -y -n ${{ env.VTK_ENV }} python=${{ matrix.python-version }}
+          micromamba activate ${{ env.VTK_ENV }}
+          micromamba install -y -c conda-forge -c cadquery ocp=${{ env.OCP_VERSION }} delocate 
+          pip install build
+
+      - name: Copy the VTK artifacts
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.VTK_ENV }}
+          cd VTK
+          cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtk.py .
+          cp -r $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules .
+          mkdir libs
+          # copy symlinks with name of the symlink
+          for l in $CONDA_PREFIX/lib/libvtk*${{ env.VTK_VERSION }}.dylib; do cp -L $l ./libs; done
+
+      - name: Copy the OCP artifacts         
+        shell: bash -l {0}
+        run: |
+          cd OCP
+          micromamba activate ${{ env.VTK_ENV }}
+          mkdir cadquery_ocp
+          mkdir -p cadquery_ocp/include
+          touch cadquery_ocp/__init__.py
+
+          cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/OCP.cpython-*-darwin.so .
+          cp $CONDA_PREFIX/include/opencascade/* cadquery_ocp/include
+          
+      - name: Remove FFMPEG support to avoid _iconv error
+        shell: bash -l {0}
+        run: |
+          cd VTK
+          rm vtkmodules/vtkIOFFMPEG.so
+          sed -i 'bak' 's/from vtkmodules.vtkIOFFMPEG/# from vtkmodules.vtkIOFFMPEG/' vtk.py
+
+      - name: Create the cadquery_vtk wheel
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.VTK_ENV }}
+          cd VTK
+          python -m build -n -w
+
+      - name: Delocate the wheel
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.VTK_ENV }}
+          cd VTK
+          # The order in DYLD_LIBRARY_PATH is important to get the 9.2.1 libs
+          env MACOSX_DEPLOYMENT_TARGET=11.1 \
+              DYLD_LIBRARY_PATH=./libs:$CONDA_PREFIX/lib \
+              python -m delocate.cmd.delocate_wheel \
+              --wheel-dir=wheel \
+              dist/*.whl
+
+      # ==================== cadquery_ocp ====================
+
+      - name: Create the OCP environment
+        shell: bash -l {0}
+        run: |
+          micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }} -y
+          micromamba activate ${{ env.OCP_ENV }}
+          micromamba install delocate -y
+          pip install build
+
+      - name: Install and verify the VTK wheel
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.OCP_ENV }}
+          pip install VTK/wheel/*.whl
+
+          python -c "import vtk; print('Success: VTK', vtk.vtkVersion().GetVTKVersion())"
+        
+      - name: Patch the vtkmodules path into the OCP library
+        shell: bash -l {0}
+        run: |
+          cd OCP
+          install_name_tool -add_rpath @loader_path/vtkmodules/.dylibs OCP.*.so
+          codesign --force --sign - OCP.*.so
+
+      - name: Create the cadquery_ocp wheel
+        shell: bash -l {0}
+        run: |
+          cd OCP
+          micromamba activate ${{ env.OCP_ENV }}
+          python -m build -w -n
+
+      - name:  Delocate the libraries
+        shell: bash -l {0}
+        run: |
+          cd OCP
+          micromamba activate ${{ env.OCP_ENV }}
+          
+          # order in `DYLD_LIBRARY_PATH` is important
+          env MACOSX_DEPLOYMENT_TARGET=11.1 \
+              DYLD_LIBRARY_PATH=$CONDA_PREFIX/lib:$CONDA_PREFIX/../${{ env.VTK_ENV }}/lib \
+              python -m delocate.cmd.delocate_wheel \
+              -e libvtk \
+              --wheel-dir=wheel \
+              dist/*.whl
+
+      # ==================== test ====================
+
+      - name: Create the test environment
+        shell: bash -l {0}
+        run: |
+          micromamba create -y -n test python=${{ matrix.python-version }}
+          micromamba activate test
+          pip install pytest
+
+      - name: Install VTK and OCP wheel
+        shell: bash -l {0}
+        run: |
+          micromamba activate test
+          pip install VTK/wheel/*.whl
+          pip install OCP/wheel/*.whl
+
+      - name: Verify OCP
+        shell: bash -l {0}
+        run: |
+          micromamba activate test
+          python -c "import OCP; print('Success: OCP', OCP.__version__)"
+
+      - name: Install cadquery
+        shell: bash -l {0}
+        run: |
+          git clone https://github.com/cadquery/cadquery.git
+          cd cadquery
+          micromamba activate test
+          pip install .
+          pip install pytest docutils ipython
+
+      - name: Run tests
+        shell: bash -l {0}
+        run: |
+          cd cadquery
+          micromamba activate test
+          pytest tests
+
+      # ==================== upload artifacts ====================
+
+      - name: Upload cadquery_vtk wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
+          path: VTK/build/dist/*.whl      
+
+      - name: Upload cadquery_ocp wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: cadquery-ocp-${{ matrix.os }}-cp${{ matrix.python-version }}
+          path: VTK/build/dist/*.whl      
