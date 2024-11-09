@@ -1,4 +1,4 @@
-.phony clean
+.phony: clean
 
 clean:
 	rm -fr VTK/build
@@ -16,3 +16,5 @@ clean:
 	rm -fr OCP/cadquery_ocp.egg-info
 	rm -fr OCP/dist
 	rm -fr OCP/wheel
+
+	rm -fr cadquery
