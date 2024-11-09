@@ -1,0 +1,16 @@
+cadquery/
+VTK/build
+VTK/cadquery_vtk.egg-info
+VTK/dist
+VTK/libs
+VTK/vtk.py
+VTK/vtk.pybak
+VTK/vtkmodules
+VTK/wheel
+
+OCP/OCP.*.so
+OCP/build
+OCP/cadquery_ocp
+OCP/cadquery_ocp.egg-info
+OCP/dist
+OCP/wheel
