@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cadquery-vtk"
+version = "9.2.6"
+description = "Unchanged VTK package, just pypi packaged"
+authors = [
+    {name = "Bernhard Walter", email = "b_walter@arcor.de"},
+]
+requires-python = ">=3.10"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["vtkmodules", "vtkmodules.*",]
+            
+[tool.setuptools.package-data]
+"cadquery_vtk" = ["*.so", "*.py", "*.txt", "*/*.py", "*/*.dylib"]
+
