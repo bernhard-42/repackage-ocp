@@ -20,9 +20,9 @@ jobs:
         os: ['ubuntu-22.04', 'macos-13', 'macos-14']
         python-version: ['3.11']
         include:
-          # - os: 'macos-13'
-          #   vtk_internal_version: 9.2.1
-          #   delocate: delocate
+          - os: 'macos-13'
+            vtk_internal_version: 9.2.1
+            delocate: delocate
           - os: 'macos-14'
             vtk_internal_version: 9.2.1
             delocate: delocate
@@ -229,14 +229,14 @@ jobs:
           unset CONDA_PREFIX_1
           pip install .
 
-      - name: Run tests
+      - name: Run cadquery tests
         shell: bash -l {0}
         run: |
           cd cadquery
           micromamba activate test
           pytest tests
 
-      - name: Unistall test
+      - name: Uninstall test
         shell: bash -l {0}
         run: |
           micromamba activate test
