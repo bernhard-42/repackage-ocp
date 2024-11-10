@@ -100,6 +100,12 @@ jobs:
           cd VTK
           rm vtkmodules/vtkIOFFMPEG.so
           sed -i 'bak' 's/from vtkmodules.vtkIOFFMPEG/# from vtkmodules.vtkIOFFMPEG/' vtk.py
+          
+      - name: Install tree command on macOS
+        if: ${{ runner.os == 'macOS' }}
+        shell: bash -l {0}
+        run: |
+          brew install tree
 
       - name: VTK File tree
         shell: bash -l {0}
