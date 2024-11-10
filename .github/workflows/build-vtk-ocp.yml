@@ -90,8 +90,8 @@ jobs:
         run: |
           mkdir VTK/cadquery_vtk
           mkdir OCP/cadquery_ocp
-          wget https://github.com/Kitware/VTK/blob/master/Copyright.txt -O VTK/cadquery_vtk/
-          wget https://github.com/CadQuery/OCP/blob/master/LICENSE -O OCP/cadquery_ocp/
+          wget https://github.com/Kitware/VTK/blob/master/Copyright.txt -O VTK/cadquery_vtk/Copyright.txt
+          wget https://github.com/CadQuery/OCP/blob/master/LICENSE -O OCP/cadquery_ocp/LICENSE
           
       - name: Remove FFMPEG support to avoid _iconv error
         if: ${{ runner.os == 'macOS' }}
