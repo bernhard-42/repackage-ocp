@@ -88,10 +88,10 @@ jobs:
       - name: Copy license files
         shell: bash -l {0}
         run: |
-          mkdir cadquery_vtk
-          mkdir cadquery_ocp
-          wget https://github.com/Kitware/VTK/blob/master/Copyright.txt -O cadquery_vtk/LICENSE
-          wget https://github.com/CadQuery/OCP/blob/master/LICENSE -O cadquery_ocp/LICENSE
+          mkdir VTK/cadquery_vtk
+          mkdir OCP/cadquery_ocp
+          wget https://github.com/Kitware/VTK/blob/master/Copyright.txt -O VTK/cadquery_vtk/
+          wget https://github.com/CadQuery/OCP/blob/master/LICENSE -O OCP/cadquery_ocp/
           
       - name: Remove FFMPEG support to avoid _iconv error
         if: ${{ runner.os == 'macOS' }}
@@ -100,6 +100,11 @@ jobs:
           cd VTK
           rm vtkmodules/vtkIOFFMPEG.so
           sed -i 'bak' 's/from vtkmodules.vtkIOFFMPEG/# from vtkmodules.vtkIOFFMPEG/' vtk.py
+
+      - name: File tree
+        shell: bash -l {0}
+        run: |
+          tree .
 
       - name: Create the cadquery_vtk wheel
         shell: bash -l {0}
