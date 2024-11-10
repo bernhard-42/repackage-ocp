@@ -178,6 +178,12 @@ jobs:
           cd OCP
           micromamba activate ${{ env.OCP_ENV }}
           python -m build -w -n
+          PY_VER=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
+          python -m wheel tags --remove \
+                               --platform-tag ${{ matrix.plat }} \
+                               --abi-tag $PY_VER \
+                               --python-tag $PY_VER \
+                               dist/*.whl
 
       - name:   Delocate the cadquery_ocp wheel on macOS
         if: ${{ runner.os == 'macOS' }}
