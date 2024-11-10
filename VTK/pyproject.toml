@@ -18,5 +18,5 @@ include-package-data = true
 include = ["vtkmodules", "vtkmodules.*",]
             
 [tool.setuptools.package-data]
-"cadquery_vtk" = ["*.so", "*.py", "*.txt", "*/*.py", "*/*.dylib"]
+"vtkmodules" = ["*.so", "*.py", "*.txt", "*/*.py", "*/*.dylib"]
 
