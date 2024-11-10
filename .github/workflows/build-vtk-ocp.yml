@@ -222,11 +222,12 @@ jobs:
         run: |
           cd OCP
           micromamba activate ${{ env.OCP_ENV }}
-          
+          EXCLUDE = (auditwheel lddtree OCP.cpython-311-x86_64-linux-gnu.so 2>&1 | egrep 'libvtk.*",' | tr -d '"' | xargs | sed 's/,/ --exclude /g')
+          echo $EXCLUDE
           env LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$CONDA_PREFIX/../${{ env.VTK_ENV }}/lib \
               python -m auditwheel \
               repair \
-              --exclude libvtk \
+              --exclude $EXCLUDE \
               --plat=${{ matrix.plat }} \
               --wheel-dir=wheel \
               dist/*.whl
