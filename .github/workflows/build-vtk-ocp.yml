@@ -101,10 +101,10 @@ jobs:
           rm vtkmodules/vtkIOFFMPEG.so
           sed -i 'bak' 's/from vtkmodules.vtkIOFFMPEG/# from vtkmodules.vtkIOFFMPEG/' vtk.py
 
-      - name: File tree
+      - name: VTK File tree
         shell: bash -l {0}
         run: |
-          tree .
+          tree VTK
 
       - name: Create the cadquery_vtk wheel
         shell: bash -l {0}
@@ -177,6 +177,11 @@ jobs:
           cd OCP
           patchelf --add-rpath '$ORIGIN/cadquery_vtk.libs' OCP.cpython-311-x86_64-linux-gnu.so
 
+      - name: OCP File tree
+        shell: bash -l {0}
+        run: |
+          tree OCP
+          
       - name: Create the cadquery_ocp wheel
         shell: bash -l {0}
         run: |
