@@ -13,11 +13,10 @@ requires-python = ">=3.10"
 
 [tool.setuptools]
 include-package-data = true
-py-modules = ["vtk.py"]
 
 [tool.setuptools.packages.find]
 include = ["vtkmodules", "vtkmodules.*",]
             
 [tool.setuptools.package-data]
-"vtkmodules" = ["*.so", "*.py", "*.txt", "*/*.py", "*/*.dylib"]
+"vtkmodules" = ["*.so", "../vtk.py", "*.py", "*.txt", "*/*.py", "*/*.dylib"]
 
