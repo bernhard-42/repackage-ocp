@@ -80,13 +80,16 @@ jobs:
         shell: bash -l {0}
         run: |
           cd OCP
-          micromamba activate ${{ env.VTK_ENV }}
-          mkdir cadquery_ocp
-          mkdir -p cadquery_ocp/include
-          touch cadquery_ocp/__init__.py
-
+          micromamba activate ${{ env.VTK_ENV }}          
           cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/OCP.cpython-*.so .
-          cp $CONDA_PREFIX/include/opencascade/* cadquery_ocp/include
+      
+      - name: Copy license files
+        shell: bash -l {0}
+        run: |
+          mkdir cadquery_vtk
+          mkdir cadquery_ocp
+          wget https://github.com/Kitware/VTK/blob/master/Copyright.txt -O cadquery_vtk/LICENSE
+          wget https://github.com/CadQuery/OCP/blob/master/LICENSE -O cadquery_ocp/LICENSE
           
       - name: Remove FFMPEG support to avoid _iconv error
         if: ${{ runner.os == 'macOS' }}
