@@ -236,6 +236,14 @@ jobs:
           micromamba activate test
           pytest tests
 
+      - name: Unistall test
+        shell: bash -l {0}
+        run: |
+          micromamba activate test
+          pip uninstall -y cadquery
+          pip uninstall -y cadquery_ocp
+          pip uninstall -y cadquery_vtk
+
       # ==================== upload artifacts ====================
 
       - name: Upload cadquery_vtk wheel
