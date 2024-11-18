@@ -15,7 +15,7 @@ requires-python = ">=3.10"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["vtkmodules", "vtkmodules.*",]
+include = ["vtkmodules", "vtkmodules.*", "cadquery_vtk", "cadquery_vtk.*"]
             
 [tool.setuptools.package-data]
 "vtkmodules" = ["*.so", "../vtk.py", "*.py", "*.txt", "*/*.py", "*/*.dylib"]

@@ -57,7 +57,7 @@ jobs:
           micromamba install -y -c conda-forge -c cadquery ocp=${{ env.OCP_VERSION }} ${{ matrix.delocate }} 
           pip install build
 
-      - name: Copy the VTK artifacts for Ubuntu
+      - name: Linux - Copy the VTK artifactsUbuntu
         if: ${{ runner.os == 'Linux' }}
         shell: bash -l {0}
         run: |
@@ -66,7 +66,7 @@ jobs:
           cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtk.py .
           cp -r $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules .
 
-      - name: Copy the VTK artifacts for Mac
+      - name: Mac - Copy the VTK artifacts
         if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
@@ -93,7 +93,7 @@ jobs:
           wget https://github.com/Kitware/VTK/blob/master/Copyright.txt -O VTK/cadquery_vtk/Copyright.txt
           wget https://github.com/CadQuery/OCP/blob/master/LICENSE -O OCP/cadquery_ocp/LICENSE
           
-      - name: Remove FFMPEG support to avoid _iconv error
+      - name: Mac - Remove FFMPEG support to avoid _iconv error
         if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
@@ -101,7 +101,7 @@ jobs:
           rm vtkmodules/vtkIOFFMPEG.so
           sed -i 'bak' 's/from vtkmodules.vtkIOFFMPEG/# from vtkmodules.vtkIOFFMPEG/' vtk.py
           
-      - name: Install tree command on macOS
+      - name: Mac - Install tree command
         if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
@@ -125,7 +125,7 @@ jobs:
                                --python-tag $PY_VER \
                                dist/*.whl
 
-      - name: Delocate the cadquery_vtk wheel on macOS
+      - name: Mac - Delocate the cadquery_vtk wheel
         if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
@@ -138,7 +138,7 @@ jobs:
               --wheel-dir=wheel \
               dist/*.whl
 
-      - name: Delocate the cadquery_vtk wheel on Linux
+      - name: Linux - Delocate the cadquery_vtk wheel
         if: ${{ runner.os == 'Linux' }}
         shell: bash -l {0}
         run: |
@@ -150,7 +150,7 @@ jobs:
               --wheel-dir=wheel \
               dist/*.whl
 
-      - name: Add copies of libs to solve symbolic link issues
+      - name: Linux - Add copies of libs to solve symbolic link issues
         if: ${{ runner.os == 'Linux' }}
         shell: bash -l {0}
         run: |
@@ -158,6 +158,7 @@ jobs:
           mkdir wheel2
           cd wheel2
           python -m wheel unpack ../wheel/cadquery_vtk-9.2.6-cp311-cp311-manylinux_2_35_x86_64.whl
+
           cd cadquery_vtk-9.2.6/cadquery_vtk.libs/
           cp libvtkWrappingPythonCore3-*.11-9.2.so.9.2.6 libvtkWrappingPythonCore3.11-9.2.so.1
           cp libvtkRenderingCore-9-*.2.so.9.2.6 libvtkRenderingCore-9.2.so.1
@@ -165,7 +166,17 @@ jobs:
           cp libvtkCommonCore-9-*.2.so.9.2.6 libvtkCommonCore-9.2.so.1
           cp libvtksys-9-*.2.so.9.2.6 libvtksys-9.2.so.1
           cd ../..
+
           python -m wheel pack cadquery_vtk-9.2.6/
+          cd ..
+          rm wheel/cadquery_vtk-*.whl
+          mv wheel2/cadquery_vtk-*.whl wheel/
+
+      - name: Upload cadquery_vtk wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
+          path: VTK/wheel/*.whl    
 
       # ==================== cadquery_ocp ====================
 
@@ -181,11 +192,11 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          pip install VTK/wheel2/*.whl
+          pip install VTK/wheel/*.whl
 
           python -c "import vtk; print('Success: VTK', vtk.vtkVersion().GetVTKVersion())"
         
-      - name: Patch the vtkmodules path into the OCP library on macOS
+      - name: Mac - Patch the vtkmodules path into the OCP library
         if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
@@ -193,7 +204,7 @@ jobs:
           install_name_tool -add_rpath @loader_path/vtkmodules/.dylibs OCP.*.so
           codesign --force --sign - OCP.*.so
 
-      - name: Patch the vtkmodules path into the OCP library on Linux
+      - name: Linux - Patch the vtkmodules path into the OCP library
         if: ${{ runner.os == 'Linux' }}
         shell: bash -l {0}
         run: |
@@ -218,7 +229,7 @@ jobs:
                                --python-tag $PY_VER \
                                dist/*.whl
 
-      - name:   Delocate the cadquery_ocp wheel on macOS
+      - name: Mac - Delocate the cadquery_ocp wheel
         if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
@@ -233,7 +244,7 @@ jobs:
               --wheel-dir=wheel \
               dist/*.whl
 
-      - name:   Delocate the cadquery_ocp wheel on Linux
+      - name: Linux - Delocate the cadquery_ocp wheel
         if: ${{ runner.os == 'Linux' }}
         shell: bash -l {0}
         run: |
@@ -249,6 +260,12 @@ jobs:
               --wheel-dir=wheel \
               dist/*.whl
 
+      - name: Upload cadquery_ocp wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: cadquery-ocp-${{ matrix.os }}-cp${{ matrix.python-version }}
+          path: OCP/wheel/*.whl    
+                        
       # ==================== test ====================
 
       - name: Create the test environment
@@ -295,16 +312,3 @@ jobs:
           pip uninstall -y cadquery_ocp
           pip uninstall -y cadquery_vtk
 
-      # ==================== upload artifacts ====================
-
-      - name: Upload cadquery_vtk wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
-          path: VTK/wheel/*.whl      
-
-      - name: Upload cadquery_ocp wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: cadquery-ocp-${{ matrix.os }}-cp${{ matrix.python-version }}
-          path: OCP/wheel/*.whl      
