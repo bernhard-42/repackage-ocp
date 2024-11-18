@@ -4,7 +4,7 @@ on:
   workflow_dispatch
 
 env:
-  OCP_VERSION: 7.7.2
+  OCP_VERSION: 7.7.2.1
   VTK_ENV: build_cadquery_vtk
   OCP_ENV: build_cadquery_ocp
 
@@ -150,6 +150,23 @@ jobs:
               --wheel-dir=wheel \
               dist/*.whl
 
+      - name: Add copies of libs to solve symbolic link issues
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash -l {0}
+        run: |
+          cd VTK
+          mkdir wheel2
+          cd wheel2
+          python -m wheel unpack ../wheel/cadquery_vtk-9.2.6-cp311-cp311-manylinux_2_35_x86_64.whl
+          cd cadquery_vtk-9.2.6/cadquery_vtk.libs/
+          cp libvtkWrappingPythonCore3-*.11-9.2.so.9.2.6 libvtkWrappingPythonCore3.11-9.2.so.1
+          cp libvtkRenderingCore-9-*.2.so.9.2.6 libvtkRenderingCore-9.2.so.1
+          cp libvtkCommonDataModel-9-*.2.so.9.2.6 libvtkCommonDataModel-9.2.so.1
+          cp libvtkCommonCore-9-*.2.so.9.2.6 libvtkCommonCore-9.2.so.1
+          cp libvtksys-9-*.2.so.9.2.6 libvtksys-9.2.so.1
+          cd ../..
+          python -m wheel pack cadquery_vtk-9.2.6/
+
       # ==================== cadquery_ocp ====================
 
       - name: Create the OCP environment
@@ -164,7 +181,7 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          pip install VTK/wheel/*.whl
+          pip install VTK/wheel2/*.whl
 
           python -c "import vtk; print('Success: VTK', vtk.vtkVersion().GetVTKVersion())"
         
