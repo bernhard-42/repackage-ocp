@@ -17,8 +17,7 @@ jobs:
       matrix:
         # os: ['ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019']
         # python-version: ['3.10', '3.11', '3.12']
-        # os: ['ubuntu-22.04', 'macos-13', 'macos-14']
-        os: ['ubuntu-22.04']
+        os: ['ubuntu-22.04', 'macos-14']
         python-version: ['3.11']
         include:
           # - os: 'macos-13'
@@ -153,7 +152,6 @@ jobs:
               dist/*.whl
 
       - name: Upload cadquery_vtk wheel
-        if: false
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
@@ -259,7 +257,6 @@ jobs:
           cd ..
 
       - name: Upload cadquery_ocp wheel
-        if: false
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-ocp-${{ matrix.os }}-cp${{ matrix.python-version }}
