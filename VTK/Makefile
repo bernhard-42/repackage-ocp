@@ -1,7 +1,7 @@
 .phony: clean clean-all wheel
 
 clean:
-	@rm -rf build cadquery_vtk.egg-info dist wheel libs
+	@rm -rf build cadquery_vtk cadquery_vtk.egg-info dist wheel libs
 
 clean-all: clean
 	@rm -fr  vtk.py vtkmodules

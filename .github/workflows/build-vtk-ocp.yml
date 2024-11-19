@@ -18,17 +18,17 @@ jobs:
         # os: ['ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019']
         # python-version: ['3.10', '3.11', '3.12']
         # os: ['ubuntu-22.04', 'macos-13', 'macos-14']
-        os: ['ubuntu-22.04', 'macos-14']
+        os: ['ubuntu-22.04']
         python-version: ['3.11']
         include:
           # - os: 'macos-13'
           #   vtk_internal_version: 9.2.1
           #   delocate: delocate
           #   plat: macosx_10_9_x86_64
-          - os: 'macos-14'
-            vtk_internal_version: 9.2.1
-            delocate: delocate
-            plat: macosx_11_0_arm64
+          # - os: 'macos-14'
+          #   vtk_internal_version: 9.2.1
+          #   delocate: delocate
+          #   plat: macosx_11_0_arm64
           - os: 'ubuntu-22.04'
             vtk_internal_version: 9.2.6
             delocate: auditwheel patchelf
@@ -153,6 +153,7 @@ jobs:
               dist/*.whl
 
       - name: Upload cadquery_vtk wheel
+        if: false
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
@@ -190,21 +191,15 @@ jobs:
         shell: bash -l {0}
         run: |
           cd OCP
-          
+          micromamba activate ${{ env.OCP_ENV }}          
           # ensure to load vtk libs from cadquery_vtk
           patchelf --add-rpath '$ORIGIN/cadquery_vtk.libs' OCP.*.so
-          
-          # replace vtk libs needed with mangled versions
-          for l in $(patchelf --print-needed OCP.*.so | grep libvtk); do 
-            NAME=$(echo "$l" | cut -d'-' -f1 | cut -d'.' -f1); 
-            l2=$(basename $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/cadquery_vtk.libs/$NAME*); 
-            patchelf --replace-needed $l $l2 OCP.*.so;
-          done
 
       - name: OCP File tree
         shell: bash -l {0}
         run: |
           tree OCP
+          
           
       - name: Create the cadquery_ocp wheel
         shell: bash -l {0}
@@ -251,11 +246,20 @@ jobs:
           # remove the VTK libs from the wheel, they are taken from cadquery_vtk
           wheel unpack cadquery_ocp-*.whl
           rm cadquery_ocp*.whl
-          rm cadquery_ocp-*/cadquery_ocp.libs/libvtk*
+          cd cadquery_ocp-*
+          rm cadquery_ocp.libs/libvtk*
+          # replace vtk libs needed with mangled versions
+          for l in $(patchelf --print-needed OCP.*.so | grep libvtk); do
+              NAME=$(echo "$l" | cut -d'-' -f1 | cut -d'.' -f1);
+              l2=$(basename $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/cadquery_vtk.libs/$NAME*);
+              patchelf --replace-needed $l $l2 OCP.*.so;
+          done
+          cd ..
           wheel pack cadquery_ocp-*
           cd ..
 
       - name: Upload cadquery_ocp wheel
+        if: false
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-ocp-${{ matrix.os }}-cp${{ matrix.python-version }}

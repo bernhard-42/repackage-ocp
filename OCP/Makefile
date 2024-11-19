@@ -5,10 +5,10 @@ PLATFORM := macosx_11_0_arm64
 MINOS=11.1
 
 clean:
-	@rm -rf build cadquery_ocp.egg-info dist wheel
+	@rm -rf build cadquery_ocp cadquery_ocp.egg-info dist wheel
 
 clean-all: clean
-	@rm -fr  OCP.cpython-$(PY_TAG)-darwin.so
+	@rm -fr  OCP.*.so
 
 wheel: clean
 	@python -m build -n -w
