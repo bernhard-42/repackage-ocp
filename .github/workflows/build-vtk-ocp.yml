@@ -145,33 +145,12 @@ jobs:
         run: |
           micromamba activate ${{ env.VTK_ENV }}
           cd VTK
+          # do not use --strip. Breaks the wheel
           env LD_LIBRARY_PATH=$CONDA_PREFIX/lib \
               python -m auditwheel repair \
               --plat=${{ matrix.plat }} \
               --wheel-dir=wheel \
               dist/*.whl
-
-      # - name: Linux - Add copies of libs to solve symbolic link issues
-      #   if: ${{ runner.os == 'Linux' }}
-      #   shell: bash -l {0}
-      #   run: |
-      #     cd VTK
-      #     mkdir wheel2
-      #     cd wheel2
-      #     python -m wheel unpack ../wheel/cadquery_vtk-9.2.6-cp311-cp311-manylinux_2_35_x86_64.whl
-
-      #     cd cadquery_vtk-9.2.6/cadquery_vtk.libs/
-      #     cp libvtkWrappingPythonCore3-*.11-9.2.so.9.2.6 libvtkWrappingPythonCore3.11-9.2.so.1
-      #     cp libvtkRenderingCore-9-*.2.so.9.2.6 libvtkRenderingCore-9.2.so.1
-      #     cp libvtkCommonDataModel-9-*.2.so.9.2.6 libvtkCommonDataModel-9.2.so.1
-      #     cp libvtkCommonCore-9-*.2.so.9.2.6 libvtkCommonCore-9.2.so.1
-      #     cp libvtksys-9-*.2.so.9.2.6 libvtksys-9.2.so.1
-      #     cd ../..
-
-      #     python -m wheel pack cadquery_vtk-9.2.6/
-      #     cd ..
-      #     rm wheel/cadquery_vtk-*.whl
-      #     mv wheel2/cadquery_vtk-*.whl wheel/
 
       - name: Upload cadquery_vtk wheel
         uses: actions/upload-artifact@v4
@@ -211,7 +190,16 @@ jobs:
         shell: bash -l {0}
         run: |
           cd OCP
-          patchelf --add-rpath '$ORIGIN/cadquery_vtk.libs' OCP.cpython-311-x86_64-linux-gnu.so
+          
+          # ensure to load vtk libs from cadquery_vtk
+          patchelf --add-rpath '$ORIGIN/cadquery_vtk.libs' OCP.*.so
+          
+          # replace vtk libs needed with mangled versions
+          for l in $(patchelf --print-needed OCP.*.so | grep libvtk); do 
+            NAME=$(echo "$l" | cut -d'-' -f1 | cut -d'.' -f1); 
+            l2=$(basename $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/cadquery_vtk.libs/$NAME*); 
+            patchelf --replace-needed $l $l2 OCP.*.so;
+          done
 
       - name: OCP File tree
         shell: bash -l {0}
@@ -252,15 +240,20 @@ jobs:
         run: |
           cd OCP
           micromamba activate ${{ env.OCP_ENV }}
-          # EXCLUDE=$(auditwheel lddtree OCP.cpython-311-x86_64-linux-gnu.so 2>&1 | egrep 'libvtk.*",' | tr -d '",' | xargs | sed 's/ / --exclude /g')
-          # echo $EXCLUDE
           env LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$CONDA_PREFIX/../${{ env.VTK_ENV }}/lib \
               python -m auditwheel \
               repair \
-              --exclude $EXCLUDE \
               --plat=${{ matrix.plat }} \
               --wheel-dir=wheel \
               dist/*.whl
+          cd wheel
+
+          # remove the VTK libs from the wheel, they are taken from cadquery_vtk
+          wheel unpack cadquery_ocp-*.whl
+          rm cadquery_ocp*.whl
+          rm cadquery_ocp-*/cadquery_ocp.libs/libvtk*
+          wheel pack cadquery_ocp-*
+          cd ..
 
       - name: Upload cadquery_ocp wheel
         uses: actions/upload-artifact@v4
