@@ -24,10 +24,10 @@ jobs:
           #   vtk_internal_version: 9.2.1
           #   delocate: delocate
           #   plat: macosx_10_9_x86_64
-          # - os: 'macos-14'
-          #   vtk_internal_version: 9.2.1
-          #   delocate: delocate
-          #   plat: macosx_11_0_arm64
+          - os: 'macos-14'
+            vtk_internal_version: 9.2.1
+            delocate: delocate
+            plat: macosx_11_0_arm64
           - os: 'ubuntu-22.04'
             vtk_internal_version: 9.2.6
             delocate: auditwheel patchelf
