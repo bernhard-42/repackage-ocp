@@ -155,6 +155,7 @@ jobs:
           sudo mkdir -p /opt/local/occt-${{ env.OCCT }}
           sudo chmod -R a+rwx /opt/local/occt-${{ env.OCCT }}
 
+          cd OCCT
           rm -fr build
           cmake -S . -B build  -G Ninja \
                 -D CMAKE_INSTALL_PREFIX=/opt/local/occt-${{ env.OCCT }} \
