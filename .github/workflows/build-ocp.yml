@@ -58,15 +58,9 @@ jobs:
           else
             cpu_count=1
           fi
-
           echo "cpu_count=$cpu_count" >> $GITHUB_OUTPUT
-          echo "=> Using $cpu_count CPUs"
 
-          echo $HOME
-          ls -la $HOME
-          ls -la ~/
-          sleep 60
-          die-now
+          echo "=> Using $cpu_count CPUs"
 
       # ========================================
       #                VTK SDK
@@ -126,7 +120,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            ./opt/local/vtk-${{ env.VTK }}
+            $HOME/opt/local/vtk-${{ env.VTK }}
           key: ${{ steps.cache-vtk-restore.outputs.cache-primary-key }}
 
       # ========================================
@@ -138,7 +132,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            ${{ github.workspace }}/opt/local/occt-${{ env.OCCT }}
+            $HOME/opt/local/occt-${{ env.OCCT }}
           key: OCCT-${{ env.OCCT }}-${{ matrix.os }}-
 
       - name: (All) Download and prepare OCCT SDK
@@ -198,7 +192,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            ${{ github.workspace }}/opt/local/occt-${{ env.OCCT }}
+            $HOME/opt/local/occt-${{ env.OCCT }}
           key: ${{ steps.cache-occt-restore.outputs.cache-primary-key }}
 
       # ========================================
@@ -210,7 +204,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            ${{ github.workspace }}/OCP/build/OCP.*.so
+            ./OCP/build/OCP.*.so
           key: OCP-${{ env.OCP }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (Mac) Install MacOS SDK and python dependencies
@@ -241,7 +235,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            ${{ github.workspace }}/OCP/OCP
+            ./OCP/OCP
           key: OCP-source-${{ env.OCP }}-${{ matrix.os }}-
 
       - name: (Mac) Generate OCP source
@@ -271,7 +265,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            ${{ github.workspace }}/OCP/OCP
+            ./OCP/OCP
           key: ${{ steps.cache-ocp-source-restore.outputs.cache-primary-key }}
 
       - name: (Mac) Generate OCP build files and build OCP
@@ -312,7 +306,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            ${{ github.workspace }}/OCP/build/OCP.*.so
+            ./OCP/build/OCP.*.so
           key: ${{ steps.cache-ocp-restore.outputs.cache-primary-key }}
 
       # ========================================
