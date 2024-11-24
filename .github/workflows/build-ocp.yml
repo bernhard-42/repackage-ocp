@@ -55,15 +55,23 @@ jobs:
 
       # Install toolchain if needed
 
-      - name: Install brew dependencies
+      - name: (Mac) Install brew dependencies
         if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
+          echo ${{ github.workspace }}
           brew install freeimage rapidjson ninja cmake llvm@15 tree
+
+      - name: debug
+        shell: bash -l {0}
+        run: |
+          echo ${{ github.workspace }}
+          tree ${{ github.workspace }}
+          not-existing-command
 
       # Create build environment and install VTK from pypi
 
-      - name: Create build environment and install VTK ${{ env.VTK }} from pypi
+      - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
         shell: bash -l {0}
         run: |
           micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
@@ -72,7 +80,7 @@ jobs:
 
       # Restore VTK SDK cache if possible
 
-      - name: Restore VTK SDK cache
+      - name: (All) Restore VTK SDK cache
         id: cache-vtk-restore
         uses: actions/cache/restore@v4
         with:
@@ -82,8 +90,8 @@ jobs:
 
       # Create VTK SDK
 
-      - name: Install VTK SDK
-        if: steps.cache-vtk-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
+      - name: (All) Install VTK SDK
+        if: steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           # Create an environment with conda VTK to get the include files

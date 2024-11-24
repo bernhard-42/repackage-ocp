@@ -9,8 +9,14 @@ set(VTK_BUILD_VERSION 6)
 set(VTK_VERSION "${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.${VTK_BUILD_VERSION}")
 
 # Set include and library directories
-set(VTK_INCLUDE_DIRS "$ENV{HOME}/opt/local/vtk-${VTK_VERSION}/include")
-set(VTK_LIBRARY_DIRS "$ENV{HOME}/opt/local/vtk-${VTK_VERSION}/lib")
+if(WIN32)
+  set(HOME_DIR "$ENV{USERPROFILE}")
+else()
+  set(HOME_DIR "$ENV{HOME}")
+endif()
+
+set(VTK_INCLUDE_DIRS "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/include")
+set(VTK_LIBRARY_DIRS "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/lib")
 
 # Find Python interpreter and get version
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
