@@ -222,6 +222,7 @@ jobs:
           curl -L -O https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz
           sudo tar -xf MacOSX11.3.sdk.tar.xz -C /opt
           sudo mkdir -p /opt/usr/local/
+          sudo mkdir /usr/local/include
           sudo ln -s /opt/MacOSX11.3.sdk/usr/include /opt/usr/local/include
           sudo ln -s /opt/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers /usr/local/include/OpenGL
 
@@ -241,7 +242,7 @@ jobs:
 
       # Generate OCP source
 
-      - name: Genereate OCP build files
+      - name: Generate OCP source
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
         shell: bash -l {0}
         run: |
@@ -256,6 +257,7 @@ jobs:
           export CPATH=/opt/homebrew/include
           export LDFLAGS="-L~/opt/local/vtk-${{ env.VTK }}/lib"
 
+          cd OCP
           cmake -B new -S . -G Ninja -D N_PROC=${{ matrix.nproc }} \
               -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
@@ -279,6 +281,7 @@ jobs:
           export CPATH=/opt/homebrew/include
           export LDFLAGS="-L~/opt/local/vtk-${{ env.VTK }}/lib"
 
+          cd OCP
           cmake -B build -S OCP -G Ninja \
               -D CMAKE_BUILD_TYPE=Release \
               -D CMAKE_OSX_DEPLOYMENT_TARGET="11.1" \
