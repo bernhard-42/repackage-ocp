@@ -67,6 +67,7 @@ jobs:
         run: |
           echo ${{ github.workspace }}
           tree ${{ github.workspace }}
+          echo "PWD $(pwd)"
           not-existing-command
 
       # Create build environment and install VTK from pypi
