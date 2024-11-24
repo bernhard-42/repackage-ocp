@@ -1,4 +1,4 @@
-name: Repackage OCP
+name: OCP with pypi VTK
 
 on: workflow_dispatch
 
