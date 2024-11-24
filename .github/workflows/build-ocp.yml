@@ -54,7 +54,7 @@ jobs:
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
             cpu_count=$(nproc)
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            cpu_count=$env:NUMBER_OF_PROCESSORS
+            cpu_count=$NUMBER_OF_PROCESSORS
           else
             cpu_count=1
           fi
