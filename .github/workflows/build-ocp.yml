@@ -109,7 +109,7 @@ jobs:
 
       # Cache VTK SDK if needed
 
-      - name: Cache build folder
+      - name: Cache VTK build folder
         # works on Windows, since github actions replace the '/' with '\'
         id: cache-vtk-save
         uses: actions/cache/save@v4
@@ -190,7 +190,7 @@ jobs:
 
       # Cache OCCT SDK if needed
 
-      - name: Cache build folder
+      - name: Cache OCCT build folder
         # works on Windows, since github actions replace the '/' with '\'
         id: cache-occt-save
         uses: actions/cache/save@v4
@@ -205,12 +205,12 @@ jobs:
 
       # Restore OCP cache if possible
 
-      - name: Restore OCCT SDK cache
+      - name: Restore OCP cache
         id: cache-ocp-restore
         uses: actions/cache/restore@v4
         with:
           path: |
-            build/OCP.*.so
+            ./OCP/build/OCP.*.so
           key: OCP-${{ env.OCP }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       # Install MacOS SDK and python dependencies
@@ -240,10 +240,20 @@ jobs:
           git checkout -b V${{ env.OCP }} tags/${{ env.OCP }}
           git submodule update --init
 
+      # Restore OCP source cache if possible
+
+      - name: Restore OCCT SDK cache
+        id: cache-ocp-source-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ./OCP/OCP
+          key: OCP-source-${{ env.OCP }}-${{ matrix.os }}-
+
       # Generate OCP source
 
       - name: Generate OCP source
-        if: steps.cache-ocp-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
+        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
@@ -263,6 +273,17 @@ jobs:
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
+
+      # Cache OCP source if needed
+
+      - name: Cache OCP source folder
+        # works on Windows, since github actions replace the '/' with '\'
+        id: cache-ocp-source-save
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ./OCP/OCP
+          key: ${{ steps.cache-ocp-source-restore.outputs.cache-primary-key }}
 
       # Generate OCP source
 
@@ -296,13 +317,13 @@ jobs:
 
       # Cache OCP if needed
 
-      - name: Cache build folder
+      - name: Cache OCP build folder
         # works on Windows, since github actions replace the '/' with '\'
         id: cache-ocp-save
         uses: actions/cache/save@v4
         with:
           path: |
-            build/OCP.*.so
+            ./OCP/build/OCP.*.so
           key: ${{ steps.cache-ocp-restore.outputs.cache-primary-key }}
 
       # - name: Create the cadquery_ocp wheel
