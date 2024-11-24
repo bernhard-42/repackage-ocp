@@ -19,25 +19,21 @@ jobs:
       matrix:
         # os: ['ubuntu-22.04', 'macos-13', 'macos-14', 'windows-2019']
         # python-version: ['3.10', '3.11', '3.12']
-        os: ["macos-14", "macos-13", "windows-2019", "ubuntu-22.04"]
+        os: ["macos-14"]
         python-version: ["3.11"]
         include:
           # - os: 'macos-13'
           #   delocate: delocate
           #   plat: macosx_10_9_x86_64
-          #   nproc: 4
           - os: "macos-14"
             delocate: delocate
             plat: macosx_11_0_arm64
             deployment_target: 11.1
-            nproc: 3
           # - os: "ubuntu-22.04"
           #   delocate: auditwheel patchelf
           #   plat: manylinux_2_35_x86_64
-          #   nproc: 4
           # - os: 'windows-2019'
           #   delocate: delvewheel
-          #   nproc: 4
 
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +45,20 @@ jobs:
           init-shell: bash
           cache-downloads: true
 
+      - name: Get number of CPUs
+        id: cpu-count
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "cpu_count=$(sysctl -n hw.logicalcpu)" >> $GITHUB_OUTPUT
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            echo "cpu_count=$(nproc)" >> $GITHUB_OUTPUT
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "cpu_count=$env:NUMBER_OF_PROCESSORS" >> $GITHUB_OUTPUT
+          else
+            echo "cpu_count=1" >> $GITHUB_OUTPUT
+          fi
+          echo "=> Using $cpu_count CPUs"
+
       # ========================================
       #                VTK SDK
       # ========================================
@@ -59,18 +69,7 @@ jobs:
         if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
-          echo ${{ github.workspace }}
           brew install freeimage rapidjson ninja cmake llvm@15 tree
-
-      - name: debug
-        shell: bash -l {0}
-        run: |
-          echo ${{ github.workspace }}
-          tree ${{ github.workspace }}
-          echo "PWD $(pwd)"
-          not-existing-command
-
-      # Create build environment and install VTK from pypi
 
       - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
         shell: bash -l {0}
@@ -79,17 +78,13 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
           pip install vtk==${{ env.VTK }}
 
-      # Restore VTK SDK cache if possible
-
       - name: (All) Restore VTK SDK cache
         id: cache-vtk-restore
         uses: actions/cache/restore@v4
         with:
           path: |
-            ~/opt/local/vtk-${{ env.VTK }}
+            ./opt/local/vtk-${{ env.VTK }}
           key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
-
-      # Create VTK SDK
 
       - name: (All) Install VTK SDK
         if: steps.cache-vtk-restore.outputs.cache-hit != 'true'
@@ -116,35 +111,29 @@ jobs:
           cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtk.py ~/opt/local/vtk-${{ env.VTK }}
           cp -r $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules ~/opt/local/vtk-${{ env.VTK }}
 
-      # Cache VTK SDK if needed
-
-      - name: Cache VTK build folder
+      - name: (All) Cache VTK build folder
         # works on Windows, since github actions replace the '/' with '\'
         id: cache-vtk-save
         uses: actions/cache/save@v4
         with:
           path: |
-            ~/opt/local/vtk-${{ env.VTK }}
+            ./opt/local/vtk-${{ env.VTK }}
           key: ${{ steps.cache-vtk-restore.outputs.cache-primary-key }}
 
       # ========================================
       #                OCCT SDK
       # ========================================
 
-      # Restore OCCT SDK cache if possible
-
-      - name: Restore OCCT SDK cache
+      - name: (All) Restore OCCT SDK cache
         id: cache-occt-restore
         uses: actions/cache/restore@v4
         with:
           path: |
-            ~/opt/local/occt-${{ env.OCCT }}
+            ${{ github.workspace }}/opt/local/occt-${{ env.OCCT }}
           key: OCCT-${{ env.OCCT }}-${{ matrix.os }}-
 
-      # Download and prepare OCCT SDK
-
-      - name: Download and prepare OCCT SDK
-        if: steps.cache-occt-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
+      - name: (All) Download and prepare OCCT SDK
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           git clone https://github.com/Open-Cascade-SAS/OCCT.git
@@ -154,9 +143,7 @@ jobs:
           # Patch one issue that prevents from compiling
           sed -i ".bak" 's/const char\* aTags/const unsigned char\* aTags/' src/StdPrs/StdPrs_BRepFont.cxx
 
-      # Compile and install OCCT SDK (inspired by: conda's occt-7.7.2-all_h1e2436f_201)
-
-      - name: Compile and install OCCT SDK
+      - name: (Mac) Compile and install OCCT SDK
         if: steps.cache-occt-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
         shell: bash -l {0}
         run: |
@@ -194,37 +181,30 @@ jobs:
           rm build/build.ninja.bak
 
           # Build OCCT
-          ninja -C build -j ${{ matrix.nproc }}
+          ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
           ninja -C build install
 
-      # Cache OCCT SDK if needed
-
-      - name: Cache OCCT build folder
-        # works on Windows, since github actions replace the '/' with '\'
+      - name: (All) Cache OCCT build folder
         id: cache-occt-save
         uses: actions/cache/save@v4
         with:
           path: |
-            ~/opt/local/occt-${{ env.OCCT }}
+            ${{ github.workspace }}/opt/local/occt-${{ env.OCCT }}
           key: ${{ steps.cache-occt-restore.outputs.cache-primary-key }}
 
       # ========================================
       #                  OCP
       # ========================================
 
-      # Restore OCP cache if possible
-
-      - name: Restore OCP cache
+      - name: (All) Restore OCP cache
         id: cache-ocp-restore
         uses: actions/cache/restore@v4
         with:
           path: |
-            ./OCP/build/OCP.*.so
+            ${{ github.workspace }}/OCP/build/OCP.*.so
           key: OCP-${{ env.OCP }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
-      # Install MacOS SDK and python dependencies
-
-      - name: Install MacOS SDK and python dependencies
+      - name: (Mac) Install MacOS SDK and python dependencies
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
         shell: bash -l {0}
         run: |
@@ -238,10 +218,8 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
           pip install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click lief "clang==15.0.7"
 
-      # Clone OCP and checkout ${{ env.OCP }}
-
-      - name: Clone OCP
-        if: steps.cache-ocp-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
+      - name: (All) Clone OCP
+        if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           git clone https://github.com/cadquery/OCP.git
@@ -249,19 +227,15 @@ jobs:
           git checkout -b V${{ env.OCP }} tags/${{ env.OCP }}
           git submodule update --init
 
-      # Restore OCP source cache if possible
-
-      - name: Restore OCCT SDK cache
+      - name: (All) Restore OCP source cache
         id: cache-ocp-source-restore
         uses: actions/cache/restore@v4
         with:
           path: |
-            ./OCP/OCP
+            ${{ github.workspace }}/OCP/OCP
           key: OCP-source-${{ env.OCP }}-${{ matrix.os }}-
 
-      # Generate OCP source
-
-      - name: Generate OCP source
+      - name: (Mac) Generate OCP source
         if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
         shell: bash -l {0}
         run: |
@@ -277,26 +251,21 @@ jobs:
           export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
 
           cd OCP
-          cmake -B new -S . -G Ninja -D N_PROC=${{ matrix.nproc }} \
+          cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
               -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
-      # Cache OCP source if needed
-
-      - name: Cache OCP source folder
-        # works on Windows, since github actions replace the '/' with '\'
+      - name: (All) Cache OCP source folder
         id: cache-ocp-source-save
         uses: actions/cache/save@v4
         with:
           path: |
-            ./OCP/OCP
+            ${{ github.workspace }}/OCP/OCP
           key: ${{ steps.cache-ocp-source-restore.outputs.cache-primary-key }}
 
-      # Generate OCP source
-
-      - name: Generate OCP build files and build OCP
+      - name: (Mac) Generate OCP build files and build OCP
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
         shell: bash -l {0}
         run: |
@@ -322,46 +291,54 @@ jobs:
               -D CMAKE_CXX_STANDARD=17 \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
-          ninja -C build -j ${{ matrix.nproc }}
+          for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
+              sed -i ".bak" "s/-l$l/-l$l-9.2/" build/build.ninja
+          done
 
-      # Cache OCP if needed
+          ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
-      - name: Cache OCP build folder
+      - name: (All) Cache OCP build folder
         # works on Windows, since github actions replace the '/' with '\'
         id: cache-ocp-save
         uses: actions/cache/save@v4
         with:
           path: |
-            ./OCP/build/OCP.*.so
+            ${{ github.workspace }}/OCP/build/OCP.*.so
           key: ${{ steps.cache-ocp-restore.outputs.cache-primary-key }}
 
-      # - name: Create the cadquery_ocp wheel
-      #   shell: bash -l {0}
-      #   run: |
-      #     cd OCP
-      #     micromamba activate ${{ env.OCP_ENV }}
-      #     python -m build -w -n
-      #     PY_VER=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
-      #     python -m wheel tags --remove \
-      #                          --platform-tag ${{ matrix.plat }} \
-      #                          --abi-tag $PY_VER \
-      #                          --python-tag $PY_VER \
-      #                          dist/*.whl
+      # ========================================
+      #               OCP wheel
+      # ========================================
 
-      # - name: Mac - Delocate the cadquery_ocp wheel
-      #   if: ${{ runner.os == 'macOS' }}
-      #   shell: bash -l {0}
-      #   run: |
-      #     cd OCP
-      #     micromamba activate ${{ env.OCP_ENV }}
+      - name: (All) Create the cadquery_ocp wheel
+        shell: bash -l {0}
+        run: |
 
-      #     # ensure to have the lib dir of he vtk environment in `DYLD_LIBRARY_PATH` to find dependencies
-      #     env MACOSX_DEPLOYMENT_TARGET=11.1 \
-      #         DYLD_LIBRARY_PATH=$CONDA_PREFIX/lib:$CONDA_PREFIX/../${{ env.VTK_ENV }}/lib \
-      #         python -m delocate.cmd.delocate_wheel \
-      #         -e libvtk \
-      #         --wheel-dir=wheel \
-      #         dist/*.whl
+
+          micromamba activate ${{ env.OCP_ENV }}
+          python -m build -w -n
+          PY_VER=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
+          python -m wheel tags --remove \
+                               --platform-tag ${{ matrix.plat }} \
+                               --abi-tag $PY_VER \
+                               --python-tag $PY_VER \
+                               dist/*.whl
+
+      - name: (Mac) Delocate the cadquery_ocp wheel
+        if: ${{ runner.os == 'macOS' }}
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.OCP_ENV }}
+          cd pypi
+          cp ../OCP/build/OCP.*.so .
+
+          # ensure to have the lib dir of he vtk environment in `DYLD_LIBRARY_PATH` to find dependencies
+          env MACOSX_DEPLOYMENT_TARGET=11.1 \
+              DYLD_LIBRARY_PATH=$CONDA_PREFIX/lib:$CONDA_PREFIX/../${{ env.VTK_ENV }}/lib \
+              python -m delocate.cmd.delocate_wheel \
+              -e libvtk \
+              --wheel-dir=wheel \
+              dist/*.whl
 
       # - name: Linux - Delocate the cadquery_ocp wheel
       #   if: ${{ runner.os == 'Linux' }}
