@@ -61,9 +61,9 @@ jobs:
         run: |
           brew install freeimage rapidjson ninja cmake llvm@15 tree
 
-      # Create build environment and install pypi VTK
+      # Create build environment and install VTK from pypi
 
-      - name: Create environment and install VTK ${{ env.VTK }}
+      - name: Create build environment and install VTK ${{ env.VTK }} from pypi
         shell: bash -l {0}
         run: |
           micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
