@@ -130,7 +130,7 @@ jobs:
         with:
           path: |
             ~/opt/local/occt-${{ env.OCCT }}
-          key: OCCT-${{ env.OCCT }}-py${{ matrix.python-version }}-${{ matrix.os }}-
+          key: OCCT-${{ env.OCCT }}-${{ matrix.os }}-
 
       # Download and prepare OCCT SDK
 
@@ -153,11 +153,11 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
 
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}
-          tree $HOME/opt/local/vtk-${{ env.VTK }}/include/
+
           cd OCCT
           rm -fr build
           cmake -S . -B build  -G Ninja \
-                -D CMAKE_INSTALL_PREFIX=~/opt/local/occt-${{ env.OCCT }} \
+                -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }} \
                 \
                 -D USE_TBB=OFF \
                 -D USE_FREEIMAGE=ON \
@@ -219,7 +219,7 @@ jobs:
         shell: bash -l {0}
         run: |
           curl -L -O https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz
-          tar -xf MacOSX11.3.sdk.tar.xz -C /opt
+          sudo tar -xf MacOSX11.3.sdk.tar.xz -C /opt
           sudo mkdir -p /opt/usr/local/
           sudo ln -s /opt/MacOSX11.3.sdk/usr/include /opt/usr/local/include
           sudo ln -s /opt/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers /usr/local/include/OpenGL
