@@ -86,7 +86,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            $HOME/opt/local/vtk-${{ env.VTK }}
+            ~/opt/local/vtk-${{ env.VTK }}
           key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (All) Install VTK SDK
@@ -120,7 +120,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            $HOME/opt/local/vtk-${{ env.VTK }}
+            ~/opt/local/vtk-${{ env.VTK }}
           key: ${{ steps.cache-vtk-restore.outputs.cache-primary-key }}
 
       # ========================================
@@ -132,7 +132,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            $HOME/opt/local/occt-${{ env.OCCT }}
+            ~/opt/local/occt-${{ env.OCCT }}
           key: OCCT-${{ env.OCCT }}-${{ matrix.os }}-
 
       - name: (All) Download and prepare OCCT SDK
@@ -192,7 +192,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            $HOME/opt/local/occt-${{ env.OCCT }}
+            ~/opt/local/occt-${{ env.OCCT }}
           key: ${{ steps.cache-occt-restore.outputs.cache-primary-key }}
 
       # ========================================
