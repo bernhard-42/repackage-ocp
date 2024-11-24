@@ -95,7 +95,7 @@ jobs:
           sudo mkdir -p /opt/local/vtk-${{ env.VTK }}/include
           sudo mkdir -p /opt/local/vtk-${{ env.VTK }}/lib
           sudo mkdir -p /opt/local/vtk-${{ env.VTK }}/lib/cmake
-          cp -r $CONDA_PREFIX/include/vtk-${{ env.VTK_MAJOR }}/ /opt/local/${{ env.VTK }}/include/
+          cp -r $CONDA_PREFIX/include/vtk-${{ env.VTK_MAJOR }}/ /opt/local/vtk-${{ env.VTK }}/include/
           cp cmake/vtk-config.cmake /opt/local/vtk-${{ env.VTK }}/lib/cmake
           micromamba deactivate
 
