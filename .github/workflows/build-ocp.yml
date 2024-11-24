@@ -8,7 +8,7 @@ env:
   VTK: 9.2.6
   VTK_MAJOR: 9.2
   OCCT: 7.7.2
-  OCCCT_: 7_7_2
+  OCCT_: 7_7_2
 
 jobs:
   build:
