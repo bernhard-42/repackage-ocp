@@ -17,9 +17,9 @@ jobs:
 
     strategy:
       matrix:
-        # os: ['ubuntu-22.04', 'macos-13', 'macos-14', 'windows-2019']
+        os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
         # python-version: ['3.10', '3.11', '3.12']
-        os: ["macos-14"]
+        # os: ["macos-14"]
         python-version: ["3.11"]
         include:
           # - os: 'macos-13'
@@ -46,6 +46,7 @@ jobs:
           cache-downloads: true
 
       - name: Get number of CPUs
+        shell: bash -l {0}
         id: cpu-count
         run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then
@@ -58,6 +59,11 @@ jobs:
             echo "cpu_count=1" >> $GITHUB_OUTPUT
           fi
           echo "=> Using $cpu_count CPUs"
+
+          echo $HOME
+          ls -la $HOME
+          ls -la ~/
+          die-now
 
       # ========================================
       #                VTK SDK
@@ -83,7 +89,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            ./opt/local/vtk-${{ env.VTK }}
+            $HOME/opt/local/vtk-${{ env.VTK }}
           key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (All) Install VTK SDK
