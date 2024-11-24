@@ -95,6 +95,7 @@ jobs:
           sudo mkdir -p /opt/local/vtk-${{ env.VTK }}/include
           sudo mkdir -p /opt/local/vtk-${{ env.VTK }}/lib
           sudo mkdir -p /opt/local/vtk-${{ env.VTK }}/lib/cmake
+          sudo chmod -R a+rwx /opt/local/vtk-${{ env.VTK }}
           cp -r $CONDA_PREFIX/include/vtk-${{ env.VTK_MAJOR }}/ /opt/local/vtk-${{ env.VTK }}/include/
           cp cmake/vtk-config.cmake /opt/local/vtk-${{ env.VTK }}/lib/cmake
           micromamba deactivate
@@ -151,8 +152,10 @@ jobs:
         run: |
           micromamba activate ${{ env.OCP_ENV }}
 
-          rm -fr build
+          sudo mkdir -p /opt/local/occt-${{ env.OCCT }}
+          sudo chmod -R a+rwx /opt/local/occt-${{ env.OCCT }}
 
+          rm -fr build
           cmake -S . -B build  -G Ninja \
                 -D CMAKE_INSTALL_PREFIX=/opt/local/occt-${{ env.OCCT }} \
                 \
