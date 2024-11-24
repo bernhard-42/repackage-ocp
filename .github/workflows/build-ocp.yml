@@ -59,7 +59,7 @@ jobs:
         if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
-          brew install freeimage rapidjson ninja cmake llvm@15
+          brew install freeimage rapidjson ninja cmake llvm@15 tree
 
       # Create environment and install VTK
 
@@ -153,8 +153,7 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
 
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}
-          ls ~/opt/local/vtk-${{ env.VTK }}/include/
-          ls ~/opt/local/vtk-${{ env.VTK }}/lib/
+          tree $ENV{HOME}/opt/local/vtk-${{ env.VTK }}/include/
           cd OCCT
           rm -fr build
           cmake -S . -B build  -G Ninja \
@@ -174,8 +173,8 @@ jobs:
                 \
                 -D USE_VTK=ON \
                 -D VTK_RENDERING_BACKEND="OpenGL2" \
-                -D 3RDPARTY_VTK_INCLUDE_DIR=~/opt/local/vtk-${{ env.VTK }}/include/ \
-                -D 3RDPARTY_VTK_LIBRARY_DIR=~/opt/local/vtk-${{ env.VTK }}/lib/ \
+                -D 3RDPARTY_VTK_INCLUDE_DIR=$ENV{HOME}/opt/local/vtk-${{ env.VTK }}/include/ \
+                -D 3RDPARTY_VTK_LIBRARY_DIR=$ENV{HOME}/opt/local/vtk-${{ env.VTK }}/lib/ \
                 -D CMAKE_CXX_STANDARD_LIBRARIES="-lvtkCommonMath-${{ env.VTK_MAJOR }} -lvtkCommonTransforms-${{ env.VTK_MAJOR }} -lvtksys-${{ env.VTK_MAJOR }} -lvtkCommonExecutionModel-${{ env.VTK_MAJOR }} -lvtkCommonDataModel-${{ env.VTK_MAJOR }}"
 
           # Patch build file to use VTK libraries with "${{ env.VTK_MAJOR }}" suffix
@@ -257,8 +256,8 @@ jobs:
           export LDFLAGS="-L~/opt/local/vtk-${{ env.VTK }}/lib"
 
           cmake -B new -S . -G Ninja -D N_PROC=${{ matrix.nproc }} \
-              -D VTK_DIR=~/opt/local/vtk-${{ env.VTK }}/lib/cmake \
-              -D OpenCASCADE_DIR=~/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
+              -D VTK_DIR=$ENV{HOME}/opt/local/vtk-${{ env.VTK }}/lib/cmake \
+              -D OpenCASCADE_DIR=$ENV{HOME}/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
@@ -283,8 +282,8 @@ jobs:
               -D CMAKE_BUILD_TYPE=Release \
               -D CMAKE_OSX_DEPLOYMENT_TARGET="11.1" \
               -D CMAKE_CXX_FLAGS="-I $(brew --prefix)/include" \
-              -D VTK_DIR=~/opt/local/vtk-${{ env.VTK }}/lib/cmake \
-              -D OpenCASCADE_DIR=~/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
+              -D VTK_DIR=$ENV{HOME}/opt/local/vtk-${{ env.VTK }}/lib/cmake \
+              -D OpenCASCADE_DIR=$ENV{HOME}/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_CXX_STANDARD=17 \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
