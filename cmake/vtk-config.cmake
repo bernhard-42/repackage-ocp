@@ -9,8 +9,8 @@ set(VTK_BUILD_VERSION 6)
 set(VTK_VERSION "${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.${VTK_BUILD_VERSION}")
 
 # Set include and library directories
-set(VTK_INCLUDE_DIRS "/opt/local/vtk-${VTK_VERSION}/include")
-set(VTK_LIBRARY_DIRS "/opt/local/vtk-${VTK_VERSION}/lib")
+set(VTK_INCLUDE_DIRS "~/opt/local/vtk-${VTK_VERSION}/include")
+set(VTK_LIBRARY_DIRS "~/opt/local/vtk-${VTK_VERSION}/lib")
 
 # Find Python interpreter and get version
 find_package(Python3 REQUIRED COMPONENTS Interpreter)

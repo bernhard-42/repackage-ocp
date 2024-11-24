@@ -78,7 +78,7 @@ jobs:
         with:
           path: |
             ~/opt/local/vtk-${{ env.VTK }}
-          key: OCCT-${{ env.OCCT }}-py${{ matrix.python-version }}-${{ matrix.os }}-
+          key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       # Create VTK SDK
 
