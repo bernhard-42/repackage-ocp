@@ -266,7 +266,7 @@ jobs:
 
       # Generate OCP source
 
-      - name: Genereate OCP build files
+      - name: Generate OCP build files and build OCP
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
         shell: bash -l {0}
         run: |
