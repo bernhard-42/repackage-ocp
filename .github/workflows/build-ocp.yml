@@ -316,9 +316,13 @@ jobs:
       - name: (All) Create the cadquery_ocp wheel
         shell: bash -l {0}
         run: |
-
-
           micromamba activate ${{ env.OCP_ENV }}
+          pip install build wheel $${{ matrix.delocate}}
+
+          cd pypi
+          cp ../OCP/build/OCP.*.so .
+          mkdir cadquery_ocp
+          wget https://raw.githubusercontent.com/CadQuery/OCP/refs/heads/master/LICENSE -O cadquery_ocp/LICENSE
           python -m build -w -n
           PY_VER=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
           python -m wheel tags --remove \
@@ -326,22 +330,85 @@ jobs:
                                --abi-tag $PY_VER \
                                --python-tag $PY_VER \
                                dist/*.whl
+          ls -l dist/
+          unzip -l dist/cadquery_ocp-*.whl
 
       - name: (Mac) Delocate the cadquery_ocp wheel
         if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          cd pypi
-          cp ../OCP/build/OCP.*.so .
 
-          # ensure to have the lib dir of he vtk environment in `DYLD_LIBRARY_PATH` to find dependencies
+          cd pypi/dist
+
+          python -m wheel unpack cadquery_ocp*.whl
+          rm cadquery_ocp-*.whl
+          cd cadquery_ocp-*
+          install_name_tool -delete-rpath $(realpath ~/opt/local/occt-7.7.2/lib) OCP.*.so
+          install_name_tool -add-rpath @loader_path/vtkmodules/.dylibs/ OCP.*.so
+          cd ..
+          python -m wheel pack cadquery_ocp-*
+
           env MACOSX_DEPLOYMENT_TARGET=11.1 \
-              DYLD_LIBRARY_PATH=$CONDA_PREFIX/lib:$CONDA_PREFIX/../${{ env.VTK_ENV }}/lib \
+              DYLD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib:$HOME/opt/local/vtk-${{ env.VTK }}/lib:$(brew --prefix)/lib \
               python -m delocate.cmd.delocate_wheel \
               -e libvtk \
               --wheel-dir=wheel \
               dist/*.whl
+
+      - name: Upload cadquery_ocp wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: cadquery-ocp-${{ matrix.os }}-cp${{ matrix.python-version }}
+          path: pypi/wheel/*.whl
+
+      # ========================================
+      #                 Test
+      # ========================================
+
+      - name: Create the test environment
+        shell: bash -l {0}
+        run: |
+          micromamba create -y -n test python=${{ matrix.python-version }}
+          micromamba activate test
+          pip install pytest docutils ipython
+
+      - name: Install VTK and OCP wheel
+        shell: bash -l {0}
+        run: |
+          micromamba activate test
+          pip install vtk=${{ env.VTK }}
+          pip install pypi/wheel/*.whl
+
+      - name: Verify OCP
+        shell: bash -l {0}
+        run: |
+          micromamba activate test
+          python -c "import OCP; print('Success: OCP', OCP.__version__)"
+
+      - name: Install cadquery
+        shell: bash -l {0}
+        run: |
+          git clone https://github.com/cadquery/cadquery.git
+          cd cadquery
+          micromamba activate test
+          unset CONDA_PREFIX_1
+          pip install .
+
+      - name: Run cadquery tests
+        shell: bash -l {0}
+        run: |
+          cd cadquery
+          micromamba activate test
+          pytest tests
+
+      - name: Uninstall test
+        shell: bash -l {0}
+        run: |
+          micromamba activate test
+          pip uninstall -y cadquery
+          pip uninstall -y cadquery_ocp
+          pip uninstall -y cadquery_vtk
 
       # - name: Linux - Delocate the cadquery_ocp wheel
       #   if: ${{ runner.os == 'Linux' }}
@@ -363,55 +430,3 @@ jobs:
       #     rm cadquery_ocp-*/cadquery_ocp.libs/libvtk*
       #     wheel pack cadquery_ocp-*
       #     cd ..
-
-      # - name: Upload cadquery_ocp wheel
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: cadquery-ocp-${{ matrix.os }}-cp${{ matrix.python-version }}
-      #     path: OCP/wheel/*.whl
-
-      # # ==================== test ====================
-
-      # - name: Create the test environment
-      #   shell: bash -l {0}
-      #   run: |
-      #     micromamba create -y -n test python=${{ matrix.python-version }}
-      #     micromamba activate test
-      #     pip install pytest docutils ipython
-
-      # - name: Install VTK and OCP wheel
-      #   shell: bash -l {0}
-      #   run: |
-      #     micromamba activate test
-      #     pip install VTK/wheel/*.whl
-      #     pip install OCP/wheel/*.whl
-
-      # - name: Verify OCP
-      #   shell: bash -l {0}
-      #   run: |
-      #     micromamba activate test
-      #     python -c "import OCP; print('Success: OCP', OCP.__version__)"
-
-      # - name: Install cadquery
-      #   shell: bash -l {0}
-      #   run: |
-      #     git clone https://github.com/cadquery/cadquery.git
-      #     cd cadquery
-      #     micromamba activate test
-      #     unset CONDA_PREFIX_1
-      #     pip install .
-
-      # - name: Run cadquery tests
-      #   shell: bash -l {0}
-      #   run: |
-      #     cd cadquery
-      #     micromamba activate test
-      #     pytest tests
-
-      # - name: Uninstall test
-      #   shell: bash -l {0}
-      #   run: |
-      #     micromamba activate test
-      #     pip uninstall -y cadquery
-      #     pip uninstall -y cadquery_ocp
-      #     pip uninstall -y cadquery_vtk
