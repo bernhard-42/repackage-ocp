@@ -153,7 +153,8 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
 
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}
-
+          ls ~/opt/local/vtk-${{ env.VTK }}/include/
+          ls ~/opt/local/vtk-${{ env.VTK }}/lib/
           cd OCCT
           rm -fr build
           cmake -S . -B build  -G Ninja \
