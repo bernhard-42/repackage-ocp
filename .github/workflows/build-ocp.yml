@@ -247,15 +247,15 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"
-          export LDFLAGS="-L/opt/homebrew/opt/llvm@15/lib"
-          export CPPFLAGS="-I/opt/homebrew/opt/llvm@15/include"
-          export Clang_DIR=${brew --prefix}/Cellar/llvm@15/15.0.7/lib/cmake/clang
-          export LLVM_DIR=${brew --prefix}/Cellar/llvm@15/15.0.7/lib/cmake/llvm/
-          export CC=${brew --prefix}/Cellar/llvm@15/15.0.7/bin/clang
-          export CXX=${brew --prefix}/opt/llvm@15/bin/clang++
-          export CPATH=/opt/homebrew/include
-          export LDFLAGS="-L~/opt/local/vtk-${{ env.VTK }}/lib"
+          export PATH="$(brew --prefix)/opt/llvm@15/bin:$PATH"
+          export LDFLAGS="-L$(brew --prefix)/opt/llvm@15/lib"
+          export CPPFLAGS="-I$(brew --prefix)/opt/llvm@15/include"
+          export Clang_DIR=$(brew --prefix)/Cellar/llvm@15/15.0.7/lib/cmake/clang
+          export LLVM_DIR=$(brew --prefix)/Cellar/llvm@15/15.0.7/lib/cmake/llvm/
+          export CC=$(brew --prefix)/Cellar/llvm@15/15.0.7/bin/clang
+          export CXX=$(brew --prefix)/opt/llvm@15/bin/clang++
+          export CPATH=$(brew --prefix)/include
+          export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
 
           cd OCP
           cmake -B new -S . -G Ninja -D N_PROC=${{ matrix.nproc }} \
@@ -271,15 +271,15 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"
-          export LDFLAGS="-L/opt/homebrew/opt/llvm@15/lib"
-          export CPPFLAGS="-I/opt/homebrew/opt/llvm@15/include"
-          export Clang_DIR=${brew --prefix}/Cellar/llvm@15/15.0.7/lib/cmake/clang
-          export LLVM_DIR=${brew --prefix}/Cellar/llvm@15/15.0.7/lib/cmake/llvm/
-          export CC=${brew --prefix}/Cellar/llvm@15/15.0.7/bin/clang
-          export CXX=${brew --prefix}/opt/llvm@15/bin/clang++
-          export CPATH=/opt/homebrew/include
-          export LDFLAGS="-L~/opt/local/vtk-${{ env.VTK }}/lib"
+          export PATH="$(brew --prefix)/opt/llvm@15/bin:$PATH"
+          export LDFLAGS="-L$(brew --prefix)/opt/llvm@15/lib"
+          export CPPFLAGS="-I$(brew --prefix)/opt/llvm@15/include"
+          export Clang_DIR=$(brew --prefix)/Cellar/llvm@15/15.0.7/lib/cmake/clang
+          export LLVM_DIR=$(brew --prefix)/Cellar/llvm@15/15.0.7/lib/cmake/llvm/
+          export CC=$(brew --prefix)/Cellar/llvm@15/15.0.7/bin/clang
+          export CXX=$(brew --prefix)/opt/llvm@15/bin/clang++
+          export CPATH=$(brew --prefix)/include
+          export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
 
           cd OCP
           cmake -B build -S OCP -G Ninja \
