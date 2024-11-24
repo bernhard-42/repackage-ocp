@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
         # python-version: ['3.10', '3.11', '3.12']
-        # os: ["macos-14"]
+        os: ["macos-13", "windows-2019"]
         python-version: ["3.11"]
         include:
           # - os: 'macos-13'
@@ -50,19 +50,22 @@ jobs:
         id: cpu-count
         run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then
-            echo "cpu_count=$(sysctl -n hw.logicalcpu)" >> $GITHUB_OUTPUT
+            cpu_count=$(sysctl -n hw.logicalcpu)
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
-            echo "cpu_count=$(nproc)" >> $GITHUB_OUTPUT
+            cpu_count=$(nproc)
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            echo "cpu_count=$env:NUMBER_OF_PROCESSORS" >> $GITHUB_OUTPUT
+            cpu_count=$env:NUMBER_OF_PROCESSORS
           else
-            echo "cpu_count=1" >> $GITHUB_OUTPUT
+            cpu_count=1
           fi
+
+          echo "cpu_count=$cpu_count" >> $GITHUB_OUTPUT
           echo "=> Using $cpu_count CPUs"
 
           echo $HOME
           ls -la $HOME
           ls -la ~/
+          sleep 60
           die-now
 
       # ========================================
