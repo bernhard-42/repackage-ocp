@@ -82,7 +82,7 @@ jobs:
         shell: bash -l {0}
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build cmake rapidjson-dev libfreeimage-dev llvm-15 clang-15 libclang-15-dev
+          sudo apt-get install -y ninja-build cmake rapidjson-dev libfreeimage-dev llvm-15 clang-15 libclang-15-dev mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev
 
       # ========================================
       #                VTK SDK
@@ -198,7 +198,7 @@ jobs:
           for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
               ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
           done
-          rm build/build.ninja.bak
+          rm -f build/build.ninja.bak
 
           # Build OCCT
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
