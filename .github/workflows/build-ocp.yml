@@ -340,10 +340,10 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
 
           cd pypi/dist
-          tree .
           python -m wheel unpack cadquery_ocp*.whl
           rm cadquery_ocp-*.whl
           cd cadquery_ocp-*
+          tree .
           install_name_tool -delete-rpath $(realpath ~/opt/local/occt-7.7.2/lib) OCP.*.so
           install_name_tool -add-rpath @loader_path/vtkmodules/.dylibs/ OCP.*.so
           cd ..
