@@ -19,19 +19,26 @@ jobs:
       matrix:
         # os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
         # python-version: ['3.10', '3.11', '3.12']
-        os: ["macos-14"]
+        os: ["ubuntu-22.04"]
         python-version: ["3.11"]
         include:
-          # - os: 'macos-13'
+          # - os: "macos-13"
           #   delocate: delocate
           #   plat: macosx_10_9_x86_64
-          - os: "macos-14"
-            delocate: delocate
-            plat: macosx_11_0_arm64
-            deployment_target: 11.1
-          # - os: "ubuntu-22.04"
-          #   delocate: auditwheel patchelf
-          #   plat: manylinux_2_35_x86_64
+          # - os: "macos-14"
+          #   delocate: delocate
+          #   plat: macosx_11_0_arm64
+          #   cmake_target: "-D CMAKE_OSX_DEPLOYMENT_TARGET=11.1"
+          #   env_target: "env MACOSX_DEPLOYMENT_TARGET=11.1"
+          #   vtk_libs ".dylibs/libvtk*.dylib"
+          #   sed_i: "sed -i '.bak'"
+          - os: "ubuntu-22.04"
+            delocate: auditwheel patchelf
+            plat: manylinux_2_35_x86_64
+            vtk_libs: "libvtk*.so"
+            sed_i: "sed -i"
+            cmake_target: ""
+            env_target: ""
           # - os: 'windows-2019'
           #   delocate: delvewheel
 
@@ -62,10 +69,6 @@ jobs:
 
           echo "=> Using $cpu_count CPUs"
 
-      # ========================================
-      #                VTK SDK
-      # ========================================
-
       # Install toolchain if needed
 
       - name: (Mac) Install brew dependencies
@@ -73,6 +76,17 @@ jobs:
         shell: bash -l {0}
         run: |
           brew install freeimage rapidjson ninja cmake llvm@15 tree
+
+      - name: (Ubuntu) Install apt dependencies
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash -l {0}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build cmake rapidjson-dev libfreeimage-dev llvm-15 clang-15 libclang-15-dev
+
+      # ========================================
+      #                VTK SDK
+      # ========================================
 
       - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
         shell: bash -l {0}
@@ -104,13 +118,13 @@ jobs:
           mkdir -p ~/opt/local/vtk-${{ env.VTK }}/lib/cmake
 
           cp -r $CONDA_PREFIX/include/vtk-${{ env.VTK_MAJOR }}/ ~/opt/local/vtk-${{ env.VTK }}/include/
-          cp cmake/vtk-config.cmake ~/opt/local/vtk-${{ env.VTK }}/lib/cmake
+          cp cmake/vtk-config-${{ matrix.os }}.cmake ~/opt/local/vtk-${{ env.VTK }}/lib/cmake/vtk-config.cmake
           micromamba deactivate
 
           # Create an environment with pypi VTK to get the VTK shared libraries
           micromamba activate ${{ env.OCP_ENV }}
 
-          cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules/.dylibs/* ~/opt/local/vtk-${{ env.VTK }}/lib/
+          cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules/${{ matrix.vtk_libs }} ~/opt/local/vtk-${{ env.VTK }}/lib/
           cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtk.py ~/opt/local/vtk-${{ env.VTK }}
           cp -r $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules ~/opt/local/vtk-${{ env.VTK }}
 
@@ -143,11 +157,15 @@ jobs:
           cd OCCT
           git checkout -b V${{ env.OCCT_ }} tags/V${{ env.OCCT_ }}
 
-          # Patch one issue that prevents from compiling
-          sed -i ".bak" 's/const char\* aTags/const unsigned char\* aTags/' src/StdPrs/StdPrs_BRepFont.cxx
-
-      - name: (Mac) Compile and install OCCT SDK
+      - name: (Mac) Patch OCCT SDK
         if: steps.cache-occt-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
+        shell: bash -l {0}
+        run: |
+          # Patch one issue that prevents from compiling
+          ${{ matrix.sed_i }} 's/const char\* aTags/const unsigned char\* aTags/' src/StdPrs/StdPrs_BRepFont.cxx
+
+      - name: (All) Compile and install OCCT SDK
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
@@ -156,7 +174,7 @@ jobs:
 
           cd OCCT
           rm -fr build
-          cmake -S . -B build  -G Ninja \
+          ${{ matrix.env_target }} cmake -S . -B build  -G Ninja \
                 -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }} \
                 \
                 -D USE_TBB=OFF \
@@ -166,7 +184,6 @@ jobs:
                 -D USE_FFMPEG=OFF \
                 \
                 -D BUILD_CPP_STANDARD=C++17 \
-                -D CMAKE_OSX_DEPLOYMENT_TARGET="${{ matrix.deployment_target }}" \
                 -D CMAKE_BUILD_TYPE="Release" \
                 -D BUILD_RELEASE_DISABLE_EXCEPTIONS=OFF \
                 -D BUILD_MODULE_Draw=OFF \
@@ -179,7 +196,7 @@ jobs:
 
           # Patch build file to use VTK libraries with "${{ env.VTK_MAJOR }}" suffix
           for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
-              sed -i ".bak" "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
+              ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
           done
           rm build/build.ninja.bak
 
@@ -238,6 +255,17 @@ jobs:
             ./OCP/OCP
           key: OCP-source-${{ env.OCP }}-${{ matrix.os }}-
 
+      - name: (Ubuntu) Generate OCP source
+        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-22.04'
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.OCP_ENV }}
+          cd OCP
+          cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
+              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
+              -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
+              -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())")
+
       - name: (Mac) Generate OCP source
         if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
         shell: bash -l {0}
@@ -268,6 +296,27 @@ jobs:
             ./OCP/OCP
           key: ${{ steps.cache-ocp-source-restore.outputs.cache-primary-key }}
 
+      - name: (Ubuntu) Generate OCP build files and build OCP
+        if: steps.cache-ocp-restore.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-22.04'
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.OCP_ENV }}
+
+          cd OCP
+          cmake -B build -S OCP -G Ninja \
+              -D CMAKE_BUILD_TYPE=Release \
+              -D CMAKE_CXX_FLAGS="-I $(brew --prefix)/include" \
+              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
+              -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
+              -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
+              -D CMAKE_CXX_STANDARD=17
+
+          for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
+              ${{ matrix.sed_i }} "s/-l$l/-l$l-9.2/" build/build.ninja
+          done
+
+          ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
+
       - name: (Mac) Generate OCP build files and build OCP
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
         shell: bash -l {0}
@@ -295,7 +344,7 @@ jobs:
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
           for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
-              sed -i ".bak" "s/-l$l/-l$l-9.2/" build/build.ninja
+              ${{ matrix.sed_i }} "s/-l$l/-l$l-9.2/" build/build.ninja
           done
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
