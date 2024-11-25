@@ -344,6 +344,8 @@ jobs:
           rm cadquery_ocp-*.whl
           cd cadquery_ocp-*
           tree .
+          echo "install_name_tool -delete-rpath $(realpath ~/opt/local/occt-7.7.2/lib) OCP.*.so"
+          echo "install_name_tool -add-rpath @loader_path/vtkmodules/.dylibs/ OCP.*.so"
           install_name_tool -delete-rpath $(realpath ~/opt/local/occt-7.7.2/lib) OCP.*.so
           install_name_tool -add-rpath @loader_path/vtkmodules/.dylibs/ OCP.*.so
           cd ..
