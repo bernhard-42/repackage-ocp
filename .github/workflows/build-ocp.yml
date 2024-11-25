@@ -317,7 +317,7 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          pip install build wheel $${{ matrix.delocate}}
+          pip install build wheel $${{ matrix.delocate }}
 
           cd pypi
           cp ../OCP/build/OCP.*.so .
