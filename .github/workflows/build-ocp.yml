@@ -340,7 +340,7 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
 
           cd pypi/dist
-
+          tree .
           python -m wheel unpack cadquery_ocp*.whl
           rm cadquery_ocp-*.whl
           cd cadquery_ocp-*
