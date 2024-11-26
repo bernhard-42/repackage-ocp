@@ -43,7 +43,7 @@ jobs:
             sed_i: "sed -i"
             cmake_target: ""
             env_target: ""
-            occt_compilers: "-D CMAKE_C_COMPILER=/usr/bin/clang-15 -D CMAKE_CXX_COMPILER=/usr/bin/clang++-15 -DCMAKE_PREFIX_PATH=/usr/lib/llvm-15"
+            occt_compilers: "-D CMAKE_C_COMPILER=/usr/bin/clang-14 -D CMAKE_CXX_COMPILER=/usr/bin/clang++-15 -D CMAKE_PREFIX_PATH=/usr/lib/llvm-15"
           # - os: 'windows-2019'
           #   delocate: delvewheel
 
