@@ -40,7 +40,7 @@ jobs:
             delocate: auditwheel patchelf
             plat: manylinux_2_35_x86_64
             vtk_libs: "libvtk*.so"
-            vtk_suffix: "/vtk-${{ env.VTK_MAJOR }}/"
+            vtk_suffix: "/vtk-9.2/"
             sed_i: "sed -i"
             cmake_target: ""
             env_target: ""
