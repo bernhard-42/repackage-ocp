@@ -16,11 +16,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         # os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
         # python-version: ['3.10', '3.11', '3.12']
-        # os: ["ubuntu-22.04"]
-        fail-fast: false
         os: ["macos-14", "ubuntu-22.04"]
         python-version: ["3.11"]
         include:
