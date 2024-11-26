@@ -270,6 +270,7 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
           cd OCP
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
+              ${{ matrix.occt_compilers }} \
               -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())")
@@ -312,8 +313,7 @@ jobs:
 
           cd OCP
           cmake -B build -S OCP -G Ninja \
-              -D CMAKE_C_COMPILER=/usr/bin/clang-15 \
-              -D CMAKE_CXX_COMPILER=/usr/bin/clang++-15 \
+              ${{ matrix.occt_compilers }} \
               \
               -D CMAKE_BUILD_TYPE=Release \
               -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
