@@ -397,8 +397,8 @@ jobs:
           cd ..
           python -m wheel pack cadquery_ocp-*
           cd ..
-          env MACOSX_DEPLOYMENT_TARGET=11.1 \
-              DYLD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib:$HOME/opt/local/vtk-${{ env.VTK }}/lib:$(brew --prefix)/lib \
+          # env MACOSX_DEPLOYMENT_TARGET=11.1 \
+          env DYLD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib:$HOME/opt/local/vtk-${{ env.VTK }}/lib:$(brew --prefix)/lib \
               python -m delocate.cmd.delocate_wheel \
               -e libvtk \
               --wheel-dir=wheel \
