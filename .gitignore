@@ -14,3 +14,11 @@ OCP/cadquery_ocp
 OCP/cadquery_ocp.egg-info
 OCP/dist
 OCP/wheel
+OCP
+OCCT
+pypi/OCP.cpython-311-darwin.so
+pypi/build/
+pypi/cadquery_ocp.egg-info/
+pypi/cadquery_ocp/
+pypi/dist/
+pypi/wheel/
