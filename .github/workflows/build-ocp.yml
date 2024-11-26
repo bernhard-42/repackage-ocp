@@ -87,7 +87,7 @@ jobs:
         shell: bash -l {0}
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build cmake rapidjson-dev libfreeimage-dev llvm-15 clang-15 libclang-15-dev mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev
+          sudo apt-get install -y ninja-build cmake rapidjson-dev libfreeimage-dev llvm-15 clang-15 libclang-15-dev mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libxcursor-dev
 
       # ========================================
       #                VTK SDK
@@ -316,6 +316,7 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
 
           cd OCP
+          export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
           cmake -B build -S OCP -G Ninja \
               ${{ matrix.occt_compilers }} \
               \
