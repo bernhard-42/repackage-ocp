@@ -169,6 +169,7 @@ jobs:
         shell: bash -l {0}
         run: |
           # Patch one issue that prevents from compiling
+          cd OCCT
           ${{ matrix.sed_i }} 's/const char\* aTags/const unsigned char\* aTags/' src/StdPrs/StdPrs_BRepFont.cxx
 
       - name: (All) Compile and install OCCT SDK
