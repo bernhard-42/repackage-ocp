@@ -232,7 +232,7 @@ jobs:
             ./OCP/build/OCP.*.so
           key: OCP-${{ env.OCP }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
-      - name: (Mac) Install MacOS SDK and python dependencies
+      - name: (Mac) Install MacOS SDK
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
         shell: bash -l {0}
         run: |
@@ -243,6 +243,10 @@ jobs:
           sudo ln -s /opt/MacOSX11.3.sdk/usr/include /opt/usr/local/include
           sudo ln -s /opt/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers /usr/local/include/OpenGL
 
+      -name: (All) Install Python prerequisites
+        if: steps.cache-ocp-restore.outputs.cache-hit != 'true' 
+        shell: bash -l {0}
+        run: |
           micromamba activate ${{ env.OCP_ENV }}
           pip install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click lief "clang==15.0.7"
 
