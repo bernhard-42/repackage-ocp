@@ -19,26 +19,27 @@ jobs:
       matrix:
         # os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
         # python-version: ['3.10', '3.11', '3.12']
-        os: ["ubuntu-22.04"]
+        # os: ["ubuntu-22.04"]
+        os: ["macos-14"]
         python-version: ["3.11"]
         include:
           # - os: "macos-13"
           #   delocate: delocate
           #   plat: macosx_10_9_x86_64
-          # - os: "macos-14"
-          #   delocate: delocate
-          #   plat: macosx_11_0_arm64
-          #   cmake_target: "-D CMAKE_OSX_DEPLOYMENT_TARGET=11.1"
-          #   env_target: "env MACOSX_DEPLOYMENT_TARGET=11.1"
-          #   vtk_libs ".dylibs/libvtk*.dylib"
-          #   sed_i: "sed -i '.bak'"
-          - os: "ubuntu-22.04"
-            delocate: auditwheel patchelf
-            plat: manylinux_2_35_x86_64
-            vtk_libs: "libvtk*.so"
-            sed_i: "sed -i"
-            cmake_target: ""
-            env_target: ""
+          - os: "macos-14"
+            delocate: delocate
+            plat: macosx_11_0_arm64
+            cmake_target: "-D CMAKE_OSX_DEPLOYMENT_TARGET=11.1"
+            env_target: "env MACOSX_DEPLOYMENT_TARGET=11.1"
+            vtk_libs ".dylibs/libvtk*.dylib"
+            sed_i: "sed -i '.bak'"
+          # - os: "ubuntu-22.04"
+          #   delocate: auditwheel patchelf
+          #   plat: manylinux_2_35_x86_64
+          #   vtk_libs: "libvtk*.so"
+          #   sed_i: "sed -i"
+          #   cmake_target: ""
+          #   env_target: ""
           # - os: 'windows-2019'
           #   delocate: delvewheel
 
