@@ -324,7 +324,8 @@ jobs:
               -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
-              -D CMAKE_CXX_STANDARD=17
+              -D CMAKE_CXX_STANDARD=17 \
+              -D CMAKE_SHARED_LINKER_FLAGS="-L $HOME/opt/local/vtk-9.2.6/lib"
 
           for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
               ${{ matrix.sed_i }} "s/-l$l/-l$l-9.2/" build/build.ninja
