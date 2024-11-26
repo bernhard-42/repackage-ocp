@@ -31,7 +31,7 @@ jobs:
             plat: macosx_11_0_arm64
             cmake_target: "-D CMAKE_OSX_DEPLOYMENT_TARGET=11.1"
             env_target: "env MACOSX_DEPLOYMENT_TARGET=11.1"
-            vtk_libs ".dylibs/libvtk*.dylib"
+            vtk_libs: ".dylibs/libvtk*.dylib"
             sed_i: "sed -i '.bak'"
           # - os: "ubuntu-22.04"
           #   delocate: auditwheel patchelf
