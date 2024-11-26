@@ -426,7 +426,7 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate test
-          pip install vtk=${{ env.VTK }}
+          pip install vtk==${{ env.VTK }}
           pip install pypi/wheel/*.whl
 
       - name: Verify OCP
