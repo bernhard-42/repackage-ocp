@@ -243,7 +243,7 @@ jobs:
           sudo ln -s /opt/MacOSX11.3.sdk/usr/include /opt/usr/local/include
           sudo ln -s /opt/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers /usr/local/include/OpenGL
 
-      -name: (All) Install Python prerequisites
+      - name: (All) Install Python prerequisites
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true' 
         shell: bash -l {0}
         run: |
