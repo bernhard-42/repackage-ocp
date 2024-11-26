@@ -20,6 +20,7 @@ jobs:
         # os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
         # python-version: ['3.10', '3.11', '3.12']
         # os: ["ubuntu-22.04"]
+        fail-fast: false
         os: ["macos-14", "ubuntu-22.04"]
         python-version: ["3.11"]
         include:
@@ -244,7 +245,7 @@ jobs:
           sudo ln -s /opt/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers /usr/local/include/OpenGL
 
       - name: (All) Install Python prerequisites
-        if: steps.cache-ocp-restore.outputs.cache-hit != 'true' 
+        if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
