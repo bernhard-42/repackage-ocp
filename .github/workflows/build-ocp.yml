@@ -133,6 +133,11 @@ jobs:
           cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtk.py ~/opt/local/vtk-${{ env.VTK }}
           cp -r $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules ~/opt/local/vtk-${{ env.VTK }}
 
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            # copy libXcursor and libXfixes to the VTK lib folder
+            cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtk.libs/* ~/opt/local/vtk-${{ env.VTK }}/lib/
+          fi
+
       - name: (All) Cache VTK build folder
         # works on Windows, since github actions replace the '/' with '\'
         id: cache-vtk-save
@@ -413,10 +418,12 @@ jobs:
         run: |
           cd OCP
           micromamba activate ${{ env.OCP_ENV }}
-          env LD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib:$HOME/opt/local/vtk-${{ env.VTK }}/lib \
+          EXCLUDE=$(ls -1  ~/opt/local/vtk-${{ env.VTK }}/lib/ | xargs | sed 's/ / --exclude /g')
+          env LD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib \
               python -m auditwheel \
               repair \
               --plat=${{ matrix.plat }} \
+              --exclude $EXCLUDE \
               --wheel-dir=wheel \
               dist/*.whl
           cd wheel
@@ -424,9 +431,13 @@ jobs:
           # remove the VTK libs from the wheel, they are taken from cadquery_vtk
           wheel unpack cadquery_ocp-*.whl
           rm cadquery_ocp*.whl
-          rm cadquery_ocp-*/cadquery_ocp.libs/libvtk*
+          # remove libraries that are available from the installed pypi VTK
+          rm cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/libvtk*
+          rm cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/libXcursor*
+          rm cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/libXfixes*
+          patchelf --add-rpath '$ORIGIN/vtk.libs'   cadquery_ocp-${{ env.OCCT }}/OCP.*.so
+          patchelf --add-rpath '$ORIGIN/vtkmodules' cadquery_ocp-${{ env.OCCT }}/OCP.*.so
           wheel pack cadquery_ocp-*
-          cd ..
 
       - name: (Mac) Delocate the cadquery_ocp wheel
         if: ${{ runner.os == 'macOS' }}
