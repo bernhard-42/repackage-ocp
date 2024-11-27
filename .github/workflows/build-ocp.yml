@@ -453,8 +453,10 @@ jobs:
           cd wheel
           python -m wheel unpack cadquery_ocp*.whl
           rm cadquery_ocp-*.whl
-          patchelf --add-rpath '$ORIGIN/vtk.libs'   cadquery_ocp-${{ env.OCCT }}/OCP.*.so
-          patchelf --add-rpath '$ORIGIN/vtkmodules' cadquery_ocp-${{ env.OCCT }}/OCP.*.so
+          patchelf --add-rpath '$ORIGIN/vtk.libs'             cadquery_ocp-${{ env.OCCT }}/OCP.*.so
+          patchelf --add-rpath '$ORIGIN/vtkmodules'           cadquery_ocp-${{ env.OCCT }}/OCP.*.so
+          patchelf --add-rpath '$ORIGIN/../vtkmodules'        cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/*
+          patchelf --add-rpath '$ORIGIN/../cadquery_ocp.libs' cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/*
           python -m wheel pack cadquery_ocp-${{ env.OCCT }}
           cd ..
 
