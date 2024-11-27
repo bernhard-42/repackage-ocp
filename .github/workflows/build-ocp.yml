@@ -392,6 +392,23 @@ jobs:
       #               OCP wheel
       # ========================================
 
+      - name: (Linux) Patch RPATH
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.OCP_ENV }}
+          cd pypi
+          cp ../OCP/build/OCP.*.so .
+          patchelf --add-rpath '$ORIGIN/vtk.libs'   OCP.*.so
+          patchelf --add-rpath '$ORIGIN/vtkmodules' OCP.*.so
+
+      - name: (Mac) Patch RPATH
+        if: ${{ runner.os == 'macOS' }}
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.OCP_ENV }}
+          install_name_tool -add_rpath @loader_path/vtkmodules/.dylibs/ OCP.*.so
+
       - name: (All) Create the cadquery_ocp wheel
         shell: bash -l {0}
         run: |
@@ -428,32 +445,21 @@ jobs:
               dist/*.whl
           cd wheel
 
-          # remove the VTK libs from the wheel, they are taken from cadquery_vtk
-          wheel unpack cadquery_ocp-*.whl
-          rm cadquery_ocp*.whl
-          # remove libraries that are available from the installed pypi VTK
-          rm cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/libvtk*
-          rm cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/libXcursor*
-          rm cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/libXfixes*
-          patchelf --add-rpath '$ORIGIN/vtk.libs'   cadquery_ocp-${{ env.OCCT }}/OCP.*.so
-          patchelf --add-rpath '$ORIGIN/vtkmodules' cadquery_ocp-${{ env.OCCT }}/OCP.*.so
-          wheel pack cadquery_ocp-*
-
       - name: (Mac) Delocate the cadquery_ocp wheel
         if: ${{ runner.os == 'macOS' }}
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
 
-          cd pypi/dist
-          python -m wheel unpack cadquery_ocp*.whl
-          rm cadquery_ocp-*.whl
-          cd cadquery_ocp-*
-          install_name_tool -delete_rpath $(realpath ~/opt/local/occt-${{ env.OCCT }}/lib) OCP.*.so
-          install_name_tool -add_rpath @loader_path/vtkmodules/.dylibs/ OCP.*.so
-          cd ..
-          python -m wheel pack cadquery_ocp-*
-          cd ..
+          # cd pypi/dist
+          # python -m wheel unpack cadquery_ocp*.whl
+          # rm cadquery_ocp-*.whl
+          # cd cadquery_ocp-*
+          # install_name_tool -delete_rpath $(realpath ~/opt/local/occt-${{ env.OCCT }}/lib) OCP.*.so
+          # install_name_tool -add_rpath @loader_path/vtkmodules/.dylibs/ OCP.*.so
+          # cd ..
+          # python -m wheel pack cadquery_ocp-*
+          # cd ..
           # env MACOSX_DEPLOYMENT_TARGET=11.1 \
           env DYLD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib:$HOME/opt/local/vtk-${{ env.VTK }}/lib:$(brew --prefix)/lib \
               python -m delocate.cmd.delocate_wheel \
