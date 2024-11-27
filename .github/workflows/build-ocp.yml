@@ -187,9 +187,11 @@ jobs:
           cd OCCT
           rm -fr build
 
-          # -fabi-version=11: Corresponds to GCC 10.1 and later, which includes CXXABI_1.3.7 needed to link with VTK 9.2.6
-          # -D_GLIBCXX_USE_CXX11_ABI=0: Disables the C++11 ABI features for compatibility
-          export CXXFLAGS="-fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0"
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+              # -fabi-version=11: Corresponds to GCC 10.1 and later, which includes CXXABI_1.3.7 needed to link with VTK 9.2.6
+              # -D_GLIBCXX_USE_CXX11_ABI=0: Disables the C++11 ABI features for compatibility
+              export CXXFLAGS="-fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0"
+          fi
 
           ${{ matrix.env_target }} cmake -S . -B build  -G Ninja \
                 -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }} \
