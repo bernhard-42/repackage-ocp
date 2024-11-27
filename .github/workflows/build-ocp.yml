@@ -166,6 +166,7 @@ jobs:
           git clone https://github.com/Open-Cascade-SAS/OCCT.git
           cd OCCT
           git checkout -b V${{ env.OCCT_ }} tags/V${{ env.OCCT_ }}
+          patch < ../patches/occt-${{ env.OCCT_ }}/blobfish.patch
 
       - name: (Mac) Patch OCCT SDK
         if: steps.cache-occt-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
