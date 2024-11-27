@@ -435,7 +435,6 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
         shell: bash -l {0}
         run: |
-          cd OCP
           micromamba activate ${{ env.OCP_ENV }}
           cd pypi
           EXCLUDE=$(ls -1  ~/opt/local/vtk-${{ env.VTK }}/lib/ | xargs | sed 's/ / --exclude /g')
