@@ -407,6 +407,8 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
+          cd pypi
+          cp ../OCP/build/OCP.*.so .
           install_name_tool -add_rpath @loader_path/vtkmodules/.dylibs/ OCP.*.so
 
       - name: (All) Create the cadquery_ocp wheel
@@ -435,6 +437,7 @@ jobs:
         run: |
           cd OCP
           micromamba activate ${{ env.OCP_ENV }}
+          cd pypi
           EXCLUDE=$(ls -1  ~/opt/local/vtk-${{ env.VTK }}/lib/ | xargs | sed 's/ / --exclude /g')
           env LD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib \
               python -m auditwheel \
@@ -443,7 +446,6 @@ jobs:
               --exclude $EXCLUDE \
               --wheel-dir=wheel \
               dist/*.whl
-          cd wheel
 
       - name: (Mac) Delocate the cadquery_ocp wheel
         if: ${{ runner.os == 'macOS' }}
@@ -461,6 +463,7 @@ jobs:
           # python -m wheel pack cadquery_ocp-*
           # cd ..
           # env MACOSX_DEPLOYMENT_TARGET=11.1 \
+          cd pypi
           env DYLD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib:$HOME/opt/local/vtk-${{ env.VTK }}/lib:$(brew --prefix)/lib \
               python -m delocate.cmd.delocate_wheel \
               -e libvtk \
