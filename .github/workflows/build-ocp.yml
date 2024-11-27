@@ -525,7 +525,7 @@ jobs:
         run: |
           cd cadquery
           micromamba activate test
-          pytest tests
+          pytest tests -v
 
       - name: Uninstall test
         shell: bash -l {0}
