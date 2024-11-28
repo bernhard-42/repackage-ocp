@@ -29,8 +29,6 @@ jobs:
           - os: "macos-14"
             delocate: delocate
             plat: macosx_11_0_arm64
-            cmake_target: "-D CMAKE_OSX_DEPLOYMENT_TARGET=11.1"
-            env_target: "env MACOSX_DEPLOYMENT_TARGET=11.1"
             vtk_libs: ".dylibs/libvtk*.dylib"
             vtk_suffix: "/"
             sed_i: "sed -i '.bak'"
@@ -41,8 +39,6 @@ jobs:
             vtk_libs: "libvtk*.so"
             vtk_suffix: "/vtk-9.2/"
             sed_i: "sed -i"
-            cmake_target: ""
-            env_target: ""
             compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10 -D CMAKE_PREFIX_PATH=/usr/lib/llvm-15"
           # - os: 'windows-2019'
           #   delocate: delvewheel
@@ -398,25 +394,6 @@ jobs:
       # ========================================
       #               OCP wheel
       # ========================================
-
-      # - name: (Linux) Patch RPATH
-      #   if: ${{ runner.os == 'Linux' }}
-      #   shell: bash -l {0}
-      #   run: |
-      #     micromamba activate ${{ env.OCP_ENV }}
-      #     cd pypi
-      #     cp ../OCP/build/OCP.*.so .
-      #     patchelf --add-rpath '$ORIGIN/vtk.libs'   OCP.*.so
-      #     patchelf --add-rpath '$ORIGIN/vtkmodules' OCP.*.so
-
-      # - name: (Mac) Patch RPATH
-      #   if: ${{ runner.os == 'macOS' }}
-      #   shell: bash -l {0}
-      #   run: |
-      #     micromamba activate ${{ env.OCP_ENV }}
-      #     cd pypi
-      #     cp ../OCP/build/OCP.*.so .
-      #     install_name_tool -add_rpath @loader_path/vtkmodules/.dylibs/ OCP.*.so
 
       - name: (All) Create the cadquery_ocp wheel
         shell: bash -l {0}
