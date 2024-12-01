@@ -305,8 +305,11 @@ jobs:
               patch < ../patches/occt-${{ env.OCCT }}/blobfish.patch
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
               patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
-
           fi
+          mkdir -p ~/opt/local/occt-${{ env.OCCT }}
+          mkdir -p ~/opt/local/include
+          mkdir -p ~/opt/local/bin
+          mkdir -p ~/opt/local/lib
 
       - name: (Mac) Patch OCCT SDK
         if: matrix.os == 'macos-14' && steps.cache-occt-restore.outputs.cache-hit != 'true'
@@ -321,12 +324,8 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-
-          mkdir -p ~/opt/local/occt-${{ env.OCCT }}
-          mkdir ~/opt/local/include
-          mkdir ~/opt/local/lib
-
           cd OCCT
+
           rm -fr build
 
           if [[ "$RUNNER_OS" == "Linux" ]]; then
@@ -368,7 +367,7 @@ jobs:
           ninja -C build install
 
       - name: (Windows) Compile and install OCCT SDK
-        if: runner.os  != 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
+        if: runner.os  == 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
@@ -433,6 +432,7 @@ jobs:
           path: |
             ~/opt/local/occt-${{ env.OCCT }}
             ~/opt/local/include
+            ~/opt/local/bin
             ~/opt/local/lib
           key: ${{ steps.cache-occt-restore.outputs.cache-primary-key }}
 
