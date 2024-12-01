@@ -113,8 +113,9 @@ jobs:
         run: |
           micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
           micromamba activate ${{ env.OCP_ENV }}
+          python -c "import sys;print(sys.version)"
           wget https://files.pythonhosted.org/packages/1c/a8/11eeb04d8f287cdd6ef7778774e9009afad2d7f406f4a5617a19106a0ea9/vtk-9.2.6-cp311-cp311-win_amd64.whl
-          pip install vtk-9.2.6-cp311-cp311-win_amd64.whl
+          pip -v install --debug vtk-9.2.6-cp311-cp311-win_amd64.whl
           # pip install vtk==${{ env.VTK }}
 
       - name: (All) Restore VTK SDK cache
