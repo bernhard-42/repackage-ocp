@@ -208,9 +208,9 @@ jobs:
           micromamba create -n occt python=3.11 -y
           micromamba activate occt
 
-          mkdir $HOME/opt/local/include
-          mkdir $HOME/opt/local/bin
-          mkdir $HOME/opt/local/lib
+          mkdir -p $HOME/opt/local/include
+          mkdir -p $HOME/opt/local/bin
+          mkdir -p $HOME/opt/local/lib
           
           CONDA_PREFIX_POSIX=$(cygpath -u $CONDA_PREFIX)
 
