@@ -98,10 +98,10 @@ jobs:
         shell: bash -l {0}
         run: |
           # choco install tree wget
-          "/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/vcvarsx86_amd64.bat"
-          echo "=> "/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/"
+          '/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/vcvarsx86_amd64.bat'
+          echo "=> /c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/"
           ls -l "/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/
-          echo "=> "/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/"
+          echo "=> /c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/"
           ls -l "/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/
           where cl.exe
           where dumpbin.exe
