@@ -92,15 +92,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build cmake rapidjson-dev libfreeimage-dev llvm-15 clang-15 libclang-15-dev mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libxcursor-dev
-
-      - name: (Windows) Install choco dependencies
-        if: ${{ runner.os == 'Windows' }}
-        shell: bash -l {0}
-        run: |
-          # choco install tree wget
-          echo "n/a"
-          echo "runner ${{ runner.os }}"
-          echo "matrix ${{ matrix.os }}"
           
       # ========================================
       #                VTK SDK
@@ -127,7 +118,7 @@ jobs:
           key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (Linux, Mac) Install VTK SDK
-        if: ${{ runner.os != 'Windows' }} && steps.cache-vtk-restore.outputs.cache-hit != 'true' 
+        if: ${{ runner.os }} != 'Windows' && steps.cache-vtk-restore.outputs.cache-hit != 'true' 
         shell: bash -l {0}
         run: |
           # Create an environment with conda VTK to get the include files
@@ -157,7 +148,7 @@ jobs:
           fi
 
       - name: (Windows) Install VTK SDK
-        if: ${{ runner.os == 'Windows' }} && steps.cache-vtk-restore.outputs.cache-hit != 'true'
+        if: ${{ runner.os }}  == 'Windows'  && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           # Create an environment with conda VTK to get the include files
@@ -211,7 +202,7 @@ jobs:
           key: OCCT-${{ env.OCCT }}-${{ matrix.os }}-
 
       - name: (Windows) Prepare needed libraries
-        if: steps.cache-occt-restore.outputs.cache-hit != 'true' && ${{ runner.os == 'Windows' }}
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true' && ${{ runner.os }}  == 'Windows' 
         shell: bash -l {0}
         run: |
           micromamba create -n occt python=3.11 -y
@@ -326,7 +317,7 @@ jobs:
           ${{ matrix.sed_i }} 's/const char\* aTags/const unsigned char\* aTags/' src/StdPrs/StdPrs_BRepFont.cxx
 
       - name: (Linux, Mac) Compile and install OCCT SDK
-        if: steps.cache-occt-restore.outputs.cache-hit != 'true' && ${{ runner.os != 'Windows' }}
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true' && ${{ runner.os }}  != 'Windows' 
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
@@ -377,7 +368,7 @@ jobs:
           ninja -C build install
 
       - name: (Windows) Compile and install OCCT SDK
-        if: steps.cache-occt-restore.outputs.cache-hit != 'true' && ${{ runner.os != 'Windows' }}
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true' && ${{ runner.os }}  != 'Windows' 
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
