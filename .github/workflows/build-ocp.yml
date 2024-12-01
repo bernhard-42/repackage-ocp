@@ -99,6 +99,8 @@ jobs:
         run: |
           # choco install tree wget
           echo "n/a"
+          echo "runner ${{ runner.os }}"
+          echo "matrix ${{ matrix.os }}"
           
       # ========================================
       #                VTK SDK
@@ -128,7 +130,6 @@ jobs:
         if: ${{ runner.os != 'Windows' }} && steps.cache-vtk-restore.outputs.cache-hit != 'true' 
         shell: bash -l {0}
         run: |
-          echo "${{ runner.os != 'Windows' }}"
           # Create an environment with conda VTK to get the include files
           micromamba create -y -n vtk python=${{ matrix.python-version }}
           micromamba activate vtk
