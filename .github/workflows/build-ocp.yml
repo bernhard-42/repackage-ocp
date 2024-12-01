@@ -103,10 +103,19 @@ jobs:
           ls -l '/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/'
           echo '=> /c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/'
           ls -l '/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/'
+          PATH='/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/':$PATH
+          echo "=> cl.exe"
           where cl.exe
+          echo "=> dumpbin.exe"
           where dumpbin.exe
+          echo "=> lib.exe"
           where lib.exe
+          echo "=> cmake.exe"
           where cmake.exe
+          echo "=> wget.exe"
+          where wget.exe
+          echo "=> curl.exe"
+          where curl.exe
           
 
 
