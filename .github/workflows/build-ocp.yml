@@ -87,7 +87,7 @@ jobs:
           brew install freeimage rapidjson ninja cmake llvm@15 tree
 
       - name: (Ubuntu) Install apt dependencies
-        if: ${{ runner.os == 'Linux' }}
+        if: runner.os == 'Linux'
         shell: bash -l {0}
         run: |
           sudo apt-get update
@@ -118,12 +118,9 @@ jobs:
           key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (Linux, Mac) Install VTK SDK
-        if: ${{ runner.os }} != Windows && steps.cache-vtk-restore.outputs.cache-hit != 'true' 
+        if: runner.os != Windows && steps.cache-vtk-restore.outputs.cache-hit != 'true' 
         shell: bash -l {0}
         run: |
-          echo ${{ runner.os }} != "Windows"
-          echo steps.cache-vtk-restore.outputs.cache-hit != "true"
-          echo ${{ runner.os }} != 'Windows' && steps.cache-vtk-restore.outputs.cache-hit != "true"
           # Create an environment with conda VTK to get the include files
           micromamba create -y -n vtk python=${{ matrix.python-version }}
           micromamba activate vtk
