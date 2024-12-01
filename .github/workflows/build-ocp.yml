@@ -97,7 +97,12 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         shell: bash -l {0}
         run: |
-           choco install ninja cmake tree wget
+          choco install tree wget
+          where dumpbin.exe
+          where lib.exe
+          wherfe cmake.exe
+          
+
 
       # ========================================
       #                VTK SDK
@@ -160,8 +165,6 @@ jobs:
         if: steps.cache-vtk-restore.outputs.cache-hit != 'true' && ${{ runner.os == 'Windows' }}
         shell: bash -l {0}
         run: |
-          where dumpbin.exe
-          where lib.exe
           # Create an environment with conda VTK to get the include files
 
           micromamba create -y -n vtk python=${{ matrix.python-version }}
