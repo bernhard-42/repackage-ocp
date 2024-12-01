@@ -31,6 +31,7 @@ jobs:
             plat: macosx_11_0_arm64
             vtk_libs: ".dylibs/libvtk*.dylib"
             vtk_suffix: "/"
+            vtk_prefix: ""
             sed_i: "sed -i '.bak'"
             compilers: "" # use standard macos compilers
           - os: "ubuntu-22.04"
@@ -38,10 +39,17 @@ jobs:
             plat: manylinux_2_35_x86_64
             vtk_libs: "libvtk*.so"
             vtk_suffix: "/vtk-9.2/"
+            vtk_prefix: ""
             sed_i: "sed -i"
             compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10 -D CMAKE_PREFIX_PATH=/usr/lib/llvm-15"
-          # - os: 'windows-2019'
-          #   delocate: delvewheel
+          - os: 'windows-2019'
+            delocate: delvewheel
+            vtk_libs: "vtk*.dll"
+            vtk_suffix: "/"
+            vtk_prefix: "Library/"
+            sed_i: "sed -i"
+            compilers: "-D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_PREFIX_PATH=\"/c/Program Files/LLVM\""
+
 
     steps:
       - uses: actions/checkout@v4
@@ -85,6 +93,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ninja-build cmake rapidjson-dev libfreeimage-dev llvm-15 clang-15 libclang-15-dev mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libxcursor-dev
 
+      - name: (Windows) Install choco dependencies
+        if: ${{ runner.os == 'Windows' }}
+        shell: bash -l {0}
+        run: |
+           choco install ninja cmake tree wget
+
       # ========================================
       #                VTK SDK
       # ========================================
@@ -104,8 +118,8 @@ jobs:
             ~/opt/local/vtk-${{ env.VTK }}
           key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
-      - name: (All) Install VTK SDK
-        if: steps.cache-vtk-restore.outputs.cache-hit != 'true'
+      - name: (Linux, Mac) Install VTK SDK
+        if: steps.cache-vtk-restore.outputs.cache-hit != 'true' && ${{ runner.os != 'Windows' }}
         shell: bash -l {0}
         run: |
           # Create an environment with conda VTK to get the include files
@@ -134,6 +148,36 @@ jobs:
             cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtk.libs/* ~/opt/local/vtk-${{ env.VTK }}/lib/
           fi
 
+      - name: (Windows) Install VTK SDK
+        if: steps.cache-vtk-restore.outputs.cache-hit != 'true' && ${{ runner.os == 'Windows' }}
+        shell: bash -l {0}
+        run: |
+         # Create an environment with conda VTK to get the include files
+          micromamba create -y -n vtk python=${{ matrix.python-version }}
+          micromamba activate vtk
+          micromamba install -y vtk=${{ env.VTK }}
+
+          mkdir $HOME/opt/local/vtk-${{ env.VTK }}/include
+          mkdir $HOME/opt/local/vtk-${{ env.VTK }}/bin
+          mkdir $HOME/opt/local/vtk-${{ env.VTK }}/lib
+          copy create_lib.bat $HOME/opt/local/vtk-${{ env.VTK }}
+
+          cp -r $CONDA_PREFIX/${{ matrix.vtk_prefix }}include/vtk-${{ env.VTK_MAJOR }}/ ~/opt/local/vtk-${{ env.VTK }}/include/
+          cp cmake/vtk-config-${{ matrix.os }}.cmake ~/opt/local/vtk-${{ env.VTK }}/vtk-config.cmake
+          micromamba deactivate
+
+          # Create an environment with pypi VTK to get the VTK shared libraries
+          micromamba activate ${{ env.OCP_ENV }}
+
+          cp $CONDA_PREFIX/Lib/site-packages/vtkmodules/*.dll $HOME/opt/local/vtk-${{ env.VTK }}/bin/
+          cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtk.py $HOME/opt/local/vtk-${{ env.VTK }}
+          cp -r $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules $HOME/opt/local/vtk-${{ env.VTK }}
+
+          # Create the lib files needed for compilation
+          PATH="/c/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/":$PATH
+          cd $HOME/opt/local/vtk-${{ env.VTK }}/lib/
+          ../create_lib.sh %f
+
       - name: (All) Cache VTK build folder
         # works on Windows, since github actions replace the '/' with '\'
         id: cache-vtk-save
@@ -153,7 +197,100 @@ jobs:
         with:
           path: |
             ~/opt/local/occt-${{ env.OCCT }}
+            ~/opt/local/include
+            ~/opt/local/lib
           key: OCCT-${{ env.OCCT }}-${{ matrix.os }}-
+
+      - name: (Windows) Prepare needed libraries
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true' && ${{ runner.os == 'Windows' }}
+        shell: bash -l {0}
+        run: |
+          micromamba create -n occt python=3.11 -y
+          micromamba activate occt
+
+          mkdir $HOME/opt/local/include
+          mkdir $HOME/opt/local/bin
+          mkdir $HOME/opt/local/lib
+          
+          CONDA_PREFIX_POSIX=$(cygpath -u $CONDA_PREFIX)
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/deflate.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/deflate.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/include/cdeflate.h $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/FreeImage.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/FreeImage.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/include/FreeImage*.h $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/freetype.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/freetype.lib $HOME/opt/local/lib
+          cp -r $CONDA_PREFIX_POSIX/Library/include/freetype $HOME/opt/local/include
+          cp -r $CONDA_PREFIX_POSIX/Library/include/freetype2 $HOME/opt/local/include
+          cp $CONDA_PREFIX_POSIX/Library/include/ft2build.h $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/jpeg8.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/jpeg.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/include/jpeglib.h $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/lcms2.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/lcms2.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/include/lcms2.h $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/Lerc.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/Lerc.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/include/Lerc*.h $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/liblzma.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/liblzma.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/include/lzma.h $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/libpng16.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/libpng16.lib $HOME/opt/local/lib
+          cp -r $CONDA_PREFIX_POSIX/Library/include/libpng16 $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/libwebp.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/libwebp.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/bin/libwebpmux.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/libwebpmux.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/bin/libsharpyuv.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/libsharpyuv.lib $HOME/opt/local/lib
+          cp -r $CONDA_PREFIX_POSIX/Library/include/webp $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/Iex.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/Iex.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/bin/IlmThread.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/IlmThread.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/bin/IMath.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/IMath.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/bin/OpenEXR.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/OpenEXR.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/bin/OpenEXRCore.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/OpenEXRCore.lib $HOME/opt/local/lib
+          cp -r $CONDA_PREFIX_POSIX/Library/include/OpenEXR $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/openjp2.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/openjp2.lib $HOME/opt/local/lib
+          cp -r $CONDA_PREFIX_POSIX/Library/include/openjpeg-2.5 $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/raw.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/raw.lib $HOME/opt/local/lib
+          cp -r $CONDA_PREFIX_POSIX/Library/include/libraw $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/tiff.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/tiff.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/include/tiff*.h $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/zlib.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/zlib.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/include/zlib.h $HOME/opt/local/include
+
+          cp $CONDA_PREFIX_POSIX/Library/bin/zstd.dll $HOME/opt/local/bin
+          cp $CONDA_PREFIX_POSIX/Library/lib/zstd.lib $HOME/opt/local/lib
+          cp $CONDA_PREFIX_POSIX/Library/include/zstd*.h $HOME/opt/local/include
+
+          cp -r $CONDA_PREFIX_POSIX/Library/include/rapidjson $HOME/opt/local/include
+
+          micromamba deactivate
 
       - name: (All) Download and prepare OCCT SDK
         if: steps.cache-occt-restore.outputs.cache-hit != 'true'
@@ -166,6 +303,9 @@ jobs:
               patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
               patch < ../patches/occt-${{ env.OCCT }}/blobfish.patch
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+              patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
+
           fi
 
       - name: (Mac) Patch OCCT SDK
@@ -176,13 +316,15 @@ jobs:
           cd OCCT
           ${{ matrix.sed_i }} 's/const char\* aTags/const unsigned char\* aTags/' src/StdPrs/StdPrs_BRepFont.cxx
 
-      - name: (All) Compile and install OCCT SDK
-        if: steps.cache-occt-restore.outputs.cache-hit != 'true'
+      - name: (Linux, Mac) Compile and install OCCT SDK
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true' && ${{ runner.os != 'Windows' }}
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
 
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}
+          mkdir ~/opt/local/include
+          mkdir ~/opt/local/lib
 
           cd OCCT
           rm -fr build
@@ -225,12 +367,72 @@ jobs:
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
           ninja -C build install
 
+      - name: (Windows) Compile and install OCCT SDK
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true' && ${{ runner.os != 'Windows' }}
+        shell: bash -l {0}
+        run: |
+          micromamba activate ${{ env.OCP_ENV }}
+          cd OCCT
+
+          PATH="/c/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/":$PATH
+          
+          echo vtkCommonTransforms >> src/TKIVtk/EXTERNLIB
+          echo vtkCommonMath >> src/TKIVtk/EXTERNLIB
+          echo vtkCommonExecutionModel >> src/TKIVtk/EXTERNLIB
+          echo vtkCommonDataModel >> src/TKIVtk/EXTERNLIB
+          echo vtksys >> src/TKIVtk/EXTERNLIB
+
+          cmake -S . -B build \
+            -D USE_TBB=OFF \
+            -D USE_FREEIMAGE=ON \
+            -D USE_FREETYPE=ON \
+            -D USE_RAPIDJSON=ON \
+            -D USE_FFMPEG=OFF \
+            -D USE_VTK=ON \
+            -D VTK_RENDERING_BACKEND="OpenGL2" \
+            \
+            -D Python3_EXECUTABLE=$CONDA_PREFIX/python.exe \
+            \
+            -D BUILD_CPP_STANDARD=C++17 \
+            -D CMAKE_BUILD_TYPE="Release" \
+            -D BUILD_RELEASE_DISABLE_EXCEPTIONS=OFF \
+            -D BUILD_MODULE_Draw=OFF \
+            -D CMAKE_POSITION_INDEPENDENT_CODE=OFF \
+            \
+            -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }} \
+            -D CMAKE_PREFIX_PATH=$HOME/opt/local \
+            -D CMAKE_LIBRARY_PATH="$HOME/opt/local/lib" \
+            -D CMAKE_EXE_LINKER_FLAGS="-LIBPATH:$HOME/opt/local/bin" \
+            -D CMAKE_SHARED_LINKER_FLAGS="-LIBPATH:$HOME/opt/local/lib" \
+            \
+            -D 3RDPARTY_RAPIDJSON_INCLUDE_DIR=$HOME/opt/local/include \
+            \
+            -D 3RDPARTY_FREEIMAGE_INCLUDE_DIR=$HOME/opt/local/include \
+            -D 3RDPARTY_FREEIMAGE_DLL_DIR_freeimage=$HOME/opt/local/bin \
+            -D 3RDPARTY_FREEIMAGE_INCLUDE_DIR=$HOME/opt/local/include \
+            \
+            -D 3RDPARTY_FREETYPE_DLL_DIR=$HOME/opt/local \
+            -D 3RDPARTY_FREETYPE_LIBRARY_DIR=$HOME/opt/local \
+            -D 3RDPARTY_FREETYPE_INCLUDE_DIR_freetype2=$HOME/opt/local/include/freetype2 \
+            -D 3RDPARTY_FREETYPE_INCLUDE_DIR_ft2build=$HOME/opt/local/include/ft2build.h \
+            -D FREETYPE_INCLUDE_DIRS=$HOME/opt/local/include/freetype \
+            \
+            -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }} \
+            -D 3RDPARTY_VTK_INCLUDE_DIR=$HOME/opt/local/vtk-9.2.6/include/vtk-${{ env.VTK_MAJOR }} \
+            -D 3RDPARTY_VTK_LIBRARY_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib \
+            -D 3RDPARTY_VTK_DLL_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/bin
+
+          cmake --build build --config Release -j ${{ steps.cpu-count.outputs.cpu_count }}
+          cmake --install build
+
       - name: (All) Cache OCCT build folder
         id: cache-occt-save
         uses: actions/cache/save@v4
         with:
           path: |
             ~/opt/local/occt-${{ env.OCCT }}
+            ~/opt/local/include
+            ~/opt/local/lib
           key: ${{ steps.cache-occt-restore.outputs.cache-primary-key }}
 
       # ========================================
