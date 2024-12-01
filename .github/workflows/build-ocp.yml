@@ -20,35 +20,35 @@ jobs:
       matrix:
         # os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
         # python-version: ['3.10', '3.11', '3.12']
-        os: ["macos-14", "ubuntu-22.04"]
+        os: ["windows-19"]
         python-version: ["3.11"]
         include:
           # - os: "macos-13"
           #   delocate: delocate
           #   plat: macosx_10_9_x86_64
-          - os: "macos-14"
-            delocate: delocate
-            plat: macosx_11_0_arm64
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
-            sed_i: "sed -i '.bak'"
-            compilers: "" # use standard macos compilers
-          - os: "ubuntu-22.04"
-            delocate: auditwheel patchelf
-            plat: manylinux_2_35_x86_64
-            vtk_libs: "libvtk*.so"
-            vtk_suffix: "/vtk-9.2/"
-            vtk_prefix: ""
-            sed_i: "sed -i"
-            compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10 -D CMAKE_PREFIX_PATH=/usr/lib/llvm-15"
+          # - os: "macos-14"
+          #   delocate: delocate
+          #   plat: macosx_11_0_arm64
+          #   vtk_libs: ".dylibs/libvtk*.dylib"
+          #   vtk_suffix: "/"
+          #   vtk_prefix: ""
+          #   sed_i: "sed -i '.bak'"
+          #   compilers: "" # use standard macos compilers
+          # - os: "ubuntu-22.04"
+          #   delocate: auditwheel patchelf
+          #   plat: manylinux_2_35_x86_64
+          #   vtk_libs: "libvtk*.so"
+          #   vtk_suffix: "/vtk-9.2/"
+          #   vtk_prefix: ""
+          #   sed_i: "sed -i"
+          #   compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10 -D CMAKE_PREFIX_PATH=/usr/lib/llvm-15"
           - os: 'windows-2019'
             delocate: delvewheel
             vtk_libs: "vtk*.dll"
             vtk_suffix: "/"
             vtk_prefix: "Library/"
             sed_i: "sed -i"
-            compilers: "-D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_PREFIX_PATH=\"/c/Program Files/LLVM\""
+            compilers: ""
 
 
     steps:
@@ -149,10 +149,16 @@ jobs:
           fi
 
       - name: (Windows) Install VTK SDK
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          toolset: 14
         if: steps.cache-vtk-restore.outputs.cache-hit != 'true' && ${{ runner.os == 'Windows' }}
         shell: bash -l {0}
         run: |
-         # Create an environment with conda VTK to get the include files
+          where dumpbin.exe
+          where lib.exe
+          # Create an environment with conda VTK to get the include files
+
           micromamba create -y -n vtk python=${{ matrix.python-version }}
           micromamba activate vtk
           micromamba install -y vtk=${{ env.VTK }}
@@ -376,6 +382,7 @@ jobs:
 
           PATH="/c/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/":$PATH
           
+          # For some reason the linker needs some more libs
           echo vtkCommonTransforms >> src/TKIVtk/EXTERNLIB
           echo vtkCommonMath >> src/TKIVtk/EXTERNLIB
           echo vtkCommonExecutionModel >> src/TKIVtk/EXTERNLIB
