@@ -157,9 +157,9 @@ jobs:
           micromamba activate vtk
           micromamba install -y vtk=${{ env.VTK }}
 
-          mkdir $HOME/opt/local/vtk-${{ env.VTK }}/include
-          mkdir $HOME/opt/local/vtk-${{ env.VTK }}/bin
-          mkdir $HOME/opt/local/vtk-${{ env.VTK }}/lib
+          mkdir -p $HOME/opt/local/vtk-${{ env.VTK }}/include
+          mkdir -p $HOME/opt/local/vtk-${{ env.VTK }}/bin
+          mkdir -p $HOME/opt/local/vtk-${{ env.VTK }}/lib
           copy create_lib.bat $HOME/opt/local/vtk-${{ env.VTK }}
 
           cp -r $CONDA_PREFIX/${{ matrix.vtk_prefix }}include/vtk-${{ env.VTK_MAJOR }}/ ~/opt/local/vtk-${{ env.VTK }}/include/
