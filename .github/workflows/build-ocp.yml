@@ -98,27 +98,8 @@ jobs:
         shell: bash -l {0}
         run: |
           # choco install tree wget
-          '/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/vcvarsx86_amd64.bat'
-          echo '=> /c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/'
-          ls -l '/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/'
-          echo '=> /c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/'
-          ls -l '/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/x86_amd64/'
-          PATH='/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/':$PATH
-          echo "=> cl.exe"
-          where cl.exe
-          echo "=> dumpbin.exe"
-          where dumpbin.exe
-          echo "=> lib.exe"
-          where lib.exe
-          echo "=> cmake.exe"
-          where cmake.exe
-          echo "=> wget.exe"
-          where wget.exe
-          echo "=> curl.exe"
-          where curl.exe
+          echo "n/a"
           
-
-
       # ========================================
       #                VTK SDK
       # ========================================
@@ -126,11 +107,12 @@ jobs:
       - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
         shell: bash -l {0}
         run: |
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
+          PATH='/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/':$PATH
+
           micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
           micromamba activate ${{ env.OCP_ENV }}
           python -c "import sys;print(sys.version)"
-          wget https://files.pythonhosted.org/packages/1c/a8/11eeb04d8f287cdd6ef7778774e9009afad2d7f406f4a5617a19106a0ea9/vtk-9.2.6-cp311-cp311-win_amd64.whl
+          curl -O https://files.pythonhosted.org/packages/1c/a8/11eeb04d8f287cdd6ef7778774e9009afad2d7f406f4a5617a19106a0ea9/vtk-9.2.6-cp311-cp311-win_amd64.whl
           pip -v install --debug vtk-9.2.6-cp311-cp311-win_amd64.whl
           # pip install vtk==${{ env.VTK }}
 
