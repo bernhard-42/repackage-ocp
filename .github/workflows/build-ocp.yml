@@ -98,9 +98,11 @@ jobs:
         shell: bash -l {0}
         run: |
           choco install tree wget
+          echo "=> /c/Program Files (x86)/"
           ls "/c/Program Files (x86)/"
-          ls "/c/Program Files (x86)/Microsoft Visual Studio/"
-          "/c/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Auxiliary/Build/vcvarsall.bat" amd64
+          echo "=> /c/Program Files (x86)/Microsoft Visual Studio 14/"
+          ls "/c/Program Files (x86)/Microsoft Visual Studio 14/"
+          "/c/Program Files (x86)/Microsoft Visual Studio 14/2019/Community/VC/Auxiliary/Build/vcvarsall.bat" amd64
           where dumpbin.exe
           where lib.exe
           where cmake.exe
