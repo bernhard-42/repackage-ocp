@@ -121,6 +121,9 @@ jobs:
         if: ${{ runner.os }} != 'Windows' && steps.cache-vtk-restore.outputs.cache-hit != 'true' 
         shell: bash -l {0}
         run: |
+          echo "${{ runner.os }} != 'Windows'"
+          echo "steps.cache-vtk-restore.outputs.cache-hit != 'true'"
+          echo "${{ runner.os }} != 'Windows' && steps.cache-vtk-restore.outputs.cache-hit != 'true'"
           # Create an environment with conda VTK to get the include files
           micromamba create -y -n vtk python=${{ matrix.python-version }}
           micromamba activate vtk
