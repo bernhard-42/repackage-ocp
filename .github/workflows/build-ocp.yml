@@ -160,17 +160,18 @@ jobs:
           mkdir -p $HOME/opt/local/vtk-${{ env.VTK }}/include
           mkdir -p $HOME/opt/local/vtk-${{ env.VTK }}/bin
           mkdir -p $HOME/opt/local/vtk-${{ env.VTK }}/lib
-          copy create_lib.bat $HOME/opt/local/vtk-${{ env.VTK }}
+          cp create_lib.sh $HOME/opt/local/vtk-${{ env.VTK }}
 
-          cp -r $CONDA_PREFIX/${{ matrix.vtk_prefix }}include/vtk-${{ env.VTK_MAJOR }}/ ~/opt/local/vtk-${{ env.VTK }}/include/
+          CONDA_PREFIX_POSIX=$(cygpath -u $CONDA_PREFIX)
+          cp -r $CONDA_PREFIX_POSIX/${{ matrix.vtk_prefix }}include/vtk-${{ env.VTK_MAJOR }}/ ~/opt/local/vtk-${{ env.VTK }}/include/
           cp cmake/vtk-config-${{ matrix.os }}.cmake ~/opt/local/vtk-${{ env.VTK }}/vtk-config.cmake
           micromamba deactivate
 
           # Create an environment with pypi VTK to get the VTK shared libraries
           micromamba activate ${{ env.OCP_ENV }}
 
-          cp $CONDA_PREFIX/Lib/site-packages/vtkmodules/*.dll $HOME/opt/local/vtk-${{ env.VTK }}/bin/
-          cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtk.py $HOME/opt/local/vtk-${{ env.VTK }}
+          cp $CONDA_PREFIX_POSIX/Lib/site-packages/vtkmodules/*.dll $HOME/opt/local/vtk-${{ env.VTK }}/bin/
+          cp $CONDA_PREFIX/lib_POSIX/python${{ matrix.python-version }}/site-packages/vtk.py $HOME/opt/local/vtk-${{ env.VTK }}
           cp -r $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules $HOME/opt/local/vtk-${{ env.VTK }}
 
           # Create the lib files needed for compilation
