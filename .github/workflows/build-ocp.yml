@@ -217,7 +217,10 @@ jobs:
           mkdir -p $HOME/opt/local/lib
           
           CONDA_PREFIX_POSIX=$(cygpath -u $CONDA_PREFIX)
-
+          echo "==> CONDA_PREFIX_POSIX: $CONDA_PREFIX_POSIX"
+          ls -l $CONDA_PREFIX_POSIX/Library/
+          echo "==> bin" 
+          ls -l $CONDA_PREFIX_POSIX/Library/bin/ 
           cp $CONDA_PREFIX_POSIX/Library/bin/deflate.dll $HOME/opt/local/bin
           cp $CONDA_PREFIX_POSIX/Library/lib/deflate.lib $HOME/opt/local/lib
           cp $CONDA_PREFIX_POSIX/Library/include/cdeflate.h $HOME/opt/local/include
