@@ -98,9 +98,10 @@ jobs:
         shell: bash -l {0}
         run: |
           choco install tree wget
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
           where dumpbin.exe
           where lib.exe
-          wherfe cmake.exe
+          where cmake.exe
           
 
 
@@ -111,6 +112,7 @@ jobs:
       - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
         shell: bash -l {0}
         run: |
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
           micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
           micromamba activate ${{ env.OCP_ENV }}
           python -c "import sys;print(sys.version)"
