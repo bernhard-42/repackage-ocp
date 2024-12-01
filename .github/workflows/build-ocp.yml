@@ -173,7 +173,7 @@ jobs:
           # Create an environment with pypi VTK to get the VTK shared libraries
           micromamba activate ${{ env.OCP_ENV }}
 
-          cp $CONDA_PREFIX_POSIX/Lib/site-packages/vtkmodules/*.dll $HOME/opt/local/vtk-${{ env.VTK }}/bin/
+          cp $CONDA_PREFIX_POSIX/Library/bin/*.dll $HOME/opt/local/vtk-${{ env.VTK }}/bin/
           cp $CONDA_PREFIX_POSIX/Lib/site-packages/vtk.py $HOME/opt/local/vtk-${{ env.VTK }}
           cp -r $CONDA_PREFIX_POSIX/Lib/site-packages/vtkmodules $HOME/opt/local/vtk-${{ env.VTK }}
 
