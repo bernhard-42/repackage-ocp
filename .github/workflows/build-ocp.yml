@@ -100,9 +100,9 @@ jobs:
 
           micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
           micromamba activate ${{ env.OCP_ENV }}
+
           python -c "import sys;print(sys.version)"
-          # curl -O https://files.pythonhosted.org/packages/1c/a8/11eeb04d8f287cdd6ef7778774e9009afad2d7f406f4a5617a19106a0ea9/vtk-9.2.6-cp311-cp311-win_amd64.whl
-          # pip -v install --debug vtk-9.2.6-cp311-cp311-win_amd64.whl
+
           pip install vtk==${{ env.VTK }}
 
       # ========================================
@@ -209,9 +209,9 @@ jobs:
         if: runner.os  == 'Windows'  && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-          micromamba create -n occt python=3.11 -y
+          micromamba create -y -n occt python=3.11
           micromamba activate occt
-          micromamba install "occt=7.7.2=all*"
+          micromamba install -y "occt=7.7.2=all*"
 
           mkdir -p $HOME/opt/local/include
           mkdir -p $HOME/opt/local/bin
