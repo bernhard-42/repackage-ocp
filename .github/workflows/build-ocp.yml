@@ -531,7 +531,7 @@ jobs:
           key: ${{ steps.cache-ocp-source-restore.outputs.cache-primary-key }}
 
       - name: (Ubuntu) Generate OCP build files and build OCP
-        if: steps.cache-ocp-restore.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-22.04' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
