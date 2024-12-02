@@ -454,7 +454,7 @@ jobs:
           key: OCP-${{ env.OCP }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (Mac) Install MacOS SDK
-        if: steps.cache-ocp-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
+        if: matrix.os == 'macos-14' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           curl -L -O https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz
@@ -489,7 +489,7 @@ jobs:
           key: OCP-source-${{ env.OCP }}-${{ matrix.os }}-
 
       - name: (Ubuntu) Generate OCP source
-        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true' && matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-22.04' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
@@ -501,7 +501,7 @@ jobs:
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())")
 
       - name: (Mac) Generate OCP source
-        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true' && matrix.os == 'macos-14'
+        if: matrix.os == 'macos-14' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
