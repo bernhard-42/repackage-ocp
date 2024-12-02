@@ -210,6 +210,7 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba create -n occt python=3.11 -y
+          micromamba install "occt=7.7.2=all*"
           micromamba activate occt
 
           mkdir -p $HOME/opt/local/include
@@ -217,10 +218,7 @@ jobs:
           mkdir -p $HOME/opt/local/lib
           
           CONDA_PREFIX_POSIX=$(cygpath -u $CONDA_PREFIX)
-          echo "==> CONDA_PREFIX_POSIX: $CONDA_PREFIX_POSIX"
-          ls -l $CONDA_PREFIX_POSIX/Library/
-          echo "==> bin" 
-          ls -l $CONDA_PREFIX_POSIX/Library/bin/ 
+
           cp $CONDA_PREFIX_POSIX/Library/bin/deflate.dll $HOME/opt/local/bin
           cp $CONDA_PREFIX_POSIX/Library/lib/deflate.lib $HOME/opt/local/lib
           cp $CONDA_PREFIX_POSIX/Library/include/cdeflate.h $HOME/opt/local/include
