@@ -92,10 +92,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build cmake rapidjson-dev libfreeimage-dev llvm-15 clang-15 libclang-15-dev mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libxcursor-dev
-          
-      # ========================================
-      #                VTK SDK
-      # ========================================
 
       - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
         shell: bash -l {0}
@@ -105,9 +101,13 @@ jobs:
           micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
           micromamba activate ${{ env.OCP_ENV }}
           python -c "import sys;print(sys.version)"
-          curl -O https://files.pythonhosted.org/packages/1c/a8/11eeb04d8f287cdd6ef7778774e9009afad2d7f406f4a5617a19106a0ea9/vtk-9.2.6-cp311-cp311-win_amd64.whl
-          pip -v install --debug vtk-9.2.6-cp311-cp311-win_amd64.whl
-          # pip install vtk==${{ env.VTK }}
+          # curl -O https://files.pythonhosted.org/packages/1c/a8/11eeb04d8f287cdd6ef7778774e9009afad2d7f406f4a5617a19106a0ea9/vtk-9.2.6-cp311-cp311-win_amd64.whl
+          # pip -v install --debug vtk-9.2.6-cp311-cp311-win_amd64.whl
+          pip install vtk==${{ env.VTK }}
+
+      # ========================================
+      #                VTK SDK
+      # ========================================
 
       - name: (All) Restore VTK SDK cache
         id: cache-vtk-restore
@@ -210,8 +210,8 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba create -n occt python=3.11 -y
-          micromamba install "occt=7.7.2=all*"
           micromamba activate occt
+          micromamba install "occt=7.7.2=all*"
 
           mkdir -p $HOME/opt/local/include
           mkdir -p $HOME/opt/local/bin
