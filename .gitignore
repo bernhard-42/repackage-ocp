@@ -22,3 +22,6 @@ pypi/cadquery_ocp.egg-info/
 pypi/cadquery_ocp/
 pypi/dist/
 pypi/wheel/
+pypi/wheelhouse/
+
+build

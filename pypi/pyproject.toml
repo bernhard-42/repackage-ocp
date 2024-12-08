@@ -15,8 +15,9 @@ requires-python = ">=3.10"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["*", "cadquery_ocp*"]
+include = ["*", "cadquery_ocp*", "OCP"]
 
 [tool.setuptools.package-data]
-"cadquery_ocp" = ["../*.so", "*.txt", "LICENSE"]
+"cadquery_ocp" = ["../*.so", "../*.pyd", "*.txt", "LICENSE"]
+"OCP" = ["*.so", "*.pyd",  "*.dll", "*.dylib"]
 

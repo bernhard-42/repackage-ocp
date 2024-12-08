@@ -156,7 +156,7 @@ set(VTK_MODULES_ENABLED
     FiltersHybrid
     DomainsChemistry
     CommonPython
-    WrappingPythonCore${PYTHON_VERSION}
+    WrappingPythonCore
     ChartsCore
     InfovisCore
     FiltersExtraction
@@ -204,11 +204,19 @@ set(VTK_MODULES_ENABLED
 foreach(module ${VTK_MODULES_ENABLED})
     if(NOT TARGET VTK::${module})
         add_library(VTK::${module} SHARED IMPORTED)
-        set_target_properties(VTK::${module} PROPERTIES
-            IMPORTED_LOCATION "${VTK_DLL_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dll"
-            IMPORTED_IMPLIB "${VTK_LIBRARY_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.lib"
-            INTERFACE_INCLUDE_DIRECTORIES "${VTK_INCLUDE_DIRS}"
-        )
+        if(${module} STREQUAL "WrappingPythonCore")
+            set_target_properties(VTK::${module} PROPERTIES
+                IMPORTED_LOCATION "${VTK_DLL_DIRS}/vtk${module}${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dll"
+                IMPORTED_IMPLIB "${VTK_LIBRARY_DIRS}/vtk${module}${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.lib"
+                INTERFACE_INCLUDE_DIRECTORIES "${VTK_INCLUDE_DIRS}"
+            )
+        else()
+            set_target_properties(VTK::${module} PROPERTIES
+                IMPORTED_LOCATION "${VTK_DLL_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dll"
+                IMPORTED_IMPLIB "${VTK_LIBRARY_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.lib"
+                INTERFACE_INCLUDE_DIRECTORIES "${VTK_INCLUDE_DIRS}"
+            )
+        endif()
     endif()
 endforeach()
 
@@ -217,7 +225,6 @@ set(VTK_LIBRARIES "")
 foreach(module ${VTK_MODULES_ENABLED})
     list(APPEND VTK_LIBRARIES VTK::${module})
 endforeach()
-list(APPEND VTK_LIBRARIES VTK::WrappingPythonCore)
 
 # Set VTK_FOUND
 set(VTK_FOUND TRUE)
