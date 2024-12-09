@@ -219,15 +219,21 @@ jobs:
           git checkout -b V${{ env.OCCT_ }} tags/V${{ env.OCCT_ }}
 
           if [[ "$RUNNER_OS" == "Linux" ]]; then
-              patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
+            patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
-              patch < ../patches/occt-${{ env.OCCT }}/blobfish.patch
+            patch < ../patches/occt-${{ env.OCCT }}/blobfish.patch
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
-              patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
-              rm ./src/BRepFill/BRepFill_CompatibleWires.cxx.orig
-              rm ./src/ChFi3d/ChFi3d_Builder_1.cxx.orig
-              rm ./src/GeomFill/GeomFill_SectionPlacement.cxx.orig
-              rm ./src/ShapeUpgrade/ShapeUpgrade_UnifySameDomain.cxx.orig
+            patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
+            rm ./src/BRepFill/BRepFill_CompatibleWires.cxx.orig
+            rm ./src/ChFi3d/ChFi3d_Builder_1.cxx.orig
+            rm ./src/GeomFill/GeomFill_SectionPlacement.cxx.orig
+            rm ./src/ShapeUpgrade/ShapeUpgrade_UnifySameDomain.cxx.orig
+
+            echo vtkCommonTransforms >> src\TKIVtk\EXTERNLIB
+            echo vtkCommonMath >>src\TKIVtk\EXTERNLIB
+            echo vtkCommonExecutionModel >>src\TKIVtk\EXTERNLIB
+            echo vtkCommonDataModel >>src\TKIVtk\EXTERNLIB
+            echo vtksys >>src\TKIVtk\EXTERNLIB
           fi
 
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}
@@ -297,13 +303,6 @@ jobs:
           cd OCCT
           dir "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\"
           "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-
-          REM For some reason the linker needs some more libs
-          (echo.vtkCommonTransforms)>>src\TKIVtk\EXTERNLIB
-          (echo.vtkCommonMath)>>src\TKIVtk\EXTERNLIB
-          (echo.vtkCommonExecutionModel)>>src\TKIVtk\EXTERNLIB
-          (echo.vtkCommonDataModel)>>src\TKIVtk\EXTERNLIB
-          (echo.vtksys)>>src\TKIVtk\EXTERNLIB
 
           set CC=cl.exe
           set CXX=cl.exe
