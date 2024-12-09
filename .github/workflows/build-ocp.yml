@@ -121,7 +121,7 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          micromamba install -y ninja rapidjson "freetype=2.12.*" "freeimage=3.18.*"  llvmdev=15.0.7 clangdev=15.0.7
+          micromamba install -y ninja rapidjson "freetype=2.12.*" "freeimage=3.18.*" zlib llvmdev=15.0.7 clangdev=15.0.7
 
       # ========================================
       #                VTK SDK
@@ -435,11 +435,12 @@ jobs:
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
 
           for /f "tokens=*" %i in ('python -c "import pybind11; print(pybind11.get_cmake_dir())"') do set pybind11_DIR=%i
+
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} ^
             -D CMAKE_BUILD_TYPE=Release ^
             -D VTK_DIR=$HOME\opt\local\vtk-${{ env.VTK }}\lib\cmake ^
             -D OpenCASCADE_DIR=$HOME\opt\local\occt-${{ env.OCCT }}\cmake ^
-            -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") ^
+            -D pybind11_DIR=%pybind11_DIR% ^
             -D CMAKE_CXX_STANDARD=17 ^
             -D CMAKE_PREFIX_PATH=$CONDA_PREFIX\Library ^
             -D CMAKE_SHARED_LINKER_FLAGS="-L $HOME\opt\local\vtk-${{ env.VTK }}\lib"
@@ -519,9 +520,11 @@ jobs:
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
           
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-
           set CC=cl.exe
           set CXX=cl.exe
+
+          for /f "tokens=*" %i in ('python -c "import pybind11; print(pybind11.get_cmake_dir())"') do set pybind11_DIR=%i
+
           cmake -B build -S . -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DPython3_FIND_STRATEGY=LOCATION ^
@@ -530,6 +533,7 @@ jobs:
             -D VTK_DIR=%USERPROFILE%\opt\local\vtk-9.2.6 ^
             -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\occt-7.7.2\cmake ^
             -D pybind11_DIR=%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11 ^
+            -D CMAKE_PREFIX_PATH=%CONDA_PREFIX%\Library ^
             -D CMAKE_LINKER=lld-link.exe ^
             -D CMAKE_CXX_FLAGS="-external:I%USERPROFILE%\opt\local\include"
 
