@@ -231,11 +231,11 @@ jobs:
             rm ./src/GeomFill/GeomFill_SectionPlacement.cxx.orig
             rm ./src/ShapeUpgrade/ShapeUpgrade_UnifySameDomain.cxx.orig
 
-            echo vtkCommonTransforms >> src\TKIVtk\EXTERNLIB
-            echo vtkCommonMath >>src\TKIVtk\EXTERNLIB
-            echo vtkCommonExecutionModel >>src\TKIVtk\EXTERNLIB
-            echo vtkCommonDataModel >>src\TKIVtk\EXTERNLIB
-            echo vtksys >>src\TKIVtk\EXTERNLIB
+            echo vtkCommonTransforms >> src/TKIVtk/EXTERNLIB
+            echo vtkCommonMath >> src/TKIVtk/EXTERNLIB
+            echo vtkCommonExecutionModel >> src/TKIVtk/EXTERNLIB
+            echo vtkCommonDataModel >> src/TKIVtk/EXTERNLIB
+            echo vtksys >> src/TKIVtk/EXTERNLIB
           fi
 
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}
