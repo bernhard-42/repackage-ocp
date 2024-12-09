@@ -223,7 +223,7 @@ jobs:
 
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             patch < ../patches/occt-${{ env.OCCT }}/blobfish.patch
-            
+
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
             patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
             rm ./src/BRepFill/BRepFill_CompatibleWires.cxx.orig
@@ -303,9 +303,8 @@ jobs:
         shell: cmd
         run: |
           cd OCCT
-          dir "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\"
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-
+          
+          CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           set CC=cl.exe
           set CXX=cl.exe
 
