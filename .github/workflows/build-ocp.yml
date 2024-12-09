@@ -61,7 +61,7 @@ jobs:
           init-shell: bash
           cache-downloads: true
 
-      - name: Set up Python ${{ matrix.python-version }} via micromamba for cmd.exe
+      - name: (Windows) Set up Python ${{ matrix.python-version }} via micromamba for cmd.exe
         if: runner.os == 'Windows'
         uses: mamba-org/setup-micromamba@v1
         with:
@@ -290,6 +290,7 @@ jobs:
         if: runner.os  == 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
+          micromamba shell reinit --shell cmd.exe
           micromamba activate ${{ env.OCP_ENV }}
           micromamba install -y rapidjson "freetype=2.12.*" "freeimage=3.18.*"
           
