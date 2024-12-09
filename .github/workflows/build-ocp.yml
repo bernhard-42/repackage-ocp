@@ -80,13 +80,13 @@ jobs:
 
       # Install toolchain if needed
 
-      - name: (Mac) Install brew dependencies
+      - name: (Mac) Install dependencies
         if: runner.os == 'macOS'
         shell: bash -l {0}
         run: |
           brew install freeimage rapidjson ninja cmake llvm@15 tree
 
-      - name: (Ubuntu) Install apt dependencies
+      - name: (Ubuntu) Install dependencies
         if: runner.os == 'Linux'
         shell: bash -l {0}
         run: |
@@ -95,12 +95,11 @@ jobs:
                                   clang-15 libclang-15-dev mesa-common-dev libegl1-mesa-dev \
                                   libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libxcursor-dev
 
-      - name: (Windows) Install apt dependencies
+      - name: (Windows) Install dependencies
         if: runner.os == 'Windows'
-        shell: bash -l {0}
-        run: |
-          choco install cmake ninja
-          
+        uses: jwlawson/actions-setup-cmake@v1.13
+        uses: ashutoshvarma/setup-ninja@master
+
       - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
         shell: bash -l {0}
         run: |
