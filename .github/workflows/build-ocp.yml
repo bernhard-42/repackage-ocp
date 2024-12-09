@@ -89,6 +89,18 @@ jobs:
 
       # Install toolchain if needed
 
+      - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
+        shell: bash -l {0}
+        run: |
+          PATH='/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/':$PATH
+
+          micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
+          micromamba activate ${{ env.OCP_ENV }}
+
+          python -c "import sys;print(sys.version)"
+
+          pip install vtk==${{ env.VTK }}
+
       - name: (Mac) Install dependencies
         if: runner.os == 'macOS'
         shell: bash -l {0}
@@ -104,17 +116,12 @@ jobs:
                                   clang-15 libclang-15-dev mesa-common-dev libegl1-mesa-dev \
                                   libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libxcursor-dev
 
-      - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
+      - name: (Windows) Install libs
+        if: runner.os  == 'Windows'
         shell: bash -l {0}
         run: |
-          PATH='/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/':$PATH
-
-          micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
           micromamba activate ${{ env.OCP_ENV }}
-
-          python -c "import sys;print(sys.version)"
-
-          pip install vtk==${{ env.VTK }}
+          micromamba install -y ninja rapidjson "freetype=2.12.*" "freeimage=3.18.*"
 
       # ========================================
       #                VTK SDK
@@ -287,16 +294,10 @@ jobs:
         if: runner.os  == 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
-          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
-          echo "=== 0 ==="
-          micromamba install -y ninja rapidjson "freetype=2.12.*" "freeimage=3.18.*"
-          echo "=== 1 ==="
           cd OCCT
-          echo "=== 2 ==="
           dir "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\"
-          echo "=== 3 ==="
           "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          echo "=== 4 ==="
+
           REM For some reason the linker needs some more libs
           (echo.vtkCommonTransforms)>>src\TKIVtk\EXTERNLIB
           (echo.vtkCommonMath)>>src\TKIVtk\EXTERNLIB
