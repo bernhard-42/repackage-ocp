@@ -95,6 +95,12 @@ jobs:
                                   clang-15 libclang-15-dev mesa-common-dev libegl1-mesa-dev \
                                   libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libxcursor-dev
 
+      - name: (Windows) Install apt dependencies
+        if: runner.os == 'Windows'
+        shell: bash -l {0}
+        run: |
+          choco install cmake ninja
+          
       - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
         shell: bash -l {0}
         run: |
