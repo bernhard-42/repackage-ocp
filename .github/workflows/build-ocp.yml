@@ -291,7 +291,7 @@ jobs:
           micromamba install -y ninja rapidjson "freetype=2.12.*" "freeimage=3.18.*"
           
           cd OCCT
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
 
           REM For some reason the linker needs some more libs
           (echo.vtkCommonTransforms)>>src\TKIVtk\EXTERNLIB
@@ -434,8 +434,7 @@ jobs:
             -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
             -D CMAKE_CXX_STANDARD=17 \
             -D CMAKE_PREFIX_PATH=$CONDA_PREFIX/Library \
-            -D CMAKE_SHARED_LINKER_FLAGS="-L $HOME/opt/local/vtk-${{ env.VTK }}/lib" \
-            -D CMAKE_BUILD_WITH_INSTALL_RPATH=TRUE
+            -D CMAKE_SHARED_LINKER_FLAGS="-L $HOME/opt/local/vtk-${{ env.VTK }}/lib"
           
       - name: (All) Cache OCP source folder
         id: cache-ocp-source-save
@@ -511,7 +510,7 @@ jobs:
         run: |
           micromamba activate ${{ env.OCP_ENV }}
 
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
 
           set CC=cl.exe
           set CXX=cl.exe
