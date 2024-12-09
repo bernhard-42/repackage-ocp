@@ -103,10 +103,6 @@ jobs:
                                   clang-15 libclang-15-dev mesa-common-dev libegl1-mesa-dev \
                                   libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libxcursor-dev
 
-      - name: (Windows) Install dependencies
-        if: runner.os == 'Windows'
-        uses: ashutoshvarma/setup-ninja@master
-
       - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
         shell: bash -l {0}
         run: |
@@ -292,12 +288,12 @@ jobs:
         run: |
           micromamba shell reinit --shell cmd.exe
           micromamba activate ${{ env.OCP_ENV }}
-          micromamba install -y rapidjson "freetype=2.12.*" "freeimage=3.18.*"
+          micromamba install -y ninja rapidjson "freetype=2.12.*" "freeimage=3.18.*"
           
           cd OCCT
           "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
 
-          # For some reason the linker needs some more libs
+          REM For some reason the linker needs some more libs
           (echo.vtkCommonTransforms)>>src\TKIVtk\EXTERNLIB
           (echo.vtkCommonMath)>>src\TKIVtk\EXTERNLIB
           (echo.vtkCommonExecutionModel)>>src\TKIVtk\EXTERNLIB
