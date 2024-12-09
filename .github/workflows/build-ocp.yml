@@ -343,7 +343,6 @@ jobs:
           path: |
             ~/opt/local/occt-${{ env.OCCT }}
             ~/opt/local/include
-            ~/opt/local/bin
             ~/opt/local/lib
           key: ${{ steps.cache-occt-restore.outputs.cache-primary-key }}
 
