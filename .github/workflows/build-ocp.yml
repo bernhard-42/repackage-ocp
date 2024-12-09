@@ -220,8 +220,10 @@ jobs:
 
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
+
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             patch < ../patches/occt-${{ env.OCCT }}/blobfish.patch
+            
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
             patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
             rm ./src/BRepFill/BRepFill_CompatibleWires.cxx.orig
