@@ -97,7 +97,6 @@ jobs:
 
       - name: (Windows) Install dependencies
         if: runner.os == 'Windows'
-        uses: jwlawson/actions-setup-cmake@v1.13
         uses: ashutoshvarma/setup-ninja@master
 
       - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
