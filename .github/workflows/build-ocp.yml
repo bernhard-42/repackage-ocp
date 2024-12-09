@@ -70,14 +70,6 @@ jobs:
           init-shell: bash cmd.exe
           cache-downloads: true
 
-      - name: (Windows) Set up Python ${{ matrix.python-version }} via micromamba for cmd.exe
-        if: runner.os == 'Windows'
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          log-level: debug
-          init-shell: cmd.exe
-          cache-downloads: true
-
       - name: Get number of CPUs
         shell: bash -l {0}
         id: cpu-count
