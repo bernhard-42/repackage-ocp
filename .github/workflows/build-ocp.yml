@@ -288,6 +288,7 @@ jobs:
         shell: cmd
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
+          echo "=== 0 ==="
           micromamba install -y ninja rapidjson "freetype=2.12.*" "freeimage=3.18.*"
           echo "=== 1 ==="
           cd OCCT
@@ -431,9 +432,9 @@ jobs:
         run: |
           micromamba activate ${{ env.OCP_ENV }}
 
-          sed -i "s/find_package( LLVM/# find_package( LLVM" CMakeLists.txt
-          sed -i "s/find_package( Clang/# find_package( Clang/" CMakeLists.txt
-          sed -i "s/get_target_property( LIBCLANG_PATH/# get_target_property( LIBCLANG_PATH/" CMakeLists.txt
+          "C:\Program Files\Git\usr\bin\sed.exe" -i "s/find_package( LLVM/# find_package( LLVM" CMakeLists.txt
+          "C:\Program Files\Git\usr\bin\sed.exe" -i "s/find_package( Clang/# find_package( Clang/" CMakeLists.txt
+          "C:\Program Files\Git\usr\bin\sed.exe" -i "s/get_target_property( LIBCLANG_PATH/# get_target_property( LIBCLANG_PATH/" CMakeLists.txt
 
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} ^
             -D CMAKE_BUILD_TYPE=Release ^
