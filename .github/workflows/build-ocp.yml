@@ -289,10 +289,13 @@ jobs:
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
           micromamba install -y ninja rapidjson "freetype=2.12.*" "freeimage=3.18.*"
-          
+          echo "=== 1 ==="
           cd OCCT
+          echo "=== 2 ==="
+          dir "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\"
+          echo "=== 3 ==="
           "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-
+          echo "=== 4 ==="
           REM For some reason the linker needs some more libs
           (echo.vtkCommonTransforms)>>src\TKIVtk\EXTERNLIB
           (echo.vtkCommonMath)>>src\TKIVtk\EXTERNLIB
@@ -424,17 +427,22 @@ jobs:
 
       - name: (Windows) Generate OCP source
         if: matrix.os == 'windows-2019' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
-        shell: bash -l {0}
+        shell: cmd
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
-            -D CMAKE_BUILD_TYPE=Release \
-            -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
-            -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/cmake \
-            -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
-            -D CMAKE_CXX_STANDARD=17 \
-            -D CMAKE_PREFIX_PATH=$CONDA_PREFIX/Library \
-            -D CMAKE_SHARED_LINKER_FLAGS="-L $HOME/opt/local/vtk-${{ env.VTK }}/lib"
+
+          sed -i "s/find_package( LLVM/# find_package( LLVM" CMakeLists.txt
+          sed -i "s/find_package( Clang/# find_package( Clang/" CMakeLists.txt
+          sed -i "s/get_target_property( LIBCLANG_PATH/# get_target_property( LIBCLANG_PATH/" CMakeLists.txt
+
+          cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} ^
+            -D CMAKE_BUILD_TYPE=Release ^
+            -D VTK_DIR=$HOME\opt\local\vtk-${{ env.VTK }}\lib\cmake ^
+            -D OpenCASCADE_DIR=$HOME\opt\local\occt-${{ env.OCCT }}\cmake ^
+            -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") ^
+            -D CMAKE_CXX_STANDARD=17 ^
+            -D CMAKE_PREFIX_PATH=$CONDA_PREFIX\Library ^
+            -D CMAKE_SHARED_LINKER_FLAGS="-L $HOME\opt\local\vtk-${{ env.VTK }}\lib"
           
       - name: (All) Cache OCP source folder
         id: cache-ocp-source-save
@@ -510,8 +518,6 @@ jobs:
         run: |
           micromamba activate ${{ env.OCP_ENV }}
 
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-
           set CC=cl.exe
           set CXX=cl.exe
           cmake -B build -S . -G Ninja ^
@@ -527,9 +533,6 @@ jobs:
 
           PATH="C:\Program Files\Git\usr\bin";%PATH%
 
-          sed -i "s/find_package( LLVM/# find_package( LLVM" CMakeLists.txt
-          sed -i "s/find_package( Clang/# find_package( Clang/" CMakeLists.txt
-          sed -i "s/get_target_property( LIBCLANG_PATH/# get_target_property( LIBCLANG_PATH/" CMakeLists.txt
 
           sed -i "s/char_traits/std::char_traits/g" OCP\Image.cpp
           sed -i "s/char_traits/std::char_traits/g" OCP\IFSelect.cpp
