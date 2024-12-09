@@ -66,7 +66,7 @@ jobs:
         uses: mamba-org/setup-micromamba@v1
         with:
           log-level: debug
-          init-shell: cmd
+          init-shell: cmd.exe
           cache-downloads: true
 
       - name: Get number of CPUs
