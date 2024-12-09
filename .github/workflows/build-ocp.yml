@@ -287,7 +287,7 @@ jobs:
         if: runner.os  == 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
           micromamba install -y ninja rapidjson "freetype=2.12.*" "freeimage=3.18.*"
           
           cd OCCT
