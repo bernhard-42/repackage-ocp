@@ -531,7 +531,7 @@ jobs:
             -D Python3_ROOT_DIR=%CONDA_PREFIX% ^
             -D CMAKE_BUILD_TYPE=Release ^
             -D VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }} ^
-            -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\${{ env.OCCT }}\cmake ^
+            -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\occt-${{ env.OCCT }}\cmake ^
             -D pybind11_DIR=%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11 ^
             -D CMAKE_LINKER=lld-link.exe ^
             -D CMAKE_PREFIX_PATH=%CONDA_PREFIX%\Library ^
