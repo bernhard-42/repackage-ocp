@@ -427,9 +427,8 @@ jobs:
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
           cd OCP
 
-          "C:\Program Files\Git\usr\bin\sed.exe" -i "s/N_PROC 2/N_PROC ${{ steps.cpu-count.outputs.cpu_count }}/" CMakeLists.txt
-          type CMakeLists.txt
-
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          
           set CC=clang.exe
           set CXX=clang.exe
 
