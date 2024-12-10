@@ -540,7 +540,9 @@ jobs:
 
 
           PATH="C:\Program Files\Git\usr\bin";%PATH%
-
+          
+          "C:\Program Files\Git\usr\bin\sed.exe" -i "s/\/bigobj//g" build/build.ninja
+          
           "C:\Program Files\Git\usr\bin\sed.exe" -i "s/char_traits/std::char_traits/g" OCP\Image.cpp
           "C:\Program Files\Git\usr\bin\sed.exe" -i "s/char_traits/std::char_traits/g" OCP\IFSelect.cpp
           "C:\Program Files\Git\usr\bin\sed.exe" -i "s/char_traits/std::char_traits/g" OCP\STEPCAFControl.cpp
