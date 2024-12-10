@@ -427,6 +427,9 @@ jobs:
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
           cd OCP
 
+          set CC=clang.exe
+          set CXX=clang.exe
+
           set pybind11_DIR="%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11"
 
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} ^
@@ -512,25 +515,29 @@ jobs:
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
           cd OCP
-
+          "C:\Program Files\Git\usr\bin\sed.exe" -i "s/N_PROC 2/N_PROC ${{ steps.cpu-count.outputs.cpu_count }}/" CMakeLists.txt
+          type CMakeLists.txt
+          
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          set CC=cl.exe
-          set CXX=cl.exe
 
           set pybind11_DIR="%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11"
 
-          cmake -B build -S .  ^
-            -DCMAKE_BUILD_TYPE=Release ^
-            -DPython3_FIND_STRATEGY=LOCATION ^
-            -DPython3_ROOT_DIR=%CONDA_PREFIX% ^
+          set CC=clang.exe
+          set CXX=clang.exe
+
+          cmake -B build -S . -G Ninja ^
             -D CMAKE_BUILD_TYPE=Release ^
-            -D VTK_DIR=%USERPROFILE%\opt\local\vtk-9.2.6 ^
-            -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\occt-7.7.2\cmake ^
+            -D Python3_FIND_STRATEGY=LOCATION ^
+            -D Python3_ROOT_DIR=%CONDA_PREFIX% ^
+            -D CMAKE_BUILD_TYPE=Release ^
+            -D VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }} ^
+            -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\${{ env.OCCT }}\cmake ^
             -D pybind11_DIR=%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11 ^
-            -D CMAKE_PREFIX_PATH=%CONDA_PREFIX%\Library ^
             -D CMAKE_LINKER=lld-link.exe ^
-            -D CMAKE_CXX_FLAGS="-external:I%USERPROFILE%\opt\local\include /EHsc" ^
+            -D CMAKE_PREFIX_PATH=%CONDA_PREFIX%\Library ^
+            -D CMAKE_CXX_FLAGS="-I%CONDA_PREFIX%\Library\include" ^
             -D CMAKE_MODULE_LINKER_FLAGS="/machine:x64 /FORCE:MULTIPLE"
+
 
           PATH="C:\Program Files\Git\usr\bin";%PATH%
 
