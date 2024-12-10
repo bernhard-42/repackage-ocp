@@ -121,7 +121,7 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          micromamba install -y ninja rapidjson "freetype=2.12.*" "freeimage=3.18.*" zlib llvmdev=15.0.7 clangdev=15.0.7
+          micromamba install -y ninja cmake rapidjson "freetype=2.12.*" "freeimage=3.18.*" zlib llvmdev=15.0.7 clangdev=15.0.7
 
       # ========================================
       #                VTK SDK
@@ -367,7 +367,7 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          pip install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click lief "clang==15.0.7"
+          micromamba install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click py-lief python-clang pyparsing
 
       - name: (All) Clone OCP
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
@@ -428,7 +428,7 @@ jobs:
           cd OCP
 
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          
+
           set CC=clang.exe
           set CXX=clang.exe
 
