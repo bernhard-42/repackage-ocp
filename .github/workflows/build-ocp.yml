@@ -425,6 +425,7 @@ jobs:
         shell: cmd
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
+          cd OCP
 
           set pybind11_DIR="%CONDA_PREFIX%Lib\site-packages\pybind11\share\cmake\pybind11"
 
@@ -510,12 +511,13 @@ jobs:
         shell: cmd
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
+          cd OCP
           
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           set CC=cl.exe
           set CXX=cl.exe
 
-          set pybind11_DIR="%CONDA_PREFIX%Lib\site-packages\pybind11\share\cmake\pybind11"
+          set pybind11_DIR="%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11"
 
           cmake -B build -S . -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
