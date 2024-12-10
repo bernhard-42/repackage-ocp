@@ -426,7 +426,7 @@ jobs:
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
 
-          for /f "tokens=*" %i in ('python -c "import pybind11; print(pybind11.get_cmake_dir())"') do set pybind11_DIR=%i
+          set pybind11_DIR="%CONDA_PREFIX%Lib\site-packages\pybind11\share\cmake\pybind11"
 
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} ^
             -D CMAKE_BUILD_TYPE=Release ^
@@ -515,7 +515,7 @@ jobs:
           set CC=cl.exe
           set CXX=cl.exe
 
-          for /f "tokens=*" %i in ('python -c "import pybind11; print(pybind11.get_cmake_dir())"') do set pybind11_DIR=%i
+          set pybind11_DIR="%CONDA_PREFIX%Lib\site-packages\pybind11\share\cmake\pybind11"
 
           cmake -B build -S . -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
