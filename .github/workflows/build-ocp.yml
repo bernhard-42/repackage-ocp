@@ -427,7 +427,7 @@ jobs:
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
           cd OCP
 
-          set pybind11_DIR="%CONDA_PREFIX%Lib\site-packages\pybind11\share\cmake\pybind11"
+          set pybind11_DIR="%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11"
 
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} ^
             -D CMAKE_BUILD_TYPE=Release ^
@@ -519,7 +519,7 @@ jobs:
 
           set pybind11_DIR="%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11"
 
-          cmake -B build -S . -G Ninja ^
+          cmake -B build -S .  ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DPython3_FIND_STRATEGY=LOCATION ^
             -DPython3_ROOT_DIR=%CONDA_PREFIX% ^
@@ -529,7 +529,8 @@ jobs:
             -D pybind11_DIR=%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11 ^
             -D CMAKE_PREFIX_PATH=%CONDA_PREFIX%\Library ^
             -D CMAKE_LINKER=lld-link.exe ^
-            -D CMAKE_CXX_FLAGS="-external:I%USERPROFILE%\opt\local\include"
+            -D CMAKE_CXX_FLAGS="-external:I%USERPROFILE%\opt\local\include /EHsc" ^
+            -D CMAKE_MODULE_LINKER_FLAGS="/machine:x64 /FORCE:MULTIPLE"
 
           PATH="C:\Program Files\Git\usr\bin";%PATH%
 
@@ -539,7 +540,7 @@ jobs:
           "C:\Program Files\Git\usr\bin\sed.exe" -i "s/char_traits/std::char_traits/g" OCP\STEPControl.cpp
           "C:\Program Files\Git\usr\bin\sed.exe" -i "s/char_traits/std::char_traits/g" OCP\XSControl.cpp
 
-          ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
+          cmake --build build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
       - name: (All) Cache OCP build folder
         # works on Windows, since github actions replace the '/' with '\'
