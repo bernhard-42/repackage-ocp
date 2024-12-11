@@ -567,7 +567,7 @@ jobs:
           pip install build wheel ${{ matrix.delocate }}
 
           cd pypi
-          cp ../OCP/build/OCP.*.so .
+          cp ../OCP/build/${{ matrix.module }} .
 
           mkdir cadquery_ocp
           wget https://raw.githubusercontent.com/CadQuery/OCP/refs/heads/master/LICENSE -O cadquery_ocp/LICENSE
