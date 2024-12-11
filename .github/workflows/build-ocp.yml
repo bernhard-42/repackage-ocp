@@ -692,11 +692,12 @@ jobs:
           pytest tests -v
 
       - name: (Windows) Run cadquery tests
+        # Under git-bash pytest crashes with a seg fault at the end. Needs cmd.exe
         if: ${{ runner.os == 'Windows' }}
         shell: cmd
         run: |
           cd cadquery
-          micromamba activate test
+          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate test
           pytest tests -v
 
       - name: Uninstall test
