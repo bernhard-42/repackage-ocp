@@ -2,12 +2,14 @@ import inspect
 from pathlib import Path
 import shutil
 import os
+import platform
 import sys
 
 sys.path.append(".")
 
-os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / "vtk-9.2.6" / "bin")
-os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / "occt-7.7.2" / "win64" / "vc14" / "bin")
+if platform.system() == 'Windows':
+    os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / "vtk-9.2.6" / "bin")
+    os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / "occt-7.7.2" / "win64" / "vc14" / "bin")
 
 import OCP
 
