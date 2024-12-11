@@ -47,6 +47,7 @@ jobs:
           #   module: "OCP.*.so"
           - os: 'windows-2019'
             delocate: delvewheel
+            plat: win_amd64
             vtk_libs: "vtk*.dll"
             vtk_suffix: "/"
             vtk_prefix: "Library/"
@@ -570,21 +571,23 @@ jobs:
           cp ../OCP/build/${{ matrix.module }} .
 
           mkdir cadquery_ocp
-          wget https://raw.githubusercontent.com/CadQuery/OCP/refs/heads/master/LICENSE -O cadquery_ocp/LICENSE
+          cd cadquery_ocp
+          curl -O https://raw.githubusercontent.com/CadQuery/OCP/refs/heads/master/LICENSE
+          cd ..
 
           python ocp-tree.py
           mv *.pyd OCP
-          
+
           python -m build -w -n
 
-          if [[ "$RUNNER_OS" != "Windows" ]]; then
-            PY_VER=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
-            python -m wheel tags --remove \
-                                --platform-tag ${{ matrix.plat }} \
-                                --abi-tag $PY_VER \
-                                --python-tag $PY_VER \
-                                dist/*.whl
-          fi
+
+          PY_VER=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
+          python -m wheel tags --remove \
+                              --platform-tag ${{ matrix.plat }} \
+                              --abi-tag $PY_VER \
+                              --python-tag $PY_VER \
+                              dist/*.whl
+
           unzip -l dist/cadquery_ocp-*.whl
 
       - name: (Linux) Delocate the cadquery_ocp wheel
@@ -641,8 +644,8 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
 
           cd pypi/
-          EXCLUDE=$(ls -1  ~/opt/local/vtk-${{ env.VTK }}/bin/vtk*.dll | xargs -n 1 basename | xargs | sed 's/ /:/g')
-          PATH=~/opt/local/occt-7.7.2/win64/vc14/bin/:$PATH delvewheel repair --exclude $EXCLUDE dist/*.whl
+           EXCLUDE=$(ls -1  ~/opt/local/vtk-9.2.6/bin/vtk*.dll | xargs -n 1 basename | xargs | sed 's/ /;/g')
+          PATH=~/opt/local/occt-7.7.2/win64/vc14/bin/:$PATH delvewheel repair --exclude "$EXCLUDE" dist/*.whl
 
       - name: Upload cadquery_ocp wheel
         uses: actions/upload-artifact@v4
