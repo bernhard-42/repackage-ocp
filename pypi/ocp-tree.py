@@ -1,6 +1,13 @@
 import inspect
 from pathlib import Path
 import shutil
+import os
+import sys
+
+sys.path.append(".")
+
+os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / "vtk-9.2.6" / "bin")
+os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / "occt-7.7.2" / "win64" / "vc14" / "bin")
 
 import OCP
 
@@ -19,5 +26,5 @@ def traverse(module, p, depth=0):
 
 Path.mkdir(Path.cwd() / "OCP", exist_ok=True)
 p = Path.cwd() / "OCP"
-shutil.copy("__ini__.py", Path.cwd() / "OCP")
+shutil.copy("__init__.py", Path.cwd() / "OCP")
 traverse(OCP, p)

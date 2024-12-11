@@ -573,6 +573,7 @@ jobs:
           wget https://raw.githubusercontent.com/CadQuery/OCP/refs/heads/master/LICENSE -O cadquery_ocp/LICENSE
 
           python ocp-tree.py
+          mv *.pyd OCP
           
           python -m build -w -n
 
