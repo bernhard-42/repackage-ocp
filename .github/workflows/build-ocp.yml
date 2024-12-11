@@ -672,10 +672,6 @@ jobs:
           pip install vtk==${{ env.VTK }}
           pip install pypi/wheel/*.whl
 
-      - name: Verify OCP
-        shell: bash -l {0}
-        run: |
-          micromamba activate test
           python -c "import OCP; print('Success: OCP', OCP.__version__)"
 
       - name: Install cadquery
@@ -687,8 +683,17 @@ jobs:
           unset CONDA_PREFIX_1
           pip install .
 
-      - name: Run cadquery tests
+      - name: (Linux, Mac) Run cadquery tests
+        if: ${{ runner.os != 'Windows' }}
         shell: bash -l {0}
+        run: |
+          cd cadquery
+          micromamba activate test
+          pytest tests -v
+
+      - name: (Windows) Run cadquery tests
+        if: ${{ runner.os == 'Windows' }}
+        shell: cmd
         run: |
           cd cadquery
           micromamba activate test
