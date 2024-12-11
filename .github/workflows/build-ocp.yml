@@ -644,7 +644,7 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
 
           cd pypi/
-           EXCLUDE=$(ls -1  ~/opt/local/vtk-9.2.6/bin/vtk*.dll | xargs -n 1 basename | xargs | sed 's/ /;/g')
+          EXCLUDE=$(ls -1  ~/opt/local/vtk-9.2.6/bin/vtk*.dll | xargs -n 1 basename | xargs | sed 's/ /;/g')
           PATH=~/opt/local/occt-7.7.2/win64/vc14/bin/:$PATH delvewheel repair --exclude "$EXCLUDE" dist/*.whl
 
       - name: Upload cadquery_ocp wheel
