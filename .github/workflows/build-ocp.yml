@@ -26,6 +26,7 @@ jobs:
           # - os: "macos-13"
           #   delocate: delocate
           #   plat: macosx_10_9_x86_64
+          #   module: "OCP.*.so"
           # - os: "macos-14"
           #   delocate: delocate
           #   plat: macosx_11_0_arm64
@@ -34,6 +35,7 @@ jobs:
           #   vtk_prefix: ""
           #   sed_i: "sed -i '.bak'"
           #   compilers: "" # use standard macos compilers
+          #   module: "OCP.*.so"
           # - os: "ubuntu-22.04"
           #   delocate: auditwheel patchelf
           #   plat: manylinux_2_35_x86_64
@@ -42,6 +44,7 @@ jobs:
           #   vtk_prefix: ""
           #   sed_i: "sed -i"
           #   compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10 -D CMAKE_PREFIX_PATH=/usr/lib/llvm-15"
+          #   module: "OCP.*.so"
           - os: 'windows-2019'
             delocate: delvewheel
             vtk_libs: "vtk*.dll"
@@ -49,6 +52,7 @@ jobs:
             vtk_prefix: "Library/"
             sed_i: "sed -i"
             compilers: ""
+            module: "OCP/OCP.*.pyd"
 
 
     steps:
@@ -348,7 +352,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            ./OCP/build/OCP.*.so
+            ./OCP/build/${{ matrix.module }}
           key: OCP-${{ env.OCP }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (Mac) Install MacOS SDK
@@ -543,13 +547,13 @@ jobs:
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
-      - name: (All) Cache OCP build folder
+      - name: (All) Cache OCP module
         # works on Windows, since github actions replace the '/' with '\'
         id: cache-ocp-save
         uses: actions/cache/save@v4
         with:
           path: |
-            ./OCP/build/OCP.*.so
+            ./OCP/build/${{ matrix.module }}
           key: ${{ steps.cache-ocp-restore.outputs.cache-primary-key }}
 
       # ========================================
