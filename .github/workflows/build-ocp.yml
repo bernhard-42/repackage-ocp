@@ -680,6 +680,12 @@ jobs:
           git clone https://github.com/cadquery/cadquery.git
           cd cadquery
           micromamba activate test
+
+          # workaround for pypi opt and casadi throwing a seg fault on exit 
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            micromamba install -y nlopt casadi
+          fi
+          
           unset CONDA_PREFIX_1
           pip install .
 
