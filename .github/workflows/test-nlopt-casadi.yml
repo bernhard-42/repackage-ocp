@@ -28,4 +28,4 @@ jobs:
           micromamba create -y -n test python=${{ matrix.python-version }}
           micromamba activate test
           pip install nlopt casadi
-          python -c "from nlopt import *; from casadi import *"
+          python -v -c "from nlopt import *; from casadi import *"
