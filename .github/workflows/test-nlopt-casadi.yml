@@ -1,0 +1,40 @@
+name: Test nlopt and casadi
+
+on:
+  workflow_dispatch
+
+env:
+  OCP_VERSION: 7.7.2.1
+  VTK_ENV: build_cadquery_vtk
+  OCP_ENV: build_cadquery_ocp
+
+jobs:
+  build:
+    name: Test nlopt and casadi ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: ['windows-2019']
+        python-version: ['3.11']
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }} via micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          log-level: debug
+          init-shell: bash cmd.exe
+          cache-downloads: true
+
+      - name: Test nlopt and casadi
+        shell: bash -l {0}
+        run: |
+          micromamba create -y -n test python=${{ matrix.python-version }}
+          micromamba activate test
+          pip install nlopt casadi
+          python -c "from nlopt import *; from casadi import *"
+
+          python -v -c "from nlopt import *; from casadi import *"
