@@ -266,7 +266,7 @@ jobs:
               export CXXFLAGS="-fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0"
           fi
 
-          ${{ matrix.env_target }} cmake -S . -B build  -G Ninja \
+          cmake -S . -B build  -G Ninja \
                 -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }} \
                 \
                 ${{ matrix.compilers }} \
@@ -399,7 +399,7 @@ jobs:
           cd OCP
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
               ${{ matrix.compilers }} \
-              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
+              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }} \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())")
 
@@ -420,7 +420,7 @@ jobs:
 
           cd OCP
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
-              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
+              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }} \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
