@@ -10,12 +10,12 @@ jobs:
       matrix:
         os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
-        use-vtk: ["OFF"]
-        include:
-          - use-vtk: "ON"
-            python-version: "3.10"
-          - use-vtk: "ON"
-            python-version: "3.11"
+        use-vtk: ["OFF", "ON"]
+        # include:
+        #   - use-vtk: "ON"
+        #     python-version: "3.10"
+        #   - use-vtk: "ON"
+        #     python-version: "3.11"
       fail-fast: false
 
     steps:
