@@ -625,8 +625,8 @@ jobs:
           cd wheel
           python -m wheel unpack cadquery_ocp*.whl
           rm cadquery_ocp-*.whl
-          patchelf --add-rpath '$ORIGIN/vtk.libs'             cadquery_ocp-${{ env.OCCT }}/OCP.*.so
-          patchelf --add-rpath '$ORIGIN/vtkmodules'           cadquery_ocp-${{ env.OCCT }}/OCP.*.so
+          patchelf --add-rpath '$ORIGIN/../vtk.libs'             cadquery_ocp-${{ env.OCCT }}/OCP.*.so
+          patchelf --add-rpath '$ORIGIN/../vtkmodules'           cadquery_ocp-${{ env.OCCT }}/OCP.*.so
           patchelf --add-rpath '$ORIGIN/../vtkmodules'        cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/*
           patchelf --add-rpath '$ORIGIN/../cadquery_ocp.libs' cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/*
           python -m wheel pack cadquery_ocp-${{ env.OCCT }}
@@ -642,7 +642,7 @@ jobs:
           python -m wheel unpack cadquery_ocp*.whl
           rm cadquery_ocp-*.whl
           install_name_tool -delete_rpath $(realpath ~/opt/local/occt-${{ env.OCCT }}/lib) cadquery_ocp-${{ env.OCCT }}/OCP.*.so
-          install_name_tool -add_rpath @loader_path/vtkmodules/.dylibs/ cadquery_ocp-${{ env.OCCT }}/OCP.*.so
+          install_name_tool -add_rpath @loader_path/../vtkmodules/.dylibs/ cadquery_ocp-${{ env.OCCT }}/OCP.*.so
           python -m wheel pack cadquery_ocp-*
           cd ..
 
