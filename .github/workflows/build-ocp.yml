@@ -697,7 +697,17 @@ jobs:
 
           python -c "import OCP; print('Success: OCP', OCP.__version__)"
 
-      - name: Install cadquery
+      - name: Run build123d tests
+        shell: bash -l {0}
+        run: |
+          git clone https://github.com/gumyr/build123d.git
+          cd build123d
+          micromamba activate test
+          pip install .
+          
+          pytest tests -v -W ignore
+      
+      - name: Run cadquery tests
         shell: bash -l {0}
         run: |
           git clone https://github.com/cadquery/cadquery.git
@@ -712,21 +722,6 @@ jobs:
           unset CONDA_PREFIX_1
           pip install .
 
-      - name: (Linux, Mac) Run cadquery tests
-        if: ${{ runner.os != 'Windows' }}
-        shell: bash -l {0}
-        run: |
-          cd cadquery
-          micromamba activate test
-          pytest tests -v -W ignore
-
-      - name: (Windows) Run cadquery tests
-        # Under git-bash pytest crashes with a seg fault at the end. Needs cmd.exe
-        if: ${{ runner.os == 'Windows' }}
-        shell: cmd
-        run: |
-          cd cadquery
-          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate test
           pytest tests -v -W ignore
 
       - name: Uninstall test
