@@ -115,7 +115,9 @@ jobs:
 
           python -c "import sys;print(sys.version)"
 
-          pip install vtk==${{ env.VTK }}
+          if [[ ${{ env.USE_VTK }} == 'ON' ]]; then
+            pip install vtk==${{ env.VTK }}
+          fi
 
       - name: (Mac) Install dependencies
         if: runner.os == 'macOS'
