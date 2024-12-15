@@ -316,7 +316,7 @@ jobs:
             done
             rm -f build/build.ninja.bak
           fi
-          
+
           # Build OCCT
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
           ninja -C build install
@@ -405,7 +405,7 @@ jobs:
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             micromamba install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click py-lief=0.15.1 python-clang pyparsing
           else
-            pip install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click lief==0.15.1 clang==15.0.7 pyparsing
+            pip install "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click lief==0.15.1 clang==15.0.7 pyparsing
           fi
 
       - name: (All) Clone OCP
@@ -416,7 +416,9 @@ jobs:
           cd OCP
           git checkout -b V${{ env.OCP }} tags/${{ env.OCP }}
           git submodule update --init
-
+          cd pywrap
+          patch -p1 < ../../pandas.patch
+          
       - name: (All) Patch VTK out of OCP
         if: env.USE_VTK == 'OFF' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
