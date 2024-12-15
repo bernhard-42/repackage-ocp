@@ -403,10 +403,9 @@ jobs:
           key: OCP-source-${{ env.OCP }}-${{ matrix.os }}-
 
       - name: (Linux) Generate OCP source
-        if: ${{ runner.os == 'Linux' }} && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
+        if: runner.os == 'Linux' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-          echo "runner.os: ${{ runner.os }}"
           micromamba activate ${{ env.OCP_ENV }}
           cd OCP
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
@@ -438,7 +437,7 @@ jobs:
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
       - name: (Windows) Generate OCP source
-        if: ${{ runner.os == 'Windows' }} && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
+        if: runner.os == 'Windows' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
@@ -469,7 +468,7 @@ jobs:
           key: ${{ steps.cache-ocp-source-restore.outputs.cache-primary-key }}
 
       - name: (Linux) Generate OCP build files and build OCP
-        if: ${{ runner.os == 'Linux' }} && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: runner.os == 'Linux' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
@@ -529,7 +528,7 @@ jobs:
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
       - name: (Windows) Generate OCP build files and build OCP
-        if: ${{ runner.os == 'Windows' }} && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: runner.os == 'Windows' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
@@ -615,7 +614,7 @@ jobs:
           unzip -l dist/cadquery_ocp-*.whl
 
       - name: (Linux) Delocate the cadquery_ocp wheel
-        if: ${{ runner.os == 'Linux' }}
+        if: runner.os == 'Linux'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
@@ -641,7 +640,7 @@ jobs:
           cd ..
 
       - name: (Mac) Delocate the cadquery_ocp wheel
-        if: ${{ runner.os == 'macOS' }}
+        if: runner.os == 'macOS'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
@@ -662,7 +661,7 @@ jobs:
               dist/*.whl
 
       - name: (Windows) Delocate the cadquery_ocp wheel
-        if: ${{ runner.os == 'Windows' }}
+        if: runner.os == 'Windows'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
