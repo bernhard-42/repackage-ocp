@@ -7,9 +7,13 @@ import sys
 
 sys.path.append(".")
 
+
 if platform.system() == 'Windows':
-    os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / "vtk-9.2.6" / "bin")
-    os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / "occt-7.7.2" / "win64" / "vc14" / "bin")
+    vtk = sys.argv[1]
+    occt = sys.argv[2]
+    os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / vtk / "bin")
+    os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / occt / "win64" / "vc14" / "bin")
+
 
 import OCP
 
