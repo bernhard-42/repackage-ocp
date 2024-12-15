@@ -372,7 +372,11 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          micromamba install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click py-lief python-clang pyparsing
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            micromamba install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click py-lief python-clang pyparsing
+          else
+            pip install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click pyparsing
+          fi
 
       - name: (All) Clone OCP
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
