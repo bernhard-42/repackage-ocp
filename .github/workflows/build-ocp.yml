@@ -375,7 +375,7 @@ jobs:
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             micromamba install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click py-lief python-clang pyparsing
           else
-            pip install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click lief clang=15.0.7 pyparsing
+            pip install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click lief clang==15.0.7 pyparsing
           fi
 
       - name: (All) Clone OCP
