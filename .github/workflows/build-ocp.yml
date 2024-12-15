@@ -665,8 +665,9 @@ jobs:
           fi
             
           python -m build -w -n
-          mv dist/cadquery_ocp-${{ env.OCCT}-cp$PY-cp$PY-${{ matrix.plat }}.whl \
-             dist/cadquery_ocp_novtk-${{ env.OCCT}-cp$PY-cp$PY-${{ matrix.plat }}.whl
+          PY_VER=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
+          mv dist/cadquery_ocp-${{ env.OCCT }}-$PY_VER-$PY_VER-${{ matrix.plat }}.whl \
+             dist/cadquery_ocp_novtk-${{ env.OCCT }}-$PY_VER-$PY_VER-${{ matrix.plat }}.whl
 
           PY_VER=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
           python -m wheel tags --remove \
