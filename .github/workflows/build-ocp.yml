@@ -715,6 +715,8 @@ jobs:
           git clone https://github.com/cadquery/cadquery.git
           cd cadquery
           micromamba activate test
+          
+          pip install multimethod
 
           # workaround for pypi opt and casadi throwing a seg fault on exit 
           if [[ "$RUNNER_OS" == "Windows" ]]; then
