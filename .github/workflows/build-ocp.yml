@@ -475,7 +475,7 @@ jobs:
               ${{ matrix.compilers }} \
               \
               -D CMAKE_BUILD_TYPE=Release \
-              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
+              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }} \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_CXX_STANDARD=17 \
@@ -508,7 +508,7 @@ jobs:
               -D CMAKE_BUILD_TYPE=Release \
               -D CMAKE_OSX_DEPLOYMENT_TARGET="11.1" \
               -D CMAKE_CXX_FLAGS="-I $(brew --prefix)/include" \
-              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/cmake \
+              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }} \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_CXX_STANDARD=17 \
