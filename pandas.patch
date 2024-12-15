@@ -9,7 +9,7 @@ index e08bed9..a03c7a0 100644
 -    sym = pd.read_csv(p,header=None,names=['name'],delim_whitespace=True,
 -                      error_bad_lines=False).dropna()
 +    sym = pd.read_csv(
-+        p, header=None, names=["name"], delim_whitespace=True, on_bad_lines="warn"
++        p, header=None, names=["name"], sep='\s+', on_bad_lines="warn"
 +    ).dropna()
      return sym
  

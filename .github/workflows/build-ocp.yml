@@ -418,13 +418,14 @@ jobs:
           git submodule update --init
           cd pywrap
           patch -p1 < ../../pandas.patch
-          
+
       - name: (All) Patch VTK out of OCP
         if: env.USE_VTK == 'OFF' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           cd OCP
           patch -p1 < ../no-vtk.patch
+          cat CMakeLists.txt
           
       - name: (All) Restore OCP source cache
         id: cache-ocp-source-restore
