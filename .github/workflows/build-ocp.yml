@@ -580,7 +580,11 @@ jobs:
           cd ..
 
           python ocp-tree.py
-          mv *.pyd OCP
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            mv *.pyd OCP
+          else
+            mv *.so OCP
+          fi
 
           python -m build -w -n
 
