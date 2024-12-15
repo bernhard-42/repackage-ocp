@@ -692,7 +692,9 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate test
-          pip install vtk==${{ env.VTK }}
+          if [[ ${{ env.USE_VTK }} == 'ON' ]]; then
+            pip install vtk==${{ env.VTK }}
+          fi
           pip install pypi/wheel/*.whl
 
           python -c "import OCP; print('Success: OCP', OCP.__version__)"
