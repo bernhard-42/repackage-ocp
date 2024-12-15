@@ -102,7 +102,9 @@ jobs:
       - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
         shell: bash -l {0}
         run: |
-          PATH='/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/':$PATH
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            PATH='/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/':$PATH
+          fi
 
           micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
           micromamba activate ${{ env.OCP_ENV }}
@@ -404,6 +406,7 @@ jobs:
         if: ${{ runner.os == 'Linux' }} && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          echo "runner.os: ${{ runner.os }}"
           micromamba activate ${{ env.OCP_ENV }}
           cd OCP
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
