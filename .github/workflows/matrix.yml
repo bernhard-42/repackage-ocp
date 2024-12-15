@@ -1,4 +1,4 @@
-name: OCP with pypi VTK
+name: Matrix Tests
 
 on: workflow_dispatch
 
