@@ -515,8 +515,8 @@ jobs:
 
           set pybind11_DIR="%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11"
 
-          if "%USE_VTK%"=="ON" (
-            set "VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}"
+          if "${{ matrix.use-vtk }}"=="ON" (
+            set "VTK_DIR=-D VTK_DIR=%USERPROFILE%\opt\local\vtk-9.2.6"
           ) else (
             set "VTK_DIR= "
           )
@@ -642,7 +642,7 @@ jobs:
           set CC=cl.exe
           set CXX=cl.exe
 
-          if "%USE_VTK%"=="ON" (
+          if "${{ matrix.use-vtk }}"=="ON" (
             set "VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}"
           ) else (
             cd OCP
@@ -688,6 +688,8 @@ jobs:
             PKG_NAME="cadquery_ocp"
           else
             PKG_NAME="cadquery_ocp_novtk"
+            ${{ matrix.sed_i }} 's/cadquery-ocp/cadquery-ocp-novtk/g' pyproject.toml
+            ${{ matrix.sed_i }} 's/cadquery_ocp/cadquery_ocp_novtk/g' pyproject.toml
           fi
 
           mkdir $PKG_NAME
