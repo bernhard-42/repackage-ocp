@@ -22,29 +22,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
-        os: ["ubuntu-22.04"]
-        python-version: ["3.12"]
+        os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
+        python-version: ["3.11"]
         # python-version: ['3.10', '3.11', '3.12']
         include:
-          # - os: "macos-13"
-          #   delocate: delocate
-          #   plat: macosx_10_10_x86_64
-          #   vtk_libs: ".dylibs/libvtk*.dylib"
-          #   vtk_suffix: "/"
-          #   vtk_prefix: ""
-          #   sed_i: "sed -i '.bak'"
-          #   compilers: "" # use standard macos compilers
-          #   module: "OCP.*.so"
-          # - os: "macos-14"
-          #   delocate: delocate
-          #   plat: macosx_11_0_arm64
-          #   vtk_libs: ".dylibs/libvtk*.dylib"
-          #   vtk_suffix: "/"
-          #   vtk_prefix: ""
-          #   sed_i: "sed -i '.bak'"
-          #   compilers: "" # use standard macos compilers
-          #   module: "OCP.*.so"
+          - os: "macos-13"
+            delocate: delocate
+            plat: macosx_10_10_x86_64
+            vtk_libs: ".dylibs/libvtk*.dylib"
+            vtk_suffix: "/"
+            vtk_prefix: ""
+            sed_i: "sed -i '.bak'"
+            compilers: "" # use standard macos compilers
+            module: "OCP.*.so"
+          - os: "macos-14"
+            delocate: delocate
+            plat: macosx_11_0_arm64
+            vtk_libs: ".dylibs/libvtk*.dylib"
+            vtk_suffix: "/"
+            vtk_prefix: ""
+            sed_i: "sed -i '.bak'"
+            compilers: "" # use standard macos compilers
+            module: "OCP.*.so"
           - os: "ubuntu-22.04"
             delocate: auditwheel patchelf
             plat: manylinux_2_35_x86_64
@@ -54,15 +53,15 @@ jobs:
             sed_i: "sed -i"
             compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10 -D CMAKE_PREFIX_PATH=/usr/lib/llvm-15"
             module: "OCP.*.so"
-          # - os: 'windows-2019'
-          #   delocate: delvewheel
-          #   plat: win_amd64
-          #   vtk_libs: "vtk*.dll"
-          #   vtk_suffix: "/"
-          #   vtk_prefix: "Library/"
-          #   sed_i: "sed -i"
-          #   compilers: ""
-          #   module: "OCP/OCP.*.pyd"
+          - os: "windows-2019"
+            delocate: delvewheel
+            plat: win_amd64
+            vtk_libs: "vtk*.dll"
+            vtk_suffix: "/"
+            vtk_prefix: "Library/"
+            sed_i: "sed -i"
+            compilers: ""
+            module: "OCP/OCP.*.pyd"
 
     steps:
       - uses: actions/checkout@v4
