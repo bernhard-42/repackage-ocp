@@ -691,6 +691,8 @@ jobs:
             ${{ matrix.sed_i }} 's/cadquery-ocp/cadquery-ocp-novtk/g' pyproject.toml
             ${{ matrix.sed_i }} 's/cadquery_ocp/cadquery_ocp_novtk/g' pyproject.toml
           fi
+          pip --version
+          cat pyproject.toml
 
           mkdir $PKG_NAME
           cd $PKG_NAME
