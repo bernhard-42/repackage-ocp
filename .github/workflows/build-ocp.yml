@@ -422,7 +422,7 @@ jobs:
           cd ..
 
           # Patch VTK out of OCP
-          if "${{ env.USE_VTK }}" == "OFF"; then
+          if [[ "${{ env.USE_VTK }}" == "OFF" ]]; then
             patch -p1 < ../no-vtk.patch
           fi
 
@@ -441,7 +441,7 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
           cd OCP
 
-          if "${{ env.USE_VTK }}" == "ON"; then
+          if [[ "${{ env.USE_VTK }}" == "ON" ]]; then
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
             VTK_DIR=""
@@ -467,7 +467,7 @@ jobs:
           export CXX=$(brew --prefix)/opt/llvm@15/bin/clang++
           export CPATH=$(brew --prefix)/include
 
-          if "${{ env.USE_VTK }}" == "ON"; then
+          if [[ "${{ env.USE_VTK }}" == "ON" ]]; then
             export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
@@ -529,7 +529,7 @@ jobs:
           export CXXFLAGS="-fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0"
           export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
 
-          if "${{ env.USE_VTK }}" == "ON"; then
+          if [[ "${{ env.USE_VTK }}" == "ON" ]]; then
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
             cd OCP
@@ -549,9 +549,11 @@ jobs:
               -D CMAKE_SHARED_LINKER_FLAGS="-L $HOME/opt/local/vtk-${{ env.VTK }}/lib" \
               -D CMAKE_BUILD_WITH_INSTALL_RPATH=TRUE
 
-          for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
-              ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
-          done
+          if [[ "${{ env.USE_VTK }}" == "ON" ]]; then
+            for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
+                ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
+            done
+          fi
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
@@ -571,7 +573,7 @@ jobs:
 
           cd OCP
 
-          if "${{ env.USE_VTK }}" == "ON"; then
+          if [[ "${{ env.USE_VTK }}" == "ON" ]]; then
             export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
@@ -591,7 +593,7 @@ jobs:
               -D CMAKE_CXX_STANDARD=17 \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
-          if "${{ env.USE_VTK }}" == "ON"; then
+          if [[ "${{ env.USE_VTK }}" == "ON" ]]; then
             for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
                 ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
             done
