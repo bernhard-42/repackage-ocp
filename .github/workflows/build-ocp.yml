@@ -64,7 +64,6 @@ jobs:
           #   compilers: ""
           #   module: "OCP/OCP.*.pyd"
 
-
     steps:
       - uses: actions/checkout@v4
 
@@ -155,7 +154,7 @@ jobs:
           key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (All) Install VTK SDK include files
-        if: env.USE_VTK == 'ON' && steps.cache-vtk-restore.outputs.cache-hit != 'true' 
+        if: env.USE_VTK == 'ON' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           # Create an environment with conda VTK to get the include files
@@ -168,13 +167,13 @@ jobs:
           mkdir -p ~/opt/local/vtk-${{ env.VTK }}/bin
           mkdir -p ~/opt/local/vtk-${{ env.VTK }}/lib
           mkdir -p ~/opt/local/vtk-${{ env.VTK }}/lib/cmake
-          
+
           cp -r $CONDA_PREFIX/${{ matrix.vtk_prefix }}include/vtk-${{ env.VTK_MAJOR }}/ ~/opt/local/vtk-${{ env.VTK }}/include/
           cp cmake/vtk-config-${{ matrix.os }}.cmake ~/opt/local/vtk-${{ env.VTK }}/vtk-config.cmake
           micromamba deactivate
 
       - name: (Linux, Mac) Install VTK SDK libs
-        if: env.USE_VTK == 'ON' && runner.os != 'Windows' && steps.cache-vtk-restore.outputs.cache-hit != 'true' 
+        if: env.USE_VTK == 'ON' && runner.os != 'Windows' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
@@ -257,7 +256,7 @@ jobs:
           fi
 
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}
-          
+
       - name: (Mac) Patch OCCT SDK
         if: runner.os == 'macOS' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
@@ -364,7 +363,7 @@ jobs:
             %VTK_ARGS%
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
-          ninja -C build install    
+          ninja -C build install
 
       - name: (All) Cache OCCT build folder
         id: cache-occt-save
@@ -426,7 +425,7 @@ jobs:
           cd OCP
           patch -p1 < ../no-vtk.patch
           cat CMakeLists.txt
-          
+
       - name: (All) Restore OCP source cache
         id: cache-ocp-source-restore
         uses: actions/cache/restore@v4
@@ -467,9 +466,9 @@ jobs:
           export CC=$(brew --prefix)/Cellar/llvm@15/15.0.7/bin/clang
           export CXX=$(brew --prefix)/opt/llvm@15/bin/clang++
           export CPATH=$(brew --prefix)/include
-          export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
 
           if ${{ env.USE_VTK }} == 'ON'; then
+            export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
             VTK_DIR=""
@@ -510,7 +509,7 @@ jobs:
             -D CMAKE_CXX_STANDARD=17 ^
             -D CMAKE_PREFIX_PATH=%CONDA_PREFIX%\Library ^
             -D CMAKE_SHARED_LINKER_FLAGS="-L %USERPROFILE%\opt\local\vtk-${{ env.VTK }}\lib"
-          
+
       - name: (All) Cache OCP source folder
         id: cache-ocp-source-save
         uses: actions/cache/save@v4
@@ -533,6 +532,9 @@ jobs:
           if ${{ env.USE_VTK }} == 'ON'; then
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
+            cd OCP
+            patch -p1 < ../../no-vtk-2.patch
+            cd ..          
             VTK_DIR=""
           fi
 
@@ -566,28 +568,34 @@ jobs:
           export CC=$(brew --prefix)/Cellar/llvm@15/15.0.7/bin/clang
           export CXX=$(brew --prefix)/opt/llvm@15/bin/clang++
           export CPATH=$(brew --prefix)/include
-          export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
 
           if ${{ env.USE_VTK }} == 'ON'; then
+            export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
+            cd OCP
+            patch -p1 < ../../no-vtk-2.patch
+            cd ..
             VTK_DIR=""
           fi
 
           cd OCP
+
           cmake -B build -S OCP -G Ninja \
               -D CMAKE_BUILD_TYPE=Release \
               -D CMAKE_OSX_DEPLOYMENT_TARGET="11.1" \
               -D CMAKE_CXX_FLAGS="-I $(brew --prefix)/include" \
-              $VTK_DIR=$HOME \
+              $VTK_DIR \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_CXX_STANDARD=17 \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
-          for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
-              ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
-          done
+          if ${{ env.USE_VTK }} == 'ON'; then
+            for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
+                ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
+            done
+          fi
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
@@ -611,10 +619,13 @@ jobs:
 
           set CC=cl.exe
           set CXX=cl.exe
-          
+
           if "%USE_VTK%"=="ON" (
             set "VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}"
           ) else (
+            cd OCP
+            patch -p1 < ../../no-vtk-2.patch
+            cd ..
             set "VTK_DIR= "
           )
 
@@ -748,7 +759,6 @@ jobs:
           name: cadquery-ocp-${{ env.VTK_TAG }}${{ matrix.os }}-cp${{ matrix.python-version }}
           path: pypi/wheel/*.whl
 
-    
       # ========================================
       #                 Test
       # ========================================
@@ -778,9 +788,9 @@ jobs:
           cd build123d
           micromamba activate test
           pip install .
-          
+
           pytest tests -v -W ignore
-      
+
       - name: Run cadquery tests
         if: env.USE_VTK == 'ON'
         shell: bash -l {0}
@@ -788,7 +798,7 @@ jobs:
           git clone https://github.com/cadquery/cadquery.git
           cd cadquery
           micromamba activate test
-          
+
           pip install multimethod
 
           # workaround for pypi opt and casadi throwing a seg fault on exit 
