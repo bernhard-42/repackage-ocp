@@ -415,16 +415,16 @@ jobs:
           cd OCP
           git checkout -b V${{ env.OCP }} tags/${{ env.OCP }}
           git submodule update --init
+
+          # Support pandas 2
           cd pywrap
           patch -p1 < ../../pandas.patch
+          cd ..
 
-      - name: (All) Patch VTK out of OCP
-        if: env.USE_VTK == 'OFF' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
-        shell: bash -l {0}
-        run: |
-          cd OCP
-          patch -p1 < ../no-vtk.patch
-          cat CMakeLists.txt
+          # Patch VTK out of OCP
+          if ${{ env.USE_VTK }} == 'OFF'; then
+            patch -p1 < ../no-vtk.patch
+          fi
 
       - name: (All) Restore OCP source cache
         id: cache-ocp-source-restore
@@ -569,6 +569,8 @@ jobs:
           export CXX=$(brew --prefix)/opt/llvm@15/bin/clang++
           export CPATH=$(brew --prefix)/include
 
+          cd OCP
+
           if ${{ env.USE_VTK }} == 'ON'; then
             export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
@@ -578,8 +580,6 @@ jobs:
             cd ..
             VTK_DIR=""
           fi
-
-          cd OCP
 
           cmake -B build -S OCP -G Ninja \
               -D CMAKE_BUILD_TYPE=Release \
