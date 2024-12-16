@@ -759,10 +759,10 @@ jobs:
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             patchelf --add-rpath '$ORIGIN/../vtk.libs'    ${PKG_NAME}-${{ env.OCCT }}/OCP/OCP.*.so
             patchelf --add-rpath '$ORIGIN/../vtkmodules'  ${PKG_NAME}-${{ env.OCCT }}/OCP/OCP.*.so
-            patchelf --add-rpath '$ORIGIN/../vtkmodules'  ${PKG_NAME}-${{ env.OCCT }}/${PKG_NAME}_ocp.libs/*
+            patchelf --add-rpath '$ORIGIN/../vtkmodules'  ${PKG_NAME}-${{ env.OCCT }}/${PKG_NAME}.libs/*
           fi
 
-          patchelf --add-rpath '$ORIGIN/../${PKG_NAME}.libs' ${PKG_NAME}-${{ env.OCCT }}/${PKG_NAME}_ocp.libs/*
+          patchelf --add-rpath '$ORIGIN/../${PKG_NAME}.libs' ${PKG_NAME}-${{ env.OCCT }}/${PKG_NAME}.libs/*
           python -m wheel pack ${PKG_NAME}-${{ env.OCCT }}
           cd ..
 
