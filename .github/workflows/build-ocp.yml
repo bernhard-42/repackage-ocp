@@ -705,21 +705,30 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
           cd pypi
 
-          EXCLUDE=$(ls -1  ~/opt/local/vtk-${{ env.VTK }}/lib/ | xargs | sed 's/ / --exclude /g')
+          if [[ "${{ env.USE_VTK }}" == "ON" ]]; then
+            EXCLUDE="--exclude $(ls -1  ~/opt/local/vtk-${{ env.VTK }}/lib/ | xargs | sed 's/ / --exclude /g')"
+          else
+            EXCLUDE=""
+          fi
+
           env LD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib \
               python -m auditwheel \
               repair \
               --plat=${{ matrix.plat }} \
-              --exclude $EXCLUDE \
+              $EXCLUDE \
               --wheel-dir=wheel \
               dist/*.whl
 
           cd wheel
           python -m wheel unpack cadquery_ocp*.whl
           rm cadquery_ocp*.whl
-          patchelf --add-rpath '$ORIGIN/../vtk.libs'             cadquery_ocp-${{ env.OCCT }}/OCP/OCP.*.so
-          patchelf --add-rpath '$ORIGIN/../vtkmodules'           cadquery_ocp-${{ env.OCCT }}/OCP/OCP.*.so
-          patchelf --add-rpath '$ORIGIN/../vtkmodules'        cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/*
+
+          if [[ "${{ env.USE_VTK }}" == "ON" ]]; then
+            patchelf --add-rpath '$ORIGIN/../vtk.libs'    cadquery_ocp-${{ env.OCCT }}/OCP/OCP.*.so
+            patchelf --add-rpath '$ORIGIN/../vtkmodules'  cadquery_ocp-${{ env.OCCT }}/OCP/OCP.*.so
+            patchelf --add-rpath '$ORIGIN/../vtkmodules'  cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/*
+          fi
+
           patchelf --add-rpath '$ORIGIN/../cadquery_ocp.libs' cadquery_ocp-${{ env.OCCT }}/cadquery_ocp.libs/*
           python -m wheel pack cadquery_ocp-${{ env.OCCT }}
           cd ..
@@ -734,7 +743,11 @@ jobs:
           python -m wheel unpack cadquery_ocp*.whl
           rm cadquery_ocp-*.whl
           install_name_tool -delete_rpath $(realpath ~/opt/local/occt-${{ env.OCCT }}/lib) cadquery_ocp-${{ env.OCCT }}/OCP/OCP.*.so
-          install_name_tool -add_rpath @loader_path/../vtkmodules/.dylibs/ cadquery_ocp-${{ env.OCCT }}/OCP/OCP.*.so
+
+          if [[ "${{ env.USE_VTK }}" == "ON" ]]; then
+            install_name_tool -add_rpath @loader_path/../vtkmodules/.dylibs/ cadquery_ocp-${{ env.OCCT }}/OCP/OCP.*.so
+          fi
+
           python -m wheel pack cadquery_ocp-*
           cd ..
 
@@ -752,8 +765,12 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
 
           cd pypi/
-          EXCLUDE=$(ls -1  ~/opt/local/vtk-9.2.6/bin/vtk*.dll | xargs -n 1 basename | xargs | sed 's/ /;/g')
-          PATH=~/opt/local/occt-7.7.2/win64/vc14/bin/:$PATH delvewheel repair --exclude "$EXCLUDE" --wheel-dir wheel --namespace-pkg cadquery_ocp dist/*.whl
+          if [[ "${{ env.USE_VTK }}" == "ON" ]]; then
+            EXCLUDE="--exclude $(ls -1  ~/opt/local/vtk-9.2.6/bin/vtk*.dll | xargs -n 1 basename | xargs | sed 's/ /;/g')"
+          else
+            EXCLUDE=""
+          fi
+          PATH=~/opt/local/occt-7.7.2/win64/vc14/bin/:$PATH delvewheel repair "$EXCLUDE" --wheel-dir wheel --namespace-pkg cadquery_ocp dist/*.whl
 
       - name: Upload cadquery_ocp wheel
         uses: actions/upload-artifact@v4
