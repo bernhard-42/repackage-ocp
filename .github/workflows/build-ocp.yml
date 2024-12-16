@@ -108,7 +108,7 @@ jobs:
           micromamba activate ${{ env.OCP_ENV }}
 
           python -c "import sys;print(sys.version)"
-
+          pip install "setuptools>=75"
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             pip install vtk==${{ env.VTK }}
           fi
