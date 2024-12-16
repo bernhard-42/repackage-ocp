@@ -309,7 +309,7 @@ jobs:
               \
               ${{ matrix.compilers }} \
               \
-              -D USE_VTK=OFF
+              -D USE_VTK=OFF \
               -D USE_TBB=OFF \
               -D USE_FREEIMAGE=ON \
               -D USE_FREETYPE=ON \
