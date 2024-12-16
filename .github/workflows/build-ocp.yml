@@ -785,7 +785,7 @@ jobs:
           PATH=~/opt/local/occt-7.7.2/win64/vc14/bin/:$PATH delvewheel repair "$EXCLUDE" --wheel-dir wheel --namespace-pkg ${PKG_NAME} dist/*.whl
 
       - name: Upload cadquery_ocp wheel
-        if matrix.use-vtk == 'ON'
+        if: matrix.use-vtk == 'ON'
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-ocp-${{ env.OCCT }}-${{ matrix.os }}-cp${{ matrix.python-version }}
