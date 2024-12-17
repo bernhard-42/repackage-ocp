@@ -351,7 +351,7 @@ jobs:
               ^
               -D CMAKE_INSTALL_PREFIX=%USERPROFILE%\opt\local\occt-${{ env.OCCT }} ^
               -D CMAKE_PREFIX_PATH=%CONDA_PREFIX%\Library ^
-              ^          
+              ^
               -D VTK_RENDERING_BACKEND=OpenGL2 ^
               -D VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }} ^
               -D 3RDPARTY_VTK_INCLUDE_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}\include\vtk-${{ env.VTK_MAJOR }} ^
