@@ -691,8 +691,7 @@ jobs:
             ${{ matrix.sed_i }} 's/cadquery-ocp/cadquery-ocp-novtk/g' pyproject.toml
             ${{ matrix.sed_i }} 's/cadquery_ocp/cadquery_ocp_novtk/g' pyproject.toml
           fi
-          pip --version
-          cat pyproject.toml
+
 
           mkdir $PKG_NAME
           cd $PKG_NAME
@@ -717,7 +716,15 @@ jobs:
             python ocp-tree.py
             mv *.so OCP
           fi
-            
+
+          echo "DEBUG pip"
+          pip --version
+          echo "DEBUG pyproject.toml"
+          cat pyproject.toml
+          echo "DEBUG tree"
+          tree .
+
+
           python -m build -w -n
 
           PY_VER=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
@@ -743,6 +750,9 @@ jobs:
             EXCLUDE=""
             PKG_NAME="cadquery_ocp_novtk"
           fi
+
+          echo "DEBUG EXCLUDE"
+          echo "$EXCLUDE --wheel-dir wheel --namespace-pkg ${PKG_NAME} dist/*.whl"
 
           env LD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib \
               python -m auditwheel \
@@ -780,7 +790,7 @@ jobs:
 
           cd pypi/dist
           python -m wheel unpack ${PKG_NAME}*.whl
-          rm cadquery_ocp-*.whl
+          rm ${PKG_NAME}*.whl
           install_name_tool -delete_rpath $(realpath ~/opt/local/occt-${{ env.OCCT }}/lib) ${PKG_NAME}-${{ env.OCCT }}/OCP/OCP.*.so
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
