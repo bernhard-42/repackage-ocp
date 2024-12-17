@@ -107,8 +107,8 @@ jobs:
           micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
           micromamba activate ${{ env.OCP_ENV }}
 
-          python -c "import sys;print(sys.version)"
           pip install "setuptools>=75"
+
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             pip install vtk==${{ env.VTK }}
           fi
@@ -124,8 +124,10 @@ jobs:
         shell: bash -l {0}
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build cmake rapidjson-dev libfreeimage-dev llvm-15 \
-                                  clang-15 libclang-15-dev mesa-common-dev libegl1-mesa-dev \
+          sudo apt-get install -y ninja-build cmake \
+                                  rapidjson-dev libfreeimage-dev libfontconfig-dev libfreeimage-dev \
+                                  llvm-15 clang-15 libclang-15-dev \
+                                  mesa-common-dev libegl1-mesa-dev \
                                   libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libxcursor-dev
 
       - name: (Windows) Install dependencies
@@ -230,19 +232,13 @@ jobs:
           cd OCCT
           git checkout -b V${{ env.OCCT_ }} tags/V${{ env.OCCT_ }}
 
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
+          patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
+          rm ./src/BRepFill/BRepFill_CompatibleWires.cxx.orig
+          rm ./src/ChFi3d/ChFi3d_Builder_1.cxx.orig
+          rm ./src/GeomFill/GeomFill_SectionPlacement.cxx.orig
+          rm ./src/ShapeUpgrade/ShapeUpgrade_UnifySameDomain.cxx.orig
 
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            patch < ../patches/occt-${{ env.OCCT }}/blobfish.patch
-
-          elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
-            rm ./src/BRepFill/BRepFill_CompatibleWires.cxx.orig
-            rm ./src/ChFi3d/ChFi3d_Builder_1.cxx.orig
-            rm ./src/GeomFill/GeomFill_SectionPlacement.cxx.orig
-            rm ./src/ShapeUpgrade/ShapeUpgrade_UnifySameDomain.cxx.orig
-
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
             echo vtkCommonTransforms >> src/TKIVtk/EXTERNLIB
             echo vtkCommonMath >> src/TKIVtk/EXTERNLIB
             echo vtkCommonExecutionModel >> src/TKIVtk/EXTERNLIB
@@ -554,7 +550,7 @@ jobs:
           else
             cd OCP
             patch -p1 < ../../no-vtk-2.patch
-            cd ..          
+            cd ..
             VTK_DIR=""
           fi
 
@@ -658,7 +654,7 @@ jobs:
             -D CMAKE_LINKER=lld-link.exe ^
             %VTK_DIR% ^
             -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\occt-${{ env.OCCT }}\cmake ^
-            -D pybind11_DIR=%pybind11_DIR%"
+            -D pybind11_DIR=%pybind11_DIR%
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
@@ -772,7 +768,7 @@ jobs:
             patchelf --add-rpath '$ORIGIN/../vtkmodules'  ${PKG_NAME}-${{ env.OCCT }}/${PKG_NAME}.libs/*
           fi
 
-          patchelf --add-rpath '$ORIGIN/../${PKG_NAME}.libs' ${PKG_NAME}-${{ env.OCCT }}/${PKG_NAME}.libs/*
+          patchelf --add-rpath '$ORIGIN/../'${PKG_NAME}.libs ${PKG_NAME}-${{ env.OCCT }}/${PKG_NAME}.libs/*
           python -m wheel pack ${PKG_NAME}-${{ env.OCCT }}
           cd ..
 
@@ -821,6 +817,11 @@ jobs:
             EXCLUDE=""
             PKG_NAME="cadquery_ocp_novtk"
           fi
+
+          echo "DEBUG EXCLUDE"
+          echo "repair "$EXCLUDE" --wheel-dir wheel --namespace-pkg ${PKG_NAME} dist/*.whl"
+          ls -l dist
+
           PATH=~/opt/local/occt-7.7.2/win64/vc14/bin/:$PATH delvewheel repair "$EXCLUDE" --wheel-dir wheel --namespace-pkg ${PKG_NAME} dist/*.whl
 
       - name: Upload cadquery_ocp wheel
