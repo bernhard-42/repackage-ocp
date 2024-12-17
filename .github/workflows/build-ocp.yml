@@ -806,10 +806,10 @@ jobs:
           cd pypi/
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             EXCLUDE="--exclude $(ls -1  ~/opt/local/vtk-9.2.6/bin/vtk*.dll | xargs -n 1 basename | xargs | sed 's/ /;/g')"
-            PKG_NAME="cadquery_ocp_novtk"
+            PKG_NAME="cadquery_ocp"
           else
             EXCLUDE=""
-            PKG_NAME="cadquery_ocp"
+            PKG_NAME="cadquery_ocp_novtk"
           fi
           PATH=~/opt/local/occt-7.7.2/win64/vc14/bin/:$PATH delvewheel repair "$EXCLUDE" --wheel-dir wheel --namespace-pkg ${PKG_NAME} dist/*.whl
 
@@ -856,17 +856,12 @@ jobs:
           cd build123d
           micromamba activate test
           pip install .
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
-            pytest tests -v -W ignore
-          else
-            ${{ matrix.sed_i }} 's/.*vtkmodule.*/# removed vtk/g' src/build123d/jupyter_tools.py
 
-            ${{ matrix.sed_i }} 's/.*vtkmodule.*/# removed vtk/g' src/build123d/topology.py
-            ${{ matrix.sed_i }} 's/.*OCP.IVtk.*/# removed vtk/g' src/build123d/topology.py
-            ${{ matrix.sed_i }} 's/vtkPolyData/bool/g' src/build123d/topology.py
-
-            pytest tests -v -W ignore -k "not (test_repr_javascript or test_display_error)"
+          if [[ "${{ matrix.use-vtk }}" == "OFF" ]]; then
+            patch -p1 < ../build123d.patch
           fi
+
+          pytest tests -v -W ignore
 
       - name: Run cadquery tests
         if: matrix.use-vtk == 'ON'
