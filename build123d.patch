@@ -1,3 +1,16 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index 6ef699d..8494f02 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -35,7 +35,7 @@ classifiers = [
+ ]
+ 
+ dependencies = [
+-    "cadquery-ocp >= 7.7.0",
++    "cadquery-ocp-novtk >= 7.7.0",
+     "typing_extensions >= 4.6.0, <5",
+     "numpy >= 2, <3",
+     "svgpathtools >= 1.5.1, <2",
 diff --git a/src/build123d/topology.py b/src/build123d/topology.py
 index be15a1b..0e049b8 100644
 --- a/src/build123d/topology.py
