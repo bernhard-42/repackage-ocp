@@ -654,7 +654,8 @@ jobs:
             -D CMAKE_LINKER=lld-link.exe ^
             %VTK_DIR% ^
             -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\occt-${{ env.OCCT }}\cmake ^
-            -D pybind11_DIR=%pybind11_DIR%
+            -D pybind11_DIR=%pybind11_DIR% ^
+            -D CMAKE_PREFIX_PATH=%CONDA_PREFIX%\Library
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
