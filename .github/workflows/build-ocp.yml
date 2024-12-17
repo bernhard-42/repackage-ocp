@@ -847,7 +847,7 @@ jobs:
         run: |
           micromamba create -y -n test python=${{ matrix.python-version }}
           micromamba activate test
-          pip install pytest docutils ipython
+          pip install pytest docutils ipython typish
 
       - name: Install VTK and OCP wheel
         shell: bash -l {0}
