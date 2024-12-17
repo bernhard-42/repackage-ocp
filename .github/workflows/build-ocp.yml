@@ -333,7 +333,7 @@ jobs:
           set CC=cl.exe
           set CXX=cl.exe
 
-          if "%USE_VTK%"=="ON" (
+          if "${{ matrix.use-vtk }}"=="ON" (
             cmake -S . -B build -G Ninja ^
               -D USE_VTK=ON ^
               -D USE_TBB=OFF ^
