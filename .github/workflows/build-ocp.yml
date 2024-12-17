@@ -865,11 +865,12 @@ jobs:
           git clone https://github.com/gumyr/build123d.git
           cd build123d
           micromamba activate test
-          pip install .
 
           if [[ "${{ matrix.use-vtk }}" == "OFF" ]]; then
             patch -p1 < ../build123d.patch
           fi
+
+          pip install .
 
           pytest tests -v -W ignore
 
