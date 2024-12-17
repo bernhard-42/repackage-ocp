@@ -422,7 +422,7 @@ jobs:
         run: |
           micromamba activate ${{ env.OCP_ENV }}
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            micromamba install "pybind11==2.10.*" logzero toml "numpy==1.26.4" "pandas<2" joblib path tqdm jinja2 toposort schema click py-lief=0.15.1 python-clang pyparsing
+            micromamba install "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click py-lief=0.15.1 python-clang pyparsing
           else
             pip install "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click lief==0.15.1 clang==15.0.7 pyparsing
           fi
