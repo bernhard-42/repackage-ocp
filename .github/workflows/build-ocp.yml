@@ -418,7 +418,7 @@ jobs:
         run: |
           micromamba activate ${{ env.OCP_ENV }}
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            micromamba install "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click py-lief=0.15.1 python-clang pyparsing
+            micromamba install -y "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click py-lief=0.15.1 python-clang pyparsing
           else
             pip install "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click lief==0.15.1 clang==15.0.7 pyparsing
           fi
@@ -647,6 +647,8 @@ jobs:
             set "VTK_DIR= "
           )
 
+          xcopy "%CONDA_PREFIX%/Library/include/rapidjson" "%USERPROFILE%\opt\local\occt-${{ env.OCCT }}\inc\rapidjson" /E /I /H /C
+
           cmake -B build -S . -G Ninja ^
             -D CMAKE_BUILD_TYPE=Release ^
             -D Python3_FIND_STRATEGY=LOCATION ^
@@ -654,8 +656,7 @@ jobs:
             -D CMAKE_LINKER=lld-link.exe ^
             %VTK_DIR% ^
             -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\occt-${{ env.OCCT }}\cmake ^
-            -D pybind11_DIR=%pybind11_DIR% ^
-            -D CMAKE_PREFIX_PATH=%CONDA_PREFIX%\Library
+            -D pybind11_DIR=%pybind11_DIR%
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
