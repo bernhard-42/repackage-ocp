@@ -9,7 +9,7 @@ sys.path.append(".")
 
 
 if platform.system() == 'Windows':
-    if len(sys.argv) == 2:
+    if len(sys.argv) >= 2:
         occt = sys.argv[1]
         os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / occt / "win64" / "vc14" / "bin")
     if len(sys.argv) == 3:
