@@ -18,7 +18,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
+        # os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
+        os: ["macos-13", "macos-14"]
         python-version: ["3.11"]
         use-vtk: ["OFF", "ON"]
         include:
@@ -31,6 +32,7 @@ jobs:
             sed_i: "sed -i '.bak'"
             compilers: "" # use standard macos compilers
             module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=10.10"
           - os: "macos-14"
             delocate: delocate
             plat: macosx_11_0_arm64
@@ -40,24 +42,26 @@ jobs:
             sed_i: "sed -i '.bak'"
             compilers: "" # use standard macos compilers
             module: "OCP.*.so"
-          - os: "ubuntu-22.04"
-            delocate: auditwheel patchelf
-            plat: manylinux_2_35_x86_64
-            vtk_libs: "libvtk*.so"
-            vtk_suffix: "/vtk-9.2/"
-            vtk_prefix: ""
-            sed_i: "sed -i"
-            compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10 -D CMAKE_PREFIX_PATH=/usr/lib/llvm-15"
-            module: "OCP.*.so"
-          - os: "windows-2019"
-            delocate: delvewheel
-            plat: win_amd64
-            vtk_libs: "vtk*.dll"
-            vtk_suffix: "/"
-            vtk_prefix: "Library/"
-            sed_i: "sed -i"
-            compilers: ""
-            module: "OCP/OCP.*.pyd"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+          # - os: "ubuntu-22.04"
+          #   delocate: auditwheel patchelf
+          #   plat: manylinux_2_35_x86_64
+          #   vtk_libs: "libvtk*.so"
+          #   vtk_suffix: "/vtk-9.2/"
+          #   vtk_prefix: ""
+          #   sed_i: "sed -i"
+          #   compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10 -D CMAKE_PREFIX_PATH=/usr/lib/llvm-15"
+          #   module: "OCP.*.so"
+          #   env: "DUMMY=0"
+          # - os: "windows-2019"
+          #   delocate: delvewheel
+          #   plat: win_amd64
+          #   vtk_libs: "vtk*.dll"
+          #   vtk_suffix: "/"
+          #   vtk_prefix: "Library/"
+          #   sed_i: "sed -i"
+          #   compilers: ""
+          #   module: "OCP/OCP.*.pyd"
 
     steps:
       - uses: actions/checkout@v4
@@ -114,10 +118,11 @@ jobs:
           fi
 
       - name: (Mac) Install dependencies
-        if: runner.os == 'macOS'
+        if: runner.os != 'Linux'
         shell: bash -l {0}
         run: |
-          brew install freeimage rapidjson ninja cmake llvm@15 tree
+          micromamba activate ${{ env.OCP_ENV }}
+          micromamba install -y ninja cmake rapidjson "freetype=2.12.*" "freeimage=3.18.*" llvmdev=15.0.7 clangdev=15.0.7
 
       - name: (Ubuntu) Install dependencies
         if: runner.os == 'Linux'
@@ -129,13 +134,6 @@ jobs:
                                   llvm-15 clang-15 libclang-15-dev \
                                   mesa-common-dev libegl1-mesa-dev \
                                   libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libxcursor-dev
-
-      - name: (Windows) Install dependencies
-        if: runner.os  == 'Windows'
-        shell: bash -l {0}
-        run: |
-          micromamba activate ${{ env.OCP_ENV }}
-          micromamba install -y ninja cmake rapidjson "freetype=2.12.*" "freeimage=3.18.*" zlib llvmdev=15.0.7 clangdev=15.0.7
 
       # ========================================
       #                VTK SDK
@@ -248,14 +246,6 @@ jobs:
 
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}
 
-      - name: (Mac) Patch OCCT SDK
-        if: runner.os == 'macOS' && steps.cache-occt-restore.outputs.cache-hit != 'true'
-        shell: bash -l {0}
-        run: |
-          # Patch one issue that prevents from compiling
-          cd OCCT
-          ${{ matrix.sed_i }} 's/const char\* aTags/const unsigned char\* aTags/' src/StdPrs/StdPrs_BRepFont.cxx
-
       - name: (Linux, Mac) Compile and install OCCT SDK
         if: runner.os  != 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
@@ -272,7 +262,7 @@ jobs:
           fi
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
-            cmake -S . -B build  -G Ninja \
+            env ${{ matrix.env }} cmake -S . -B build  -G Ninja \
               -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }} \
               \
               ${{ matrix.compilers }} \
@@ -287,7 +277,8 @@ jobs:
               -D BUILD_CPP_STANDARD=C++17 \
               -D CMAKE_BUILD_TYPE=Release \
               -D BUILD_RELEASE_DISABLE_EXCEPTIONS=OFF \
-              -D BUILD_MODULE_Draw=OFF \
+              -D BUILD_MODULE_Draw=OFF  \
+              -D CMAKE_PREFIX_PATH=$CONDA_PREFIX \
               \
               -D VTK_RENDERING_BACKEND=OpenGL2 \
               -D 3RDPARTY_VTK_INCLUDE_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/include${{ matrix.vtk_suffix }} \
@@ -300,7 +291,7 @@ jobs:
               done
               rm -f build/build.ninja.bak
           else
-            cmake -S . -B build  -G Ninja \
+            env ${{ matrix.env }} cmake -S . -B build  -G Ninja \
               -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }} \
               \
               ${{ matrix.compilers }} \
@@ -315,7 +306,8 @@ jobs:
               -D BUILD_CPP_STANDARD=C++17 \
               -D CMAKE_BUILD_TYPE=Release \
               -D BUILD_RELEASE_DISABLE_EXCEPTIONS=OFF \
-              -D BUILD_MODULE_Draw=OFF
+              -D BUILD_MODULE_Draw=OFF \
+              -D CMAKE_PREFIX_PATH=$CONDA_PREFIX
           fi
 
           # Build OCCT
@@ -491,7 +483,7 @@ jobs:
           fi
 
           cd OCP
-          cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
+          env ${{ matrix.env }} cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
               $VTK_DIR \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
@@ -578,14 +570,6 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba activate ${{ env.OCP_ENV }}
-          export PATH="$(brew --prefix)/opt/llvm@15/bin:$PATH"
-          export LDFLAGS="-L$(brew --prefix)/opt/llvm@15/lib"
-          export CPPFLAGS="-I$(brew --prefix)/opt/llvm@15/include"
-          export Clang_DIR=$(brew --prefix)/Cellar/llvm@15/15.0.7/lib/cmake/clang
-          export LLVM_DIR=$(brew --prefix)/Cellar/llvm@15/15.0.7/lib/cmake/llvm/
-          export CC=$(brew --prefix)/Cellar/llvm@15/15.0.7/bin/clang
-          export CXX=$(brew --prefix)/opt/llvm@15/bin/clang++
-          export CPATH=$(brew --prefix)/include
 
           cd OCP
 
@@ -599,10 +583,11 @@ jobs:
             VTK_DIR=""
           fi
 
-          cmake -B build -S OCP -G Ninja \
+          env ${{ matrix.env }} cmake -B build -S OCP -G Ninja \
+              -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ \
               -D CMAKE_BUILD_TYPE=Release \
               -D CMAKE_OSX_DEPLOYMENT_TARGET="11.1" \
-              -D CMAKE_CXX_FLAGS="-I $(brew --prefix)/include" \
+              -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include" \
               $VTK_DIR \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
@@ -799,7 +784,7 @@ jobs:
           cd ..
 
           # env MACOSX_DEPLOYMENT_TARGET=11.1 \
-          env DYLD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib:$HOME/opt/local/vtk-${{ env.VTK }}/lib:$(brew --prefix)/lib \
+          env DYLD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib:$HOME/opt/local/vtk-${{ env.VTK }}/lib:$CONDA_PREFIX/lib \
               python -m delocate.cmd.delocate_wheel \
               -e libvtk \
               --wheel-dir=wheel \
@@ -867,9 +852,11 @@ jobs:
 
           if [[ "${{ matrix.use-vtk }}" == "OFF" ]]; then
             patch -p1 < ../build123d.patch
+            pip install .
+            pip uninstall -y cadquery_ocp # gets installed by ocpsvg
+          else
+            pip install .
           fi
-
-          pip install .
 
           pytest tests -v -W ignore
 
