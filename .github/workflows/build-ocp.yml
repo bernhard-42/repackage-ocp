@@ -19,7 +19,15 @@ jobs:
       matrix:
         os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
         python-version: ["3.11"]
+        # python-version: ["3.10", "3.11", "3.12", "3.13"]
         use-vtk: ["OFF", "ON"]
+
+        # exclude:
+        #   - use-vtk: ON
+        #     python-version: 3.12
+        #   - use-vtk: ON
+        #     python-version: 3.13
+
         include:
           - os: "macos-13"
             delocate: delocate
@@ -779,6 +787,7 @@ jobs:
       # ========================================
 
       - name: Create the test environment
+        if: matrix.python-version != '3.13'
         shell: bash -l {0}
         run: |
           micromamba create -y -n test python=${{ matrix.python-version }}
@@ -786,6 +795,7 @@ jobs:
           pip install pytest docutils ipython
 
       - name: Install VTK and OCP wheel
+        if: matrix.python-version != '3.13'
         shell: bash -l {0}
         run: |
           micromamba activate test
@@ -797,6 +807,7 @@ jobs:
           python -c "import OCP; print('Success: OCP', OCP.__version__)"
 
       - name: Run build123d tests
+        if: matrix.python-version != '3.13'
         shell: bash -l {0}
         run: |
           git clone https://github.com/gumyr/build123d.git
@@ -814,7 +825,7 @@ jobs:
           pytest tests -v -W ignore
 
       - name: Run cadquery tests
-        if: matrix.use-vtk == 'ON'
+        if: matrix.use-vtk == 'ON' && matrix.python-version != '3.13'
         shell: bash -l {0}
         run: |
           git clone https://github.com/cadquery/cadquery.git
@@ -839,9 +850,12 @@ jobs:
           pytest tests -v -W ignore
 
       - name: Uninstall test
+        if: matrix.python-version != '3.13'
         shell: bash -l {0}
         run: |
           micromamba activate test
-          pip uninstall -y cadquery
-          pip uninstall -y cadquery_ocp
-          pip uninstall -y cadquery_vtk
+          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
+             pip uninstall -y cadquery_ocp
+          else
+            pip uninstall -y cadquery_ocp_novtk
+          fi
