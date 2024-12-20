@@ -32,6 +32,7 @@ jobs:
           #   compilers: "" # use standard macos compilers
           #   module: "OCP.*.so"
           #   env: "MACOSX_DEPLOYMENT_TARGET=10.10"
+          #   shells: "bash"
           # - os: "macos-14"
           #   delocate: delocate
           #   plat: macosx_11_0_arm64
@@ -42,6 +43,7 @@ jobs:
           #   compilers: "" # use standard macos compilers
           #   module: "OCP.*.so"
           #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+          #   shells: "bash"
           - os: "ubuntu-22.04"
             delocate: auditwheel patchelf
             plat: manylinux_2_35_x86_64
@@ -52,6 +54,7 @@ jobs:
             compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10"
             module: "OCP.*.so"
             env: "DUMMY=0"
+            shells: "bash"
           # - os: "windows-2019"
           #   delocate: delvewheel
           #   plat: win_amd64
@@ -60,27 +63,19 @@ jobs:
           #   vtk_prefix: "Library/"
           #   sed_i: "sed -i"
           #   compilers: ""
+          #   shells: "bash cmd.exe"
           #   module: "OCP/OCP.*.pyd"
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: (Linux, Mac) Set up Python ${{ matrix.python-version }} via micromamba
+      - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
         if: runner.os != 'Windows'
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: environment-${{ matrix.python-version }}.yml
           log-level: debug
-          init-shell: bash
-          cache-downloads: true
-
-      - name: (Windows) Set up Python ${{ matrix.python-version }} via micromamba
-        if: runner.os == 'Windows'
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          environment-file: environment-${{ matrix.python-version }}.yml
-          log-level: debug
-          init-shell: bash cmd.exe
+          init-shell: ${{ env.shells }}
           cache-downloads: true
 
       - name: Get number of CPUs
