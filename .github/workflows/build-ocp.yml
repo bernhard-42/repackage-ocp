@@ -3,7 +3,6 @@ name: OCP with pypi VTK
 on: workflow_dispatch
 
 env:
-  OCP_ENV: build-ocp
   OCP: 7.7.2.1
   VTK: 9.2.6
   VTK_MAJOR: 9.2
@@ -19,20 +18,20 @@ jobs:
       fail-fast: false
       matrix:
         # os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
-        os: ["macos-13", "macos-14"]
+        os: ["macos-14", "ubuntu-22.04"]
         python-version: ["3.11"]
         use-vtk: ["OFF", "ON"]
         include:
-          - os: "macos-13"
-            delocate: delocate
-            plat: macosx_10_10_x86_64
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
-            sed_i: "sed -i '.bak'"
-            compilers: "" # use standard macos compilers
-            module: "OCP.*.so"
-            env: "MACOSX_DEPLOYMENT_TARGET=10.10"
+          # - os: "macos-13"
+          #   delocate: delocate
+          #   plat: macosx_10_10_x86_64
+          #   vtk_libs: ".dylibs/libvtk*.dylib"
+          #   vtk_suffix: "/"
+          #   vtk_prefix: ""
+          #   sed_i: "sed -i '.bak'"
+          #   compilers: "" # use standard macos compilers
+          #   module: "OCP.*.so"
+          #   env: "MACOSX_DEPLOYMENT_TARGET=10.10"
           - os: "macos-14"
             delocate: delocate
             plat: macosx_11_0_arm64
@@ -43,16 +42,16 @@ jobs:
             compilers: "" # use standard macos compilers
             module: "OCP.*.so"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-          # - os: "ubuntu-22.04"
-          #   delocate: auditwheel patchelf
-          #   plat: manylinux_2_35_x86_64
-          #   vtk_libs: "libvtk*.so"
-          #   vtk_suffix: "/vtk-9.2/"
-          #   vtk_prefix: ""
-          #   sed_i: "sed -i"
-          #   compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10 -D CMAKE_PREFIX_PATH=/usr/lib/llvm-15"
-          #   module: "OCP.*.so"
-          #   env: "DUMMY=0"
+          - os: "ubuntu-22.04"
+            delocate: auditwheel patchelf
+            plat: manylinux_2_35_x86_64
+            vtk_libs: "libvtk*.so"
+            vtk_suffix: "/vtk-9.2/"
+            vtk_prefix: ""
+            sed_i: "sed -i"
+            compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10"
+            module: "OCP.*.so"
+            env: "DUMMY=0"
           # - os: "windows-2019"
           #   delocate: delvewheel
           #   plat: win_amd64
@@ -70,6 +69,7 @@ jobs:
         if: runner.os != 'Windows'
         uses: mamba-org/setup-micromamba@v1
         with:
+          environment-file: environment-${{ matrix.python-version }}.yml
           log-level: debug
           init-shell: bash
           cache-downloads: true
@@ -78,6 +78,7 @@ jobs:
         if: runner.os == 'Windows'
         uses: mamba-org/setup-micromamba@v1
         with:
+          environment-file: environment-${{ matrix.python-version }}.yml
           log-level: debug
           init-shell: bash cmd.exe
           cache-downloads: true
@@ -101,39 +102,19 @@ jobs:
 
       # Install toolchain if needed
 
-      - name: (All) Create build environment and install VTK ${{ env.VTK }} from pypi
+      - name: (All) Install VTK ${{ env.VTK }} from pypi
+        if: matrix.use-vtk == 'ON'
         shell: bash -l {0}
         run: |
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            PATH='/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/':$PATH
-          fi
-
-          micromamba create -y -n ${{ env.OCP_ENV }} python=${{ matrix.python-version }}
-          micromamba activate ${{ env.OCP_ENV }}
-
-          pip install "setuptools>=75"
-
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
-            pip install vtk==${{ env.VTK }}
-          fi
-
-      - name: (Mac) Install dependencies
-        if: runner.os != 'Linux'
-        shell: bash -l {0}
-        run: |
-          micromamba activate ${{ env.OCP_ENV }}
-          micromamba install -y ninja cmake rapidjson "freetype=2.12.*" "freeimage=3.18.*" llvmdev=15.0.7 clangdev=15.0.7
+          pip install vtk==${{ env.VTK }}
 
       - name: (Ubuntu) Install dependencies
         if: runner.os == 'Linux'
         shell: bash -l {0}
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build cmake \
-                                  rapidjson-dev libfreeimage-dev libfontconfig-dev libfreeimage-dev \
-                                  llvm-15 clang-15 libclang-15-dev \
-                                  mesa-common-dev libegl1-mesa-dev \
-                                  libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libxcursor-dev
+          sudo apt-get install -y mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev \
+                                  libglu1-mesa-dev freeglut3-dev libxcursor-dev
 
       # ========================================
       #                VTK SDK
@@ -171,7 +152,7 @@ jobs:
         if: matrix.use-vtk == 'ON' && runner.os != 'Windows' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          micromamba activate build-ocp
 
           cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules/${{ matrix.vtk_libs }} ~/opt/local/vtk-${{ env.VTK }}/lib/
           cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtk.py ~/opt/local/vtk-${{ env.VTK }}
@@ -186,7 +167,7 @@ jobs:
         if: matrix.use-vtk == 'ON' && runner.os  == 'Windows'  && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          micromamba activate build-ocp
 
           PATH='/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/':$PATH
           cp create_lib.sh $HOME/opt/local/vtk-${{ env.VTK }}
@@ -250,7 +231,7 @@ jobs:
         if: runner.os  != 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          micromamba activate build-ocp
           cd OCCT
 
           rm -fr build
@@ -318,7 +299,7 @@ jobs:
         if: runner.os  == 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
-          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }} 
+          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-ocp 
           cd OCCT
 
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
@@ -408,7 +389,7 @@ jobs:
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          micromamba activate build-ocp
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             micromamba install -y "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click py-lief=0.15.1 python-clang pyparsing
           else
@@ -446,7 +427,7 @@ jobs:
         if: runner.os == 'Linux' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          micromamba activate build-ocp
           cd OCP
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
@@ -465,15 +446,7 @@ jobs:
         if: runner.os == 'macOS' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
-          export PATH="$(brew --prefix)/opt/llvm@15/bin:$PATH"
-          export LDFLAGS="-L$(brew --prefix)/opt/llvm@15/lib"
-          export CPPFLAGS="-I$(brew --prefix)/opt/llvm@15/include"
-          export Clang_DIR=$(brew --prefix)/Cellar/llvm@15/15.0.7/lib/cmake/clang
-          export LLVM_DIR=$(brew --prefix)/Cellar/llvm@15/15.0.7/lib/cmake/llvm/
-          export CC=$(brew --prefix)/Cellar/llvm@15/15.0.7/bin/clang
-          export CXX=$(brew --prefix)/opt/llvm@15/bin/clang++
-          export CPATH=$(brew --prefix)/include
+          micromamba activate build-ocp
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
@@ -493,7 +466,7 @@ jobs:
         if: runner.os == 'Windows' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
-          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
+          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-ocp
           cd OCP
 
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
@@ -530,7 +503,7 @@ jobs:
         if: runner.os == 'Linux' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          micromamba activate build-ocp
 
           cd OCP
 
@@ -554,7 +527,8 @@ jobs:
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_CXX_STANDARD=17 \
-              -D CMAKE_SHARED_LINKER_FLAGS="-L $HOME/opt/local/vtk-${{ env.VTK }}/lib" \
+              -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include" \
+              -D CMAKE_SHARED_LINKER_FLAGS="-L $HOME/opt/local/vtk-9.2.6/lib -L $CONDA_PREFIX/lib" \
               -D CMAKE_BUILD_WITH_INSTALL_RPATH=TRUE
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
@@ -569,7 +543,7 @@ jobs:
         if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          micromamba activate build-ocp
 
           cd OCP
 
@@ -606,7 +580,7 @@ jobs:
         if: runner.os == 'Windows' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
-          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate ${{ env.OCP_ENV }}
+          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-ocp
 
           PATH="C:\Program Files\Git\usr\bin";%PATH%
 
@@ -661,7 +635,7 @@ jobs:
       - name: (All) Create the cadquery_ocp wheel
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          micromamba activate build-ocp
           pip install build wheel ${{ matrix.delocate }}
 
           cd pypi
@@ -723,7 +697,7 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          micromamba activate build-ocp
           cd pypi
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
@@ -763,7 +737,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          micromamba activate build-ocp
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             PKG_NAME="cadquery_ocp"
@@ -794,7 +768,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash -l {0}
         run: |
-          micromamba activate ${{ env.OCP_ENV }}
+          micromamba activate build-ocp
 
           cd pypi/
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then

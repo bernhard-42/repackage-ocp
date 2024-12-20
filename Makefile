@@ -13,6 +13,11 @@ clean:
 		@echo "Removing vtk environment"; \
 		micromamba env remove -y -n vtk; \
 	fi
+	if micromamba env list | grep -q "^\s*test\s"; then \
+		@echo "Removing test environment"; \
+		micromamba env remove -y -n vtk; \
+	fi
+
 	micromamba env list
 	unset LDFLAGS
 	unset CPPFLAGS
