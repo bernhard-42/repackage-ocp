@@ -31,6 +31,6 @@ The wheels are created for
 
 ## Known issues
 
-- For macOS (Intel), `nlopt` 2.9 is not on pypi. The test installes `nlopt` from conda.
-- For Windows, `casadi` and `nlopt` create a segmentation fault on exit (even when OCP and VTK are not installed). The test installed `nlopt` and `casadi` from conda.
+- For macOS (Intel), `nlopt` 2.9 is not on pypi. The test installs `nlopt` from conda.
+- For Windows, `casadi` and `nlopt` create a segmentation fault on exit (even when OCP and VTK are not installed). The test installs `nlopt` and `casadi` from conda.
 
