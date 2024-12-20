@@ -75,7 +75,7 @@ jobs:
         with:
           environment-file: environment-${{ matrix.python-version }}.yml
           log-level: debug
-          init-shell: ${{ env.shells }}
+          init-shell: ${{ matrix.shells }}
           cache-downloads: true
 
       - name: Get number of CPUs
@@ -692,7 +692,7 @@ jobs:
             PKG_NAME="cadquery_ocp_novtk"
           fi
 
-          env LD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib \
+          env LD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib:$CONDA_PREFIX/lib \
               python -m auditwheel \
               repair \
               --plat=${{ matrix.plat }} \
