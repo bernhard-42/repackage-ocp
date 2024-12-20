@@ -17,33 +17,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
-        os: ["ubuntu-22.04"]
+        os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
         python-version: ["3.11"]
         use-vtk: ["OFF", "ON"]
         include:
-          # - os: "macos-13"
-          #   delocate: delocate
-          #   plat: macosx_10_10_x86_64
-          #   vtk_libs: ".dylibs/libvtk*.dylib"
-          #   vtk_suffix: "/"
-          #   vtk_prefix: ""
-          #   sed_i: "sed -i '.bak'"
-          #   compilers: "" # use standard macos compilers
-          #   module: "OCP.*.so"
-          #   env: "MACOSX_DEPLOYMENT_TARGET=10.10"
-          #   shells: "bash"
-          # - os: "macos-14"
-          #   delocate: delocate
-          #   plat: macosx_11_0_arm64
-          #   vtk_libs: ".dylibs/libvtk*.dylib"
-          #   vtk_suffix: "/"
-          #   vtk_prefix: ""
-          #   sed_i: "sed -i '.bak'"
-          #   compilers: "" # use standard macos compilers
-          #   module: "OCP.*.so"
-          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-          #   shells: "bash"
+          - os: "macos-13"
+            delocate: delocate
+            plat: macosx_10_10_x86_64
+            vtk_libs: ".dylibs/libvtk*.dylib"
+            vtk_suffix: "/"
+            vtk_prefix: ""
+            sed_i: "sed -i '.bak'"
+            compilers: "" # use standard macos compilers
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=10.10"
+            shells: "bash"
+          - os: "macos-14"
+            delocate: delocate
+            plat: macosx_11_0_arm64
+            vtk_libs: ".dylibs/libvtk*.dylib"
+            vtk_suffix: "/"
+            vtk_prefix: ""
+            sed_i: "sed -i '.bak'"
+            compilers: "" # use standard macos compilers
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
           - os: "ubuntu-22.04"
             delocate: auditwheel patchelf
             plat: manylinux_2_35_x86_64
@@ -55,16 +54,16 @@ jobs:
             module: "OCP.*.so"
             env: "DUMMY=0"
             shells: "bash"
-          # - os: "windows-2019"
-          #   delocate: delvewheel
-          #   plat: win_amd64
-          #   vtk_libs: "vtk*.dll"
-          #   vtk_suffix: "/"
-          #   vtk_prefix: "Library/"
-          #   sed_i: "sed -i"
-          #   compilers: ""
-          #   shells: "bash cmd.exe"
-          #   module: "OCP/OCP.*.pyd"
+          - os: "windows-2019"
+            delocate: delvewheel
+            plat: win_amd64
+            vtk_libs: "vtk*.dll"
+            vtk_suffix: "/"
+            vtk_prefix: "Library/"
+            sed_i: "sed -i"
+            compilers: ""
+            shells: "bash cmd.exe"
+            module: "OCP/OCP.*.pyd"
 
     steps:
       - uses: actions/checkout@v4
