@@ -15,7 +15,7 @@ clean:
 	fi
 	if micromamba env list | grep -q "^\s*test\s"; then \
 		@echo "Removing test environment"; \
-		micromamba env remove -y -n vtk; \
+		micromamba env remove -y -n test; \
 	fi
 
 	micromamba env list
