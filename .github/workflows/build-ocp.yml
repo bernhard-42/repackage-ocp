@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         # os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
-        os: ["macos-14", "ubuntu-22.04"]
+        os: ["ubuntu-22.04"]
         python-version: ["3.11"]
         use-vtk: ["OFF", "ON"]
         include:
@@ -32,16 +32,16 @@ jobs:
           #   compilers: "" # use standard macos compilers
           #   module: "OCP.*.so"
           #   env: "MACOSX_DEPLOYMENT_TARGET=10.10"
-          - os: "macos-14"
-            delocate: delocate
-            plat: macosx_11_0_arm64
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
-            sed_i: "sed -i '.bak'"
-            compilers: "" # use standard macos compilers
-            module: "OCP.*.so"
-            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+          # - os: "macos-14"
+          #   delocate: delocate
+          #   plat: macosx_11_0_arm64
+          #   vtk_libs: ".dylibs/libvtk*.dylib"
+          #   vtk_suffix: "/"
+          #   vtk_prefix: ""
+          #   sed_i: "sed -i '.bak'"
+          #   compilers: "" # use standard macos compilers
+          #   module: "OCP.*.so"
+          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
           - os: "ubuntu-22.04"
             delocate: auditwheel patchelf
             plat: manylinux_2_35_x86_64
