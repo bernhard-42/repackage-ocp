@@ -507,9 +507,6 @@ jobs:
 
           cd OCP
 
-          export CXXFLAGS="-fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0"
-          export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
-
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
@@ -527,8 +524,8 @@ jobs:
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_CXX_STANDARD=17 \
-              -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include" \
-              -D CMAKE_MODULE_LINKER_FLAGS="-L $CONDA_PREFIX/lib" \
+              -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include -fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0" \
+              -D CMAKE_MODULE_LINKER_FLAGS="-L $CONDA_PREFIX/lib -L $HOME/opt/local/vtk-9.2.6/lib" \
               -D CMAKE_BUILD_WITH_INSTALL_RPATH=TRUE
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
@@ -674,14 +671,6 @@ jobs:
             mv *.so OCP
           fi
 
-          echo "DEBUG pip"
-          pip --version
-          echo "DEBUG pyproject.toml"
-          cat pyproject.toml
-          echo "DEBUG tree"
-          tree .
-
-
           python -m build -w -n
 
           PY_VER=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')")
@@ -707,9 +696,6 @@ jobs:
             EXCLUDE=""
             PKG_NAME="cadquery_ocp_novtk"
           fi
-
-          echo "DEBUG EXCLUDE"
-          echo "$EXCLUDE --wheel-dir wheel --namespace-pkg ${PKG_NAME} dist/*.whl"
 
           env LD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib \
               python -m auditwheel \
