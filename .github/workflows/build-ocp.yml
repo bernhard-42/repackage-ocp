@@ -238,11 +238,11 @@ jobs:
 
           rm -fr build
 
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
+          # if [[ "$RUNNER_OS" == "Linux" ]]; then
               # -fabi-version=11: Corresponds to GCC 10.1 and later, which includes CXXABI_1.3.7 needed to link with VTK 9.2.6
               # -D_GLIBCXX_USE_CXX11_ABI=0: Disables the C++11 ABI features for compatibility
-              export CXXFLAGS="-fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0"
-          fi
+              # export CXXFLAGS="-fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0"
+          # fi
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             env ${{ matrix.env }} cmake -S . -B build  -G Ninja \
@@ -529,6 +529,8 @@ jobs:
             VTK_DIR=""
           fi
 
+          # -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include -fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0" \
+
           cmake -B build -S OCP -G Ninja \
               ${{ matrix.compilers }} \
               \
@@ -537,7 +539,7 @@ jobs:
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_CXX_STANDARD=17 \
-              -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include -fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0" \
+              -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include" \
               -D CMAKE_MODULE_LINKER_FLAGS="-L $CONDA_PREFIX/lib -L $HOME/opt/local/vtk-9.2.6/lib" \
               -D CMAKE_BUILD_WITH_INSTALL_RPATH=TRUE
 
