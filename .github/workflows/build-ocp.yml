@@ -17,40 +17,41 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
-        # python-version: ["3.11"]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        # os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
+        os: ["ubuntu-20.04"]
+        python-version: ["3.11"]
+        # python-version: ["3.10", "3.11", "3.12", "3.13"]
         use-vtk: ["OFF", "ON"]
 
-        exclude:
-          - use-vtk: ON
-            python-version: 3.12
-          - use-vtk: ON
-            python-version: 3.13
+        # exclude:
+        #   - use-vtk: ON
+        #     python-version: 3.12
+        #   - use-vtk: ON
+        #     python-version: 3.13
 
         include:
-          - os: "macos-13"
-            delocate: delocate
-            plat: macosx_10_10_x86_64
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
-            sed_i: "sed -i '.bak'"
-            compilers: "" # use standard macos compilers
-            module: "OCP.*.so"
-            env: "MACOSX_DEPLOYMENT_TARGET=10.10"
-            shells: "bash"
-          - os: "macos-14"
-            delocate: delocate
-            plat: macosx_11_0_arm64
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
-            sed_i: "sed -i '.bak'"
-            compilers: "" # use standard macos compilers
-            module: "OCP.*.so"
-            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-            shells: "bash"
+          # - os: "macos-13"
+          #   delocate: delocate
+          #   plat: macosx_10_10_x86_64
+          #   vtk_libs: ".dylibs/libvtk*.dylib"
+          #   vtk_suffix: "/"
+          #   vtk_prefix: ""
+          #   sed_i: "sed -i '.bak'"
+          #   compilers: "" # use standard macos compilers
+          #   module: "OCP.*.so"
+          #   env: "MACOSX_DEPLOYMENT_TARGET=10.10"
+          #   shells: "bash"
+          # - os: "macos-14"
+          #   delocate: delocate
+          #   plat: macosx_11_0_arm64
+          #   vtk_libs: ".dylibs/libvtk*.dylib"
+          #   vtk_suffix: "/"
+          #   vtk_prefix: ""
+          #   sed_i: "sed -i '.bak'"
+          #   compilers: "" # use standard macos compilers
+          #   module: "OCP.*.so"
+          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+          #   shells: "bash"
           - os: "ubuntu-20.04"
             delocate: auditwheel patchelf
             plat: manylinux_2_31_x86_64
@@ -62,16 +63,16 @@ jobs:
             module: "OCP.*.so"
             env: "DUMMY=0"
             shells: "bash"
-          - os: "windows-2019"
-            delocate: delvewheel
-            plat: win_amd64
-            vtk_libs: "vtk*.dll"
-            vtk_suffix: "/"
-            vtk_prefix: "Library/"
-            sed_i: "sed -i"
-            compilers: ""
-            shells: "bash cmd.exe"
-            module: "OCP/OCP.*.pyd"
+          # - os: "windows-2019"
+          #   delocate: delvewheel
+          #   plat: win_amd64
+          #   vtk_libs: "vtk*.dll"
+          #   vtk_suffix: "/"
+          #   vtk_prefix: "Library/"
+          #   sed_i: "sed -i"
+          #   compilers: ""
+          #   shells: "bash cmd.exe"
+          #   module: "OCP/OCP.*.pyd"
 
     steps:
       - uses: actions/checkout@v4
@@ -295,6 +296,16 @@ jobs:
           # Build OCCT
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
           ninja -C build install
+
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            echo VTK symbols  
+            strings ~/opt/local/vtk-9.2.6/lib/libvtk*.so | egrep LIBC_ | grep -v @ | sort | uniq
+            strings ~/opt/local/vtk-9.2.6/lib/libvtk*.so | egrep LIBCXX_ | grep -v @ | sort | uniq
+
+            echo OCCT symbols
+            strings build/lin64/gcc/lib/*.so.7.7.2 | egrep LIBC_ | grep -v @ | sort | uniq
+            strings build/lin64/gcc/lib/*.so.7.7.2 | egrep LIBCXX_ | grep -v @ | sort | uniq
+          fi
 
       - name: (Windows) Compile and install OCCT SDK
         if: runner.os  == 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
@@ -537,6 +548,12 @@ jobs:
           fi
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
+
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            echo OCP symbols
+            strings build/OCP.cpython-311-x86_64-linux-gnu.so | egrep LIBC_ | grep -v @ | sort | uniq
+            strings build/OCP.cpython-311-x86_64-linux-gnu.so | egrep LIBCXX_ | grep -v @ | sort | uniq
+          fi
 
       - name: (Mac) Generate OCP build files and build OCP
         if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
