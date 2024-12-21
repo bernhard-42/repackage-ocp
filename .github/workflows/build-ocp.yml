@@ -53,7 +53,7 @@ jobs:
             shells: "bash"
           - os: "ubuntu-22.04"
             delocate: auditwheel patchelf
-            plat: manylinux_2_29_x86_64
+            plat: manylinux_2_31_x86_64
             vtk_libs: "libvtk*.so"
             vtk_suffix: "/vtk-9.2/"
             vtk_prefix: ""
@@ -791,7 +791,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SDK-occt_${{ env.OCCT }}-vtk_${{ env.VTK }}_${{ matrix.use-vtk }}-Py_${{ matrix.python-version }}
-          path: ~/opt/local
+          path: $HOME/opt/local
 
       # ========================================
       #                 Test
