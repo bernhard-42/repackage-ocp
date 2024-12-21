@@ -53,7 +53,7 @@ jobs:
             shells: "bash"
           - os: "ubuntu-22.04"
             delocate: auditwheel patchelf
-            plat: manylinux_2_35_x86_64
+            plat: manylinux_2_29_x86_64
             vtk_libs: "libvtk*.so"
             vtk_suffix: "/vtk-9.2/"
             vtk_prefix: ""
