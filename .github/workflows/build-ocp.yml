@@ -787,21 +787,11 @@ jobs:
       #                 SDK
       # ========================================
 
-      - name: (All) Create a VTK and OCCT SDK archive
-        if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
-        shell: bash -l {0}
-        run: |
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
-            tar -zcvf SDK-occt_${{ env.OCCT }}-vtk_${{ env.VTK }}-Py_${{ matrix.python-version }}.tar.gz $HOME/opt/local/
-          else
-            tar -zcvf SDK-occt_${{ env.OCCT }}-Py_${{ matrix.python-version }}.tar.gz $HOME/opt/local/
-          fi
-
       - name: Upload VTK and OCCT SDK archive
         uses: actions/upload-artifact@v4
         with:
           name: SDK-occt_${{ env.OCCT }}-vtk_${{ env.VTK }}_${{ matrix.use-vtk }}-Py_${{ matrix.python-version }}
-          path: SDK-occt-*.tar.gz
+          path: ~/opt/local
 
       # ========================================
       #                 Test
