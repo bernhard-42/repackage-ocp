@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-22.04", "macos-13", "macos-14", "windows-2019"]
+        os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
         # python-version: ["3.11"]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
         use-vtk: ["OFF", "ON"]
@@ -51,7 +51,7 @@ jobs:
             module: "OCP.*.so"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
             shells: "bash"
-          - os: "ubuntu-22.04"
+          - os: "ubuntu-20.04"
             delocate: auditwheel patchelf
             plat: manylinux_2_31_x86_64
             vtk_libs: "libvtk*.so"
