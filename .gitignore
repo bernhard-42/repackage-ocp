@@ -24,4 +24,5 @@ pypi/dist/
 pypi/wheel/
 pypi/wheelhouse/
 
-buildBuild.sh
+build
+Build.sh
