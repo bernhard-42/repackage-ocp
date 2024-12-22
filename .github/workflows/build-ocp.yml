@@ -37,7 +37,7 @@ jobs:
             vtk_prefix: ""
             sed_i: "sed -i '.bak'"
             module: "OCP.*.so"
-            env: "MACOSX_DEPLOYMENT_TARGET=10.10"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
             shells: "bash"
           - os: "macos-14"
             delocate: delocate
