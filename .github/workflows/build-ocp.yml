@@ -418,12 +418,12 @@ jobs:
 
           # Support pandas 2
           cd pywrap
-          patch -p1 < ../../pandas.patch
+          patch -p1 < ../../patches/pandas.patch
           cd ..
 
           # Patch VTK out of OCP
           if [[ "${{ matrix.use-vtk }}" == "OFF" ]]; then
-            patch -p1 < ../no-vtk.patch
+            patch -p1 < ../patches/no-vtk.patch
           fi
 
       - name: (All) Restore OCP source cache
@@ -521,7 +521,7 @@ jobs:
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
             cd OCP
-            patch -p1 < ../../no-vtk-2.patch
+            patch -p1 < ../../patches/no-vtk-2.patch
             cd ..
             VTK_DIR=""
           fi
@@ -564,7 +564,7 @@ jobs:
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
             cd OCP
-            patch -p1 < ../../no-vtk-2.patch
+            patch -p1 < ../../patches/no-vtk-2.patch
             cd ..
             VTK_DIR=""
           fi
@@ -613,7 +613,7 @@ jobs:
             set "VTK_DIR=-D VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}"
           ) else (
             cd OCP
-            patch -p1 < ../../no-vtk-2.patch
+            patch -p1 < ../../patches/no-vtk-2.patch
             cd ..
             set "VTK_DIR= "
           )
@@ -839,7 +839,7 @@ jobs:
           micromamba activate test
 
           if [[ "${{ matrix.use-vtk }}" == "OFF" ]]; then
-            patch -p1 < ../build123d.patch
+            patch -p1 < ../patches/build123d.patch
             pip install .
             pip uninstall -y cadquery_ocp # gets installed by ocpsvg
           else
