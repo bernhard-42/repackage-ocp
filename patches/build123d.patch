@@ -1,7 +1,16 @@
 diff --git a/pyproject.toml b/pyproject.toml
-index 6ef699d..8494f02 100644
+index 6ef699d..203b387 100644
 --- a/pyproject.toml
 +++ b/pyproject.toml
+@@ -16,7 +16,7 @@ authors = [
+ ]
+ description = "A python CAD programming library"
+ readme = "README.md"
+-requires-python = ">= 3.10, < 3.13"
++requires-python = ">= 3.10, <= 3.13"
+ keywords = [
+     "3d models",
+     "3d printing",
 @@ -35,7 +35,7 @@ classifiers = [
  ]
  
@@ -11,6 +20,14 @@ index 6ef699d..8494f02 100644
      "typing_extensions >= 4.6.0, <5",
      "numpy >= 2, <3",
      "svgpathtools >= 1.5.1, <2",
+@@ -43,7 +43,6 @@ dependencies = [
+     "ezdxf >= 1.1.0, < 2",
+     "ipython >= 8.0.0, <9",
+     "py-lib3mf >= 2.3.1",
+-    "ocpsvg",
+     "trianglesolver"
+ ]
+ 
 diff --git a/src/build123d/topology.py b/src/build123d/topology.py
 index be15a1b..0e049b8 100644
 --- a/src/build123d/topology.py
