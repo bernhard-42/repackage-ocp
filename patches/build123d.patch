@@ -7,7 +7,7 @@ index 6ef699d..203b387 100644
  description = "A python CAD programming library"
  readme = "README.md"
 -requires-python = ">= 3.10, < 3.13"
-+requires-python = ">= 3.10, <= 3.13"
++requires-python = ">= 3.10, < 3.14"
  keywords = [
      "3d models",
      "3d printing",
