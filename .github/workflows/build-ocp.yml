@@ -811,7 +811,6 @@ jobs:
       # ========================================
 
       - name: Create the test environment
-        if: matrix.python-version != '3.13'
         shell: bash -l {0}
         run: |
           micromamba create -y -n test python=${{ matrix.python-version }}
@@ -819,7 +818,6 @@ jobs:
           pip install pytest docutils ipython
 
       - name: Install VTK and OCP wheel
-        if: matrix.python-version != '3.13'
         shell: bash -l {0}
         run: |
           micromamba activate test
@@ -839,7 +837,7 @@ jobs:
           
           if [[ "${{ matrix.use-vtk }}" == "OFF" ]]; then
 
-            wget https://files.pythonhosted.org/packages/10/ed/d4c555f74e39be516c9da41ff8e672e5996c95f5dd7865f6a3a7a91fbb22/ocpsvg-0.3.3.tar.gz
+            curl -O https://files.pythonhosted.org/packages/10/ed/d4c555f74e39be516c9da41ff8e672e5996c95f5dd7865f6a3a7a91fbb22/ocpsvg-0.3.3.tar.gz
             tar -zxvf ocpsvg-0.3.3.tar.gz
             cd ocpsvg-0.3.3
             sed -i 's/"cadquery-ocp >= 7.7.0",//' pyproject.toml
