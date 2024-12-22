@@ -17,10 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
-        os: ["ubuntu-20.04"]
-        python-version: ["3.11"]
+        os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
         # python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.11"]
         use-vtk: ["OFF", "ON"]
 
         # exclude:
@@ -30,28 +29,26 @@ jobs:
         #     python-version: 3.13
 
         include:
-          # - os: "macos-13"
-          #   delocate: delocate
-          #   plat: macosx_10_10_x86_64
-          #   vtk_libs: ".dylibs/libvtk*.dylib"
-          #   vtk_suffix: "/"
-          #   vtk_prefix: ""
-          #   sed_i: "sed -i '.bak'"
-          #   compilers: "" # use standard macos compilers
-          #   module: "OCP.*.so"
-          #   env: "MACOSX_DEPLOYMENT_TARGET=10.10"
-          #   shells: "bash"
-          # - os: "macos-14"
-          #   delocate: delocate
-          #   plat: macosx_11_0_arm64
-          #   vtk_libs: ".dylibs/libvtk*.dylib"
-          #   vtk_suffix: "/"
-          #   vtk_prefix: ""
-          #   sed_i: "sed -i '.bak'"
-          #   compilers: "" # use standard macos compilers
-          #   module: "OCP.*.so"
-          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-          #   shells: "bash"
+          - os: "macos-13"
+            delocate: delocate
+            plat: macosx_10_10_x86_64
+            vtk_libs: ".dylibs/libvtk*.dylib"
+            vtk_suffix: "/"
+            vtk_prefix: ""
+            sed_i: "sed -i '.bak'"
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=10.10"
+            shells: "bash"
+          - os: "macos-14"
+            delocate: delocate
+            plat: macosx_11_0_arm64
+            vtk_libs: ".dylibs/libvtk*.dylib"
+            vtk_suffix: "/"
+            vtk_prefix: ""
+            sed_i: "sed -i '.bak'"
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
           - os: "ubuntu-20.04"
             delocate: auditwheel patchelf
             plat: manylinux_2_31_x86_64
@@ -59,21 +56,19 @@ jobs:
             vtk_suffix: "/vtk-9.2/"
             vtk_prefix: ""
             sed_i: "sed -i"
-          #  compilers: "-D CMAKE_C_COMPILER=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER=/usr/bin/g++-10"
             compilers: ""
             module: "OCP.*.so"
             env: "DUMMY=0"
             shells: "bash"
-          # - os: "windows-2019"
-          #   delocate: delvewheel
-          #   plat: win_amd64
-          #   vtk_libs: "vtk*.dll"
-          #   vtk_suffix: "/"
-          #   vtk_prefix: "Library/"
-          #   sed_i: "sed -i"
-          #   compilers: ""
-          #   shells: "bash cmd.exe"
-          #   module: "OCP/OCP.*.pyd"
+          - os: "windows-2019"
+            delocate: delvewheel
+            plat: win_amd64
+            vtk_libs: "vtk*.dll"
+            vtk_suffix: "/"
+            vtk_prefix: "Library/"
+            sed_i: "sed -i"
+            shells: "bash cmd.exe"
+            module: "OCP/OCP.*.pyd"
 
     steps:
       - uses: actions/checkout@v4
@@ -105,20 +100,28 @@ jobs:
 
       # Install toolchain if needed
 
+      - name: (Ubuntu) Install dependencies
+        if: runner.os == 'Linux'
+        shell: bash -l {0}
+        run: |
+          # do not use freeimage freetype fontconfig from anaconda. Prevents from manylinux_2_31_x86_64 wheel
+          sudo apt-get install -y mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev \
+                                  libglu1-mesa-dev freeglut3-dev libxcursor-dev \
+                                  libfreeimage-dev libfreetype-dev libfontconfig-dev
+
+      - name: (Mac, Windows) Install dependencies
+        if: runner.os != 'Linux'
+        shell: bash -l {0}
+        run: |
+          micromamba activate build-ocp
+          micromamba install -y fontconfig=2.13.* freetype=2.12.* freeimage=3.18.*
+
       - name: (All) Install VTK ${{ env.VTK }} from pypi
         if: matrix.use-vtk == 'ON'
         shell: bash -l {0}
         run: |
           pip install vtk==${{ env.VTK }}
-
-      - name: (Ubuntu) Install dependencies
-        if: runner.os == 'Linux'
-        shell: bash -l {0}
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev \
-                                  libglu1-mesa-dev freeglut3-dev libxcursor-dev
-
+                
       # ========================================
       #                VTK SDK
       # ========================================
@@ -240,16 +243,12 @@ jobs:
           rm -fr build
 
           # if [[ "$RUNNER_OS" == "Linux" ]]; then
-              # -fabi-version=11: Corresponds to GCC 10.1 and later, which includes CXXABI_1.3.7 needed to link with VTK 9.2.6
-              # -D_GLIBCXX_USE_CXX11_ABI=0: Disables the C++11 ABI features for compatibility
-              # export CXXFLAGS="-fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0"
+              export CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" # Disables the C++11 ABI features for VTK compatibility
           # fi
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             env ${{ matrix.env }} cmake -S . -B build  -G Ninja \
               -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }} \
-              \
-              ${{ matrix.compilers }} \
               \
               -D USE_VTK=ON \
               -D USE_TBB=OFF \
@@ -277,8 +276,6 @@ jobs:
           else
             env ${{ matrix.env }} cmake -S . -B build  -G Ninja \
               -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }} \
-              \
-              ${{ matrix.compilers }} \
               \
               -D USE_VTK=OFF \
               -D USE_TBB=OFF \
@@ -451,7 +448,6 @@ jobs:
           fi
 
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
-              ${{ matrix.compilers }} \
               $VTK_DIR \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())")
@@ -530,17 +526,14 @@ jobs:
             VTK_DIR=""
           fi
 
-          # -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include -fabi-version=11 -D_GLIBCXX_USE_CXX11_ABI=0" \
-
           cmake -B build -S OCP -G Ninja \
-              ${{ matrix.compilers }} \
-              \
-              -D CMAKE_BUILD_TYPE=Release \
+          -D CMAKE_BUILD_TYPE=Release \
               $VTK_DIR \
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_CXX_STANDARD=17 \
               -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include" \
+              -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include -D_GLIBCXX_USE_CXX11_ABI=0" \
               -D CMAKE_MODULE_LINKER_FLAGS="-L $CONDA_PREFIX/lib -L $HOME/opt/local/vtk-9.2.6/lib" \
               -D CMAKE_BUILD_WITH_INSTALL_RPATH=TRUE
 

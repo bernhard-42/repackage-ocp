@@ -5,9 +5,6 @@ dependencies:
   - ninja
   - cmake
   - rapidjson
-  - fontconfig=2.13.*
-  - freetype=2.12.*
-  - freeimage=3.18.*
   - llvmdev=15.0.7
   - clangdev=15.0.7
   - python=3.10
