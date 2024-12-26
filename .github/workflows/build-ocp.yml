@@ -387,7 +387,7 @@ jobs:
           cd OCP
 
           for VTK in vtk novtk; do
-            cp ../pyproject-$VTK.toml pyprojekt.toml
+            cp ../ocp-$VTK.toml ocp.toml
             cp ../CMakeLists-$VTK.txt CMakeLists.txt
 
             if [[ $VTK == "vtk" ]]; then
@@ -432,7 +432,7 @@ jobs:
           micromamba activate build-ocp
 
           for VTK in vtk novtk; do
-            cp ../pyproject-$VTK.toml pyprojekt.toml
+            cp ../ocp-$VTK.toml ocp.toml
             cp ../CMakeLists-$VTK.txt CMakeLists.txt
 
             if [[ $VTK == "vtk" ]]; then
@@ -489,7 +489,7 @@ jobs:
           set pybind11_DIR="%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11"
 
           for %%VTK in (vtk novtk) do (
-            copy ..\pyproject-$VTK.toml pyprojekt.toml
+            copy ..\ocp-$VTK.toml ocp.toml
             copy ..\CMakeLists-$VTK.txt CMakeLists.txt
 
             if %%VTK=="vtk" (
