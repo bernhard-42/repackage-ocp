@@ -386,7 +386,7 @@ jobs:
           micromamba activate build-ocp
           cd OCP
 
-          for VTK in vtk novtk; do
+          for VTK in novtk vtk; do
             cp pyproject-$VTK.toml pyprojekt.toml
             cp CMakeLists-$VTK.txt CMakeLists.txt
 
@@ -431,7 +431,7 @@ jobs:
         run: |
           micromamba activate build-ocp
 
-          for VTK in vtk novtk; do
+          for VTK in novtk vtk; do
             cp pyproject-$VTK.toml pyprojekt.toml
             cp CMakeLists-$VTK.txt CMakeLists.txt
 
@@ -488,7 +488,7 @@ jobs:
 
           set pybind11_DIR="%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11"
 
-          for %%VTK in (vtk novtk) do (
+          for %%VTK in (novtk vtk) do (
             copy pyproject-$VTK.toml pyprojekt.toml
             copy CMakeLists-$VTK.txt CMakeLists.txt
 
