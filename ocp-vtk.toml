@@ -12,7 +12,7 @@ modules = [
 "IVtk",
 "IVtkOCC",
 "IVtkTools",
-"IVtkVTK",
+"IVtkVTK"
 ]
 
 exclude = ["Standard_Handle.hxx","Standard", "Standard_MemoryUtils.hxx",
