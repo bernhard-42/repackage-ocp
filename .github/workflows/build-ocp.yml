@@ -109,7 +109,7 @@ jobs:
           micromamba install -y fontconfig=2.13.* freetype=2.12.* freeimage=3.18.*
 
       - name: (All) Install VTK ${{ env.VTK }} from pypi
-        if: contains("3.10 3.11", matrix.python-version)
+        if: matrix.python-version == "3.10" || matrix.python-version == "3.11"
         shell: bash -l {0}
         run: |
           pip install vtk==${{ env.VTK }}
