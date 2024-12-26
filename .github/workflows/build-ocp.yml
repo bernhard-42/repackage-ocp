@@ -655,6 +655,7 @@ jobs:
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             PKG_NAME="cadquery_ocp"
+            ${{ matrix.sed_i }} '/requires-python/a\dependencies = [ "vtk==9.2.6" ]' pyproject.toml
           else
             PKG_NAME="cadquery_ocp_novtk"
             ${{ matrix.sed_i }} 's/cadquery-ocp/cadquery-ocp-novtk/g' pyproject.toml
@@ -701,6 +702,7 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
           micromamba activate build-ocp
           cd pypi
 
@@ -725,19 +727,20 @@ jobs:
           rm ${PKG_NAME}*.whl
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
-            patchelf --add-rpath '$ORIGIN/../vtk.libs'    ${PKG_NAME}-${{ env.OCCT }}/OCP/OCP.*.so
-            patchelf --add-rpath '$ORIGIN/../vtkmodules'  ${PKG_NAME}-${{ env.OCCT }}/OCP/OCP.*.so
-            patchelf --add-rpath '$ORIGIN/../vtkmodules'  ${PKG_NAME}-${{ env.OCCT }}/${PKG_NAME}.libs/*
+            patchelf --add-rpath '$ORIGIN/../vtk.libs'    ${PKG_NAME}-${{ env.OCCT }}*/OCP/OCP.*.so
+            patchelf --add-rpath '$ORIGIN/../vtkmodules'  ${PKG_NAME}-${{ env.OCCT }}*/OCP/OCP.*.so
+            patchelf --add-rpath '$ORIGIN/../vtkmodules'  ${PKG_NAME}-${{ env.OCCT }}*/${PKG_NAME}.libs/*
           fi
 
-          patchelf --add-rpath '$ORIGIN/../'${PKG_NAME}.libs ${PKG_NAME}-${{ env.OCCT }}/${PKG_NAME}.libs/*
-          python -m wheel pack ${PKG_NAME}-${{ env.OCCT }}
+          patchelf --add-rpath '$ORIGIN/../'${PKG_NAME}.libs ${PKG_NAME}-${{ env.OCCT }}*/${PKG_NAME}.libs/*
+          python -m wheel pack ${PKG_NAME}*
           cd ..
 
       - name: (Mac) Delocate the cadquery_ocp wheel
         if: runner.os == 'macOS'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
           micromamba activate build-ocp
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
@@ -749,10 +752,10 @@ jobs:
           cd pypi/dist
           python -m wheel unpack ${PKG_NAME}*.whl
           rm ${PKG_NAME}*.whl
-          install_name_tool -delete_rpath $(realpath ~/opt/local/occt-${{ env.OCCT }}/lib) ${PKG_NAME}-${{ env.OCCT }}/OCP/OCP.*.so
+          install_name_tool -delete_rpath $(realpath ~/opt/local/occt-${{ env.OCCT }}/lib) ${PKG_NAME}-${{ env.OCCT }}*/OCP/OCP.*.so
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
-            install_name_tool -add_rpath @loader_path/../vtkmodules/.dylibs/ ${PKG_NAME}-${{ env.OCCT }}/OCP/OCP.*.so
+            install_name_tool -add_rpath @loader_path/../vtkmodules/.dylibs/ ${PKG_NAME}-${{ env.OCCT }}*/OCP/OCP.*.so
           fi
 
           python -m wheel pack ${PKG_NAME}*
@@ -769,6 +772,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
           micromamba activate build-ocp
 
           cd pypi/
