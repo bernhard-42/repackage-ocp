@@ -326,7 +326,7 @@ modules = ["Standard",
 "IMeshData",
 "APIHeaderSection"]
 
-exclude = ["Standard_Handle.hxx","Standard", "Standard_MemoryUtils.hxx",
+exclude = ["Standard_Handle.hxx","Standard",
            "math_GaussPoints.hxx","NCollection_Shared.hxx","OSD_WNT.hxx",
            "Geom2dToIGES","BRepGProp_Gauss.hxx","BRepLib_CheckCurveOnSurface.hxx",
            "BVH_Types.hxx","BVH_RadixSorter.hxx","BVH_IndexedBoxSet.hxx",
@@ -340,6 +340,7 @@ exclude = ["Standard_Handle.hxx","Standard", "Standard_MemoryUtils.hxx",
            "BRepMesh_ConeRangeSplitter.hxx","BRepMesh_CylinderRangeSplitter.hxx",
            "BRepMesh_NURBSRangeSplitter.hxx","BRepMesh_SphereRangeSplitter.hxx",
            "BRepMesh_TorusRangeSplitter.hxx","BRepMesh_UVParamRangeSplitter.hxx","OpenGl_GLESExtensions.hxx",
+           "IVtk_IShapePickerAlgo.hxx","ProjLib_HCompProjectedCurve.hxx","ProjLib_HProjectedCurve.hxx",
            "OSD_StreamBuffer.hxx"
            ]
 #           "BVH_Box.hxx","BVH_tools.hxx"
@@ -396,7 +397,6 @@ class Adaptor3d_Surface;
     "operator-=" = ["__isub__"]
     "operator^" = ["__pow__"]
     "operator^=" = ["__ipow__"]
-    "operator()" = ["__call__"]
 
 [Extras]
 
@@ -426,25 +426,8 @@ class Adaptor3d_Surface;
 
         include_header_pre_top = """#include <gp_XYZ.hxx>
 #include <gp_XY.hxx>"""
-        include_header_pre = """const size_t DefaultBlockSize = 24600;
-const size_t THE_DEFAULT_BLOCK_SIZE = DefaultBlockSize;"""
+        include_header_pre = "const size_t DefaultBlockSize = 24600;"
         exclude_classes = ["NCollection","NCollection_ListNode"]
-
-        include_body_template_post="""
-template <typename T>
-void preregister_template_NCollection_Vector(py::object &m, const char *name){
-    preregister_template_NCollection_DynamicArray<T>(m, name);
-};
-
-template <typename T>
-void register_template_NCollection_Vector(py::object &m, const char *name){
-    register_template_NCollection_DynamicArray<T>(m, name);
-};
-        """
-
-        [Modules.NCollection.Templates.NCollection_Array1]
-
-        exclude_constructors = [3]
 
         [Modules.NCollection.parsing_headers]
 
@@ -523,12 +506,6 @@ void register_template_NCollection_Vector(py::object &m, const char *name){
             body = "[]( const uintptr_t addr ){ return reinterpret_cast<TopoDS_Shape*>(addr);}"
             help = "Cast an address to a shape"
             arguments  = ["address"]
-
-        [Modules.TopoDS.Classes.TopoDS_Shape.additional_methods.__hash__]
-
-            body = "[]( const TopoDS_Shape & self ){ return std::hash<TopoDS_Shape>{}(self);}"
-            help = "Get the instance hash"
-            arguments  = []
 
     [Modules.IntPolyh]
 
@@ -656,6 +633,7 @@ void register_template_NCollection_Vector(py::object &m, const char *name){
         [Modules.BOPDS.parsing_headers]
 
             "BOPDS_DataMapOfPaveBlockListOfInteger.hxx" = "#include <BOPDS_PaveBlock.hxx>"
+            "BOPDS_DataMapOfIntegerListOfPaveBlock.hxx" = "#include <TColStd_MapIntegerHasher.hxx>"
 
     [Modules.BRepMesh]
 
@@ -666,8 +644,7 @@ void register_template_NCollection_Vector(py::object &m, const char *name){
         "BRepMesh_ConeRangeSplitter::GetSplitSteps",
         "BRepMesh_Delaun::FreeEdges","BRepMesh_Delaun::ProcessConstraints",
         "BRepMesh_DefaultRangeSplitter::computeTolerance","BRepMesh_DefaultRangeSplitter::computeDelta",
-        "BRepMesh_Delaun::Frontier","BRepMesh_GeomTool::CellsCount", "BRepMesh_EdgeDiscret::operator()",
-        "BRepMesh_FaceChecker::operator()", "BRepMesh_ModelHealer::operator()"]
+        "BRepMesh_Delaun::Frontier","BRepMesh_GeomTool::CellsCount"]
 
     [Modules.TopOpeBRepTool]
 
@@ -875,10 +852,6 @@ struct NSOpenGLContext {};"""
         exclude_classes = ["TDF_LabelNode"]
         exclude_methods = ["TDF_DerivedAttribute::Register", "TDF_Label::FindAttribute"]
 
-        [Modules.TDF.parsing_headers]
-
-            "TDF_LabelIndexedMap.hxx" = "#include <TDF_Label.hxx>"
-
         [Modules.TDF.Classes.TDF_Label.additional_methods.FindAttribute]
 
             body = "[]( TDF_Label & self , const Standard_GUID& anID, TDF_Attribute& anAttribute){ Handle(TDF_Attribute) dummy_attr; auto rv = self.FindAttribute(anID, dummy_attr); anAttribute.Restore(dummy_attr); return rv;}"
@@ -908,7 +881,6 @@ struct NSOpenGLContext {};"""
         [Modules.STEPConstruct.parsing_headers]
 
             "STEPConstruct_PointHasher.hxx" = "#include <gp_Pnt.hxx>"
-            "STEPConstruct_Styles.hxx" = "#include <StepData_StepModel.hxx>"
 
     [Modules.RWStl]
 
@@ -1019,8 +991,7 @@ using PolygonOnTriangulation = ShapePersistent_BRep::PolygonOnTriangulation;
     [Modules.Image]
 
         include_header_pre = """#include <ostream>
-using std::basic_ostream;
-using std::char_traits;"""
+using std::basic_ostream;"""
 
         exclude_methods = ["Image_AlienPixMap::Load", "Image_AlienPixMap::GetPalette"]
 
@@ -1090,7 +1061,6 @@ struct __GLXFBConfigRec {};"""
 
         using std::basic_ostream;
         using std::basic_istream;
-        using std::char_traits;
 
         #include <DE_ConfigurationContext.hxx>
         #include <XCAFDoc_ShapeTool.hxx>"""
@@ -1142,14 +1112,12 @@ struct __GLXFBConfigRec {};"""
     [Modules.IFSelect]
 
         include_header_pre = """#include <istream>
-using std::basic_istream;
-using std::char_traits;"""
+using std::basic_istream;"""
 
     [Modules.XSControl]
 
         include_header_pre = """#include <istream>
-using std::basic_istream;
-using std::char_traits;"""
+using std::basic_istream;"""
 
     [Modules.Message]
 
@@ -1241,6 +1209,29 @@ using rapidjson::BasicOStreamWrapper;"""
         [Modules.Interface.parsing_headers]
 
             "Interface_ValueInterpret.hxx" = "#include <Interface_TypedValue.hxx>"
+
+    [Modules.IVtkVTK]
+
+        include_header_pre = """#include <vtkRenderer.h>
+#include "vtk_pybind.h" """
+
+    [Modules.IVtkTools]
+
+        include_header_pre = """#undef Handle
+#include <vtkRenderer.h>
+#include <vtkActor.h>
+#include <vtkInformationObjectBaseKey.h>"""
+
+        exclude_methods = ["IVtkTools_ShapePicker::Pick","IVtkTools_ShapePicker::pick",
+        "IVtkTools_SubPolyDataFilter::PrintSelf", "IVtkTools_DisplayModeFilter::PrintSelf"]
+
+    [Modules.IVtk]
+
+        exclude_typedefs = ["IVtk_PointIdList"]
+
+    [Modules.IVtkOCC]
+
+        exclude_methods = ["IVtkOCC_ShapePickerAlgo::Pick", "IVtkOCC_ViewerSelector::Pick"]
 
     [Modules.BinLDrivers]
 
@@ -1341,19 +1332,12 @@ using rapidjson::BasicOStreamWrapper;"""
         [Modules.TopoDSToStep.parsing_headers]
 
         "TopoDSToStep_MakeTessellatedItem.hxx" = "class TopoDSToStep_Tool;"
-        "TopoDSToStep_MakeStepWire.hxx" = "#include <StepData_Factors.hxx>"
-        "TopoDSToStep_MakeShellBasedSurfaceModel.hxx" = "#include <StepData_Factors.hxx>"
-        "TopoDSToStep_MakeBrepWithVoids.hxx" = "#include <StepData_Factors.hxx>"
-        "TopoDSToStep_MakeStepVertex.hxx" = "#include <StepData_Factors.hxx>"
-        "TopoDSToStep_MakeGeometricCurveSet.hxx" = "#include <StepData_Factors.hxx>"
-        "TopoDSToStep_MakeFacetedBrepAndBrepWithVoids.hxx" = "#include <StepData_Factors.hxx>"
 
     [Modules.XCAFDoc]
 
         [Modules.XCAFDoc.parsing_headers]
         "XCAFDoc_AssemblyTool.hxx" = "#include <TDF_Label.hxx>"
         "XCAFDoc_AssemblyIterator.hxx" = "#include <TDF_Label.hxx>"
-        "XCAFDoc_AssemblyGraph.hxx" = "#include <TDF_Label.hxx>"
 
     [Modules.DE]
 
@@ -1367,34 +1351,13 @@ using rapidjson::BasicOStreamWrapper;"""
 
         include_header_pre = """
         #include <IFSelect_ReturnStatus.hxx>
-        #include <istream>
         #include <ostream>
-
-        using std::basic_ostream;
-        using std::basic_istream;
-        using std::char_traits;"""
+        using std::basic_ostream;"""
 
     [Modules.IMeshTools]
 
         include_header_pre = """
         #include <IMeshData_Face.hxx>"""
-
-    [Modules.GeomToStep]
-
-         [Modules.GeomToStep.parsing_headers]
-
-         "GeomToStep_MakeHyperbola.hxx" = "#include <StepData_Factors.hxx>"
-
-    [Modules.StepToTopoDS]
-
-        [Modules.StepToTopoDS.parsing_headers]
-
-        "StepToTopoDS_TranslateEdgeLoop.hxx" = "#include <StepData_Factors.hxx>"
-        "StepToTopoDS_TranslateShell.hxx" = "#include <StepData_Factors.hxx>"
-        "StepToTopoDS_TranslateSolid.hxx" = "#include <StepData_Factors.hxx>"
-        "StepToTopoDS_TranslateCurveBoundedSurface.hxx" = "#include <StepData_Factors.hxx>"
-        "StepToTopoDS_TranslateCompositeCurve.hxx" = "#include <StepData_Factors.hxx>"
-        "StepToTopoDS_Builder.hxx" = "#include <StepData_Factors.hxx>"
 
     [Modules.APIHeaderSection]
 

@@ -5,7 +5,6 @@ set( N_PROC 2 CACHE STRING "Number of processes used for generating code")
 
 
 find_package( LLVM REQUIRED )
-
 find_package( RapidJSON REQUIRED )
 find_package( Clang REQUIRED )
 
@@ -59,6 +58,7 @@ if( NOT EXISTS ${CMAKE_SOURCE_DIR}/OCP )
             -n ${N_PROC}
             -l ${LIBCLANG_PATH}
             -i ${CLANG_INCLUDE_DIRS}/
+            -i ${VTK_INCLUDE_DIR}/
             -i ${CLANG_INSTALL_PREFIX}/lib/clang/${LLVM_VERSION}/include/
             ${CXX_INCLUDES}
             all ocp.toml ${PLATFORM}

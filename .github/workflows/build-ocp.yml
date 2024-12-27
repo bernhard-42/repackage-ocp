@@ -388,12 +388,12 @@ jobs:
 
           for VTK in vtk novtk; do
             cp ../ocp-$VTK.toml ocp.toml
-            cp ../CMakeLists-$VTK.txt CMakeLists.txt
-
+            
             if [[ $VTK == "vtk" ]]; then
               VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
             else
               VTK_DIR=""
+              cp ../CMakeLists-novtk.txt CMakeLists.txt
             fi
 
             cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
@@ -401,7 +401,9 @@ jobs:
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())")
 
-            cp ../CMakeLists-$VTK.txt OCP/CMakeLists.txt
+            if [[ $VTK == "novtk"]]; then
+              cp ../CMakeLists-novtk-2.txt OCP/CMakeLists.txt
+            fi
 
             cmake -B build -S OCP -G Ninja \
               -D CMAKE_BUILD_TYPE=Release \
@@ -423,6 +425,7 @@ jobs:
             ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
             mv build/OCP.cpython-311-x86_64-linux-gnu.so OCP-$VTK.cpython-311-x86_64-linux-gnu.so 
+            rm -fr new build OCP
           done
 
       - name: (Mac) Build OCP
@@ -449,7 +452,7 @@ jobs:
                 -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
                 -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
-            cp ../CMakeLists-$VTK.txt OCP/CMakeLists.txt
+            cp ../CMakeLists-$VTK.txt OCP/CMakeLists.txt # todo
 
             env ${{ matrix.env }} cmake -B build -S OCP -G Ninja \
                 -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ \
@@ -471,7 +474,7 @@ jobs:
             ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
             
             mv build/OCP.cpython-311-darwin.so OCP-$VTK.cpython-311-darwin.so
-
+            rm -fr new build OCP
           done
 
       - name: (Windows) Build OCP
