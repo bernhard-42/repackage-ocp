@@ -386,7 +386,10 @@ jobs:
           micromamba activate build-ocp
           cd OCP
 
-          for VTK in vtk novtk; do     
+          for VTK in vtk novtk; do    
+            cp ocp.toml ocp.toml.bak
+            cp CMakelists.txt CMakelists.txt.bak
+            
             echo "Step $VTK:"       
             if [[ $VTK == "vtk" ]]; then
               VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
@@ -431,6 +434,8 @@ jobs:
 
             mv build/OCP.cpython-311-x86_64-linux-gnu.so OCP-$VTK.cpython-311-x86_64-linux-gnu.so 
             rm -fr new build OCP
+            cp ocp.toml.bak ocp.toml
+            cp CMakelists.txt.bak CMakelists.txt
           done
 
       - name: (Mac) Build OCP
