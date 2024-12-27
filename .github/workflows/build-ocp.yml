@@ -401,7 +401,7 @@ jobs:
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())")
 
-            if [[ $VTK == "novtk"]]; then
+            if [[ $VTK == "novtk" ]]; then
               cp ../CMakeLists-novtk-2.txt OCP/CMakeLists.txt
             fi
 
