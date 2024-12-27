@@ -1,4 +1,4 @@
-.PHONY: clean
+.PHONY: clean Build
 
 clean:
 	rm -fr ./OCCT ./OCP ./build123d ./cadquery
@@ -18,4 +18,8 @@ clean:
 	micromamba env list
 	PATH=$(echo $PATH | tr ':' '\n' | grep -v /opt/homebrew/opt/llvm@15/bin | paste -s -d':' -)
 	
-	
+Build:
+	python get-config.py
+	sed 's/$${{/{{/g' .github/workflows/build-ocp.yml > /tmp/b.sh
+	mustache conf.json /tmp/b.sh > Build.sh
+
