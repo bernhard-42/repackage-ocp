@@ -390,9 +390,11 @@ jobs:
             echo "Step $VTK:"       
             if [[ $VTK == "vtk" ]]; then
               VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
+              echo "Patching ocp.toml for vtk only"
+              patch -p1 < ../patches/vtk.patch
             else
               VTK_DIR=""
-              echo "Patching CMakefile and ocp.toml"
+              echo "Patching CMakefile and ocp.toml for novtk"
               patch -p1 < ../patches/no-vtk.patch
             fi
 
