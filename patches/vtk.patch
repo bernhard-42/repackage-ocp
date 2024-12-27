@@ -7,7 +7,7 @@ index 4a41c132..035afcde 100644
  template_path = "./templates"
  
 -additional_files = ["pystreambuf.h","vtk_pybind.h"]
-+additional_files = ["pystreambuf.h"]
++additional_files = ["pystreambuf.h","vtk_pybind.h"]
  
  pats = ["{}_*.hxx","{}.hxx"]
  
