@@ -21,3 +21,5 @@ include = ["*", "cadquery_ocp*", "OCP"]
 "cadquery_ocp" = ["../*.so", "../*.pyd", "*.txt", "LICENSE"]
 "OCP" = ["*.so", "*.pyd",  "*.dll", "*.dylib"]
 
+[project.optional-dependencies]
+vtk = [ "vtk==9.2.6" ]

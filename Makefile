@@ -20,6 +20,6 @@ clean:
 	
 Build:
 	python get-config.py
-	sed 's/$${{/{{/g' .github/workflows/build-ocp.yml > /tmp/b.sh
-	mustache conf.json /tmp/b.sh > Build.sh
+	sed 's/$${{ \([^}]*\) }}/{{{ \1 }}}/g' .github/workflows/build-ocp.yml > /tmp/b.sh
+	mustache conf.json /tmp/b.sh > Build2.sh
 

@@ -390,15 +390,17 @@ jobs:
             cp ocp.toml ocp.toml.bak
             cp CMakeLists.txt CMakeLists.txt.bak
             
-            echo "Step $VTK:"       
+            echo "======== Step $VTK: ========"       
             if [[ $VTK == "vtk" ]]; then
               VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
               echo "Patching ocp.toml for vtk only"
               patch -p1 < ../patches/vtk.patch
+              sed -i 's/name = "OCP"/name = "OCP_vtk"/' ocp.toml
             else
               VTK_DIR=""
               echo "Patching CMakefile and ocp.toml for novtk"
               patch -p1 < ../patches/no-vtk.patch
+              sed -i 's/name = "OCP"/name = "OCP_novtk"/' ocp.toml
             fi
 
             cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
@@ -408,7 +410,7 @@ jobs:
 
             if [[ $VTK == "novtk" ]]; then
               cd OCP
-              echo "Patching CMakefile and ocp.toml"
+              echo "Patching CMakefile"
               patch -p1 < ../../patches/no-vtk-2.patch
               cd ..
             fi
@@ -421,18 +423,20 @@ jobs:
               -D CMAKE_CXX_STANDARD=17 \
               -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include" \
               -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include -D_GLIBCXX_USE_CXX11_ABI=0" \
-              -D CMAKE_MODULE_LINKER_FLAGS="-L $CONDA_PREFIX/lib -L $HOME/opt/local/vtk-9.2.6/lib" \
+              -D CMAKE_MODULE_LINKER_FLAGS="-L $CONDA_PREFIX/lib -L $HOME/opt/local/vtk-${{ env.VTK }}/lib" \
               -D CMAKE_BUILD_WITH_INSTALL_RPATH=TRUE
 
-            if [[ $VTK == "vtk" ]]; then
-              for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
-                  ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
-              done
-            fi
+            for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
+              if [[ $VTK == "vtk" ]]; then
+                sed -i "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
+              else
+                sed -i "s/-l$l//" build/build.ninja
+              fi
+            done
 
             ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
-            mv build/OCP.cpython-311-x86_64-linux-gnu.so OCP-$VTK.cpython-311-x86_64-linux-gnu.so 
+            mv build/OCP*.so . 
             rm -fr new build OCP
             cp ocp.toml.bak ocp.toml
             cp CMakeLists.txt.bak CMakeLists.txt
@@ -535,7 +539,7 @@ jobs:
 
             ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
-            mv build/OCP/OCP*.pyd OCP-$VTK.pyd  # TODO
+            mv build/OCP/OCP*.pyd OCP_$VTK.pyd  # TODO
           )
 
       - name: (All) Cache OCP module
@@ -558,17 +562,9 @@ jobs:
           pip install build wheel ${{ matrix.delocate }}
 
           cd pypi
-          cp ../OCP/build/${{ matrix.module }} .
+          cp ../OCP/${{ matrix.module }} .
 
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
-            PKG_NAME="cadquery_ocp"
-            ${{ matrix.sed_i }} '/requires-python/a\dependencies = [ "vtk==9.2.6" ]' pyproject.toml
-          else
-            PKG_NAME="cadquery_ocp_novtk"
-            ${{ matrix.sed_i }} 's/cadquery-ocp/cadquery-ocp-novtk/g' pyproject.toml
-            ${{ matrix.sed_i }} 's/cadquery_ocp/cadquery_ocp_novtk/g' pyproject.toml
-          fi
-
+          PKG_NAME="cadquery_ocp"
 
           mkdir $PKG_NAME
           cd $PKG_NAME

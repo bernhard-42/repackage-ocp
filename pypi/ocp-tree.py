@@ -17,7 +17,8 @@ if platform.system() == 'Windows':
         os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / vtk / "bin")
 
 
-import OCP
+import OCP_novtk
+import OCP_vtk
 
 def traverse(module, p, depth=0):
     prefix = "  " * depth
@@ -27,12 +28,21 @@ def traverse(module, p, depth=0):
         if inspect.ismodule(obj) and obj.__name__.startswith(module.__name__):
             Path.mkdir(p / name, exist_ok=True)
             p2 = Path(p / name)
-            with open(p2 / "__init__.py", "w") as f:
-                f.write(f"from ..{obj.__name__} import *\n")
+            if name.startswith("IVtk"):
+                with open(p2 / "__init__.py", "w") as f:
+                    f.write("try:\n")
+                    f.write("  import vtk\n")
+                    f.write("  from ..{obj.__name__} import *\n")
+                    f.write("except:\n")
+                    f.write("  print('VTK not installed')\n")
+            else:
+                with open(p2 / "__init__.py", "w") as f:
+                    f.write(f"from ..{obj.__name__} import *\n")
             traverse(obj, p2, depth + 1)
 
 
 Path.mkdir(Path.cwd() / "OCP", exist_ok=True)
 p = Path.cwd() / "OCP"
 shutil.copy("__init__.py", Path.cwd() / "OCP")
-traverse(OCP, p)
+traverse(OCP_novtk, p)
+traverse(OCP_vtk, p)
