@@ -8,6 +8,7 @@ env:
   VTK_MAJOR: 9.3
   OCCT: 7.8.1
   OCCT_: 7_8_1
+  PY313VTK_RUNID: 12550588784
 
 jobs:
   build:
@@ -17,9 +18,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
+        # os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
+        os: ["ubuntu-20.04", "macos-14"]
         # python-version: ["3.10", "3.11", "3.12", "3.13"]
-        python-version: ["3.11"]
+        python-version: ["3.11", "3.13"]
         use-vtk: ["OFF", "ON"]
 
         exclude:
@@ -116,12 +118,27 @@ jobs:
           micromamba activate build-ocp
           micromamba install -y fontconfig=2.13.* freetype=2.12.* freeimage=3.18.*
 
+      - name: Download wheel artifact
+        if: matrix.python-version == '3.13' && matrix.use-vtk == 'ON'
+        uses: actions/download-artifact@v4
+        with:
+          name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
+          github-token: ${{ secrets.GH_PAT }}
+          run-id: ${{ env.PY313VTK_RUNID }}
+                
       - name: (All) Install VTK ${{ env.VTK }} from pypi
         if: matrix.use-vtk == 'ON'
         shell: bash -l {0}
         run: |
-          pip install vtk==${{ env.VTK }}
-                
+          if [[ ${{ matrix.python-version }} == "3.13" ]]; then
+            # For Python 3.13, we need to install the VTK from the cadquery_vtk package
+            # pip install cadquery_vtk==${{ env.VTK }}
+            pip install cadquery_vtk*.whl
+          else
+            # For other Python versions up to Python 3.12, we can install the VTK from the vtk package
+            pip install vtk==${{ env.VTK }}
+          fi
+
       # ========================================
       #                VTK SDK
       # ========================================
@@ -217,12 +234,26 @@ jobs:
           cd OCCT
           git checkout -b V${{ env.OCCT_ }} tags/V${{ env.OCCT_ }}
 
-          patch -p1 < ../patches/occt-${{ env.OCCT }}/blobfish.patch
-          rm ./src/BRepFill/BRepFill_CompatibleWires.cxx.orig
-          rm ./src/ChFi3d/ChFi3d_Builder_1.cxx.orig
-          rm ./src/GeomFill/GeomFill_SectionPlacement.cxx.orig
-          rm ./src/ShapeUpgrade/ShapeUpgrade_UnifySameDomain.cxx.orig
-
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0001-cmake-Don-t-try-to-write-to-install-directory.-You-k.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0002-GeomPlate_BuildAveragePlane-BasePlan-Don-t-set-yvect.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0003-BRepFill_Filling-WireFromList-We-can-t-assume-that-a.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0004-BRepFill_Filling-Curve-constraints-confused-by-impli.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0005-BRepFill_Filling-Don-t-even-attempt-to-build-with-em.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0006-BRepOffset_Tool-TryProject-Check-return-of-BRepLib-B.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0007-ChFi3d_Builder-ChFi3d_ComputeCurves-set-tolreached-f.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0008-BRepLib-MakeEdge-Setting-closed-flag-of-generated-ed.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0009-BRepFill_CompatibleWires-segfault.-See-following.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0010-BRepFill_OffsetWire-segfault.-See-following.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0011-ChFiDS_FilSpine-Allow-usage-of-externally-assigned-l.patch
+          # disabled due to abi incompatibility
+          # patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches//0012-Allow-blending-of-faces-less-than-5-degrees.-See-fol.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0013-BRepFill_PipeShell-Fix-segfault-with-line-as-profile.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0015-build-Expand-preprocessor-conditional-on-non-standar.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0016-IntPatch_Intersection-Consider-intersection-of-a-clo.patch
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0017-ChFi3d_Builder-Fix-blend-across-seam.-See-following.patch
+          # see https://tracker.dev.opencascade.org/view.php?id=33576 and https://github.com/FreeCAD/FreeCAD/issues/9760
+          patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/patches/0018-Fix-0033576-BRepTools_NurbsConvertModification-NewPo.patch
+                  
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             echo vtkCommonTransforms >> src/TKIVtk/EXTERNLIB
             echo vtkCommonMath >> src/TKIVtk/EXTERNLIB
@@ -413,13 +444,17 @@ jobs:
         run: |
           git clone https://github.com/cadquery/OCP.git
           cd OCP
-          # git checkout -b V${{ env.OCP }} tags/${{ env.OCP }}
+          if [[ $env.OCP == "7.7.2.1" ]]; then
+            git checkout -b V${{ env.OCP }} tags/${{ env.OCP }}
+          # else
+          # use master for the time being
+          fi
           git submodule update --init
 
-          # Support pandas 2
-          cd pywrap
-          patch -p1 < ../../patches/pandas.patch
-          cd ..
+          # Support pandas 2 - covered in OCP 7.8.1
+          # cd pywrap
+          # patch -p1 < ../../patches/pandas.patch
+          # cd ..
 
           # Patch VTK out of OCP
           if [[ "${{ matrix.use-vtk }}" == "OFF" ]]; then
