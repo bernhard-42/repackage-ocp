@@ -21,12 +21,16 @@ jobs:
         include:
           - os: "macos-13"
             sed_i: "sed -i '.bak'"
+            shells: "bash"
           - os: "macos-14"
             sed_i: "sed -i '.bak'"
+            shells: "bash"
           - os: "ubuntu-20.04"
             sed_i: "sed -i"
+            shells: "bash"
           - os: "windows-2019"
             sed_i: "sed -i"
+            shells: "bash cmd.exe"
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -52,12 +56,14 @@ jobs:
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-name: build-vtk
+          init-shell: ${{ matrix.shells }}
           create-args: >-
             python=${{ matrix.python-version }}
 
       - name: Setup Python Env
+        shell: bash -l {0}
         run: |
-          python -V
+          micromamba activate build-vtk
           python -m pip install --upgrade pip
           python -m pip install --upgrade wheel build setuptools
           python -m pip freeze
@@ -77,7 +83,6 @@ jobs:
         if: ${{ runner.os == 'macOS' }}
         run: |
           brew install ninja
-          micromamba info
 
       - name: (All) Restore VTK SDK cache
         id: cache-wheel-restore
@@ -105,7 +110,9 @@ jobs:
       - name: Build Linux Wheel from Scratch
         shell: bash -l {0}
         if: runner.os == 'Linux'
-        run: |          
+        run: |
+          micromamba activate build-vtk
+
           cd VTK-${{ env.VTK }}/build
           cmake -GNinja \
                 -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
@@ -120,6 +127,8 @@ jobs:
         shell: bash -l {0}
         if: runner.os == 'macOS'
         run: |
+          micromamba activate build-vtk
+
           cd VTK-${{ env.VTK }}/build
           env "MACOSX_DEPLOYMENT_TARGET=11.1" cmake -GNinja \
                 -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
@@ -134,6 +143,8 @@ jobs:
         shell: cmd
         if: runner.os == 'Windows'
         run: |
+          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-vtk 
+
           cd VTK-${{ env.VTK }}\build          
           cmake -GNinja \
                 -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
@@ -147,6 +158,8 @@ jobs:
       - name: Build wheel
         shell: bash -l {0}
         run: |
+          micromamba activate build-vtk
+
           cd VTK-${{ env.VTK }}/build
           ${{ matrix.sed_i }} "s/dist_name = 'vtk'/dist_name = 'cadquery_vtk'/" dist\*.whl
           python -m build -n -w
@@ -161,7 +174,9 @@ jobs:
       - name: Test wheel
         shell: bash -l {0}
         run: |
-          python -V
+          micromamba create -n test python=${{ matrix.python-version }} -y
+          micromamba activate build-vtk
+
           pip install VTK-*/build/dist/*.whl
           python -c "import vtk;print('vtk imported successfully')"
 
