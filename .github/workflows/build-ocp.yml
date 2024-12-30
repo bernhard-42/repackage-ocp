@@ -24,11 +24,11 @@ jobs:
         python-version: ["3.11", "3.13"]
         use-vtk: ["OFF", "ON"]
 
-        exclude:
-          - use-vtk: ON
-            python-version: 3.12
-          - use-vtk: ON
-            python-version: 3.13
+        # exclude:
+        #   - use-vtk: ON
+        #     python-version: 3.12
+        #   - use-vtk: ON
+        #     python-version: 3.13
 
         include:
           - os: "macos-13"
