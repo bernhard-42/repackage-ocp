@@ -99,10 +99,10 @@ jobs:
           patch -p1 < ../patches/vtk-${{ env.VTK }}/11486.patch
 
           if [[ $RUNNER_OS == "Windows" ]]; then
-            patch -p1 < ../patches/vtk-${{ env.VTK }}/11486_windows.patch
+            patch -p1 < ../patches/vtk-${{ env.VTK }}/fix-threads-windows.patch
           fi
 
-      - name: Build Linux Wheel from Scratch
+      - name: Build Linux python libraries from Scratch
         shell: bash -l {0}
         if: runner.os == 'Linux'
         run: |
@@ -118,7 +118,7 @@ jobs:
 
           ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
 
-      - name: Build macOS Wheel from Scratch
+      - name: Build macOS python libraries from Scratch
         shell: bash -l {0}
         if: runner.os == 'macOS'
         run: |
@@ -134,13 +134,13 @@ jobs:
 
           ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
 
-      - name: Build Windows Wheel from Scratch
+      - name: Build Windows python libraries from Scratch
         shell: cmd
         if: runner.os == 'Windows'
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-vtk 
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          
+
           cd VTK-${{ env.VTK }}\build          
           cmake -GNinja \
                 -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
