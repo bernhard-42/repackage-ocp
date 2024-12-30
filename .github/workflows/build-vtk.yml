@@ -70,9 +70,9 @@ jobs:
           python -m pip install --upgrade wheel build setuptools
           python -m pip freeze
           
-      - name: Setup Windows build environment (MSVC)
-        if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+      # - name: Setup Windows build environment (MSVC)
+      #   if: runner.os == 'Windows'
+      #   uses: ilammy/msvc-dev-cmd@v1
         
       - name: Ubuntu Deps
         shell: bash -l {0}
@@ -85,13 +85,6 @@ jobs:
         if: ${{ runner.os == 'macOS' }}
         run: |
           brew install ninja
-
-      - name: (All) Restore VTK SDK cache
-        id: cache-wheel-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: ~/VTK-*/build/dist/*.whl
-          key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: Load VTK sources
         shell: bash -l {0}
@@ -146,7 +139,8 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-vtk 
-
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          
           cd VTK-${{ env.VTK }}\build          
           cmake -GNinja \
                 -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
@@ -165,13 +159,6 @@ jobs:
           cd VTK-${{ env.VTK }}/build
           ${{ matrix.sed_i }} "s/dist_name = 'vtk'/dist_name = 'cadquery_vtk'/" dist\*.whl
           python -m build -n -w
-
-      - name: (All) Cache VTK build folder
-        id: cache-wheel-save
-        uses: actions/cache/save@v4
-        with:
-          path: ~/VTK-*/build/dist/*.whl
-          key: ${{ steps.cache-wheel-restore.outputs.cache-primary-key }}
 
       - name: Test wheel
         shell: bash -l {0}
