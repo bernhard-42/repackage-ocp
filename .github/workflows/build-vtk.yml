@@ -100,11 +100,11 @@ jobs:
           cd VTK-${{ env.VTK }}
           mkdir build
 
-          patch -p1 < ../patches/9987_try_except_python_import.patch
-          patch -p1 < ../patches/11486.patch
+          patch -p1 < ../patches/vtk-$${{ env.VTK }}/9987_try_except_python_import.patch
+          patch -p1 < ../patches/vtk-$${{ env.VTK }}/11486.patch
 
           if [[ $RUNNER_OS == "Windows" ]]; then
-            patch -p1 < ../patches/11486_windows.patch
+            patch -p1 < ../patches/vtk-$${{ env.VTK }}/11486_windows.patch
           fi
 
       - name: Build Linux Wheel from Scratch
