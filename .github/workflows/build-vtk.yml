@@ -18,7 +18,15 @@ jobs:
       matrix:
         os: [ 'ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019' ]
         python-version: [ '3.13' ]
-
+        include:
+          - os: "macos-13"
+            sed_i: "sed -i '.bak'"
+          - os: "macos-14"
+            sed_i: "sed -i '.bak'"
+          - os: "ubuntu-20.04"
+            sed_i: "sed -i"
+          - os: "windows-2019"
+            sed_i: "sed -i"
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -40,43 +48,30 @@ jobs:
 
           echo "=> Using $cpu_count CPUs"
 
-      - uses: actions/setup-python@v5
-        if: ${{ runner.os != 'macOS' }} # setup-python is currently very broken for macos-14 and possibly 13 too
-        with:
-          python-version: ${{ matrix.python-version }}
-          
-      - name: Setup Micromamba on MacOS
-        if: ${{ runner.os == 'macOS' }} # setup-python is currently very broken for macos-14 and possibly 13 too
+      - name: Setup Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-name: build-vtk # required by micromamba
+          environment-name: build-vtk
           create-args: >-
             python=${{ matrix.python-version }}
 
       - name: Setup Python Env
-        # shell: bash -l {0}
-        # The `bdist_wheel` command requires the `wheel` package
         run: |
           python -V
           python -m pip install --upgrade pip
-          python -m pip install --upgrade wheel
+          python -m pip install --upgrade wheel build setuptools
           python -m pip freeze
           
       - name: Setup Windows build environment (MSVC)
-        if: ${{ runner.os == 'Windows' }}
+        if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
         
       - name: Ubuntu Deps
         shell: bash -l {0}
-        if: ${{ runner.os == 'Linux' }}
+        if: runner.os == 'Linux'
         run: |
           sudo apt install -y build-essential cmake mesa-common-dev mesa-utils freeglut3-dev python3-dev python3-venv git-core ninja-build cmake wget libglvnd0 libglvnd-dev
       
-      # - name: MacOS-13 Deps 
-      #   shell: bash -l {0}
-      #   if: ${{ matrix.os != 'macos-11' }}
-      #   run: |
-
       - name: MacOS Deps # 13 and 14
         shell: bash -l {0}
         if: ${{ runner.os == 'macOS' }}
@@ -84,112 +79,94 @@ jobs:
           brew install ninja
           micromamba info
 
-      # - name: Windows Deps
-      #   shell: bash -l {0} #cmd?
-      #   if: ${{ matrix.os != 'windows-2019' }}
-      #   run: |
+      - name: (All) Restore VTK SDK cache
+        id: cache-wheel-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/VTK-*/build/dist/*.whl
+          key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
+
+      - name: Load VTK sources
+        shell: bash -l {0}
+        run: |
+          curl -L -O https://vtk.org/files/release/${{ env.VTK_MAJOR }}/VTK-${{ env.VTK }}.tar.gz
+          tar -zxf VTK-${{ env.VTK }}.tar.gz
+          
+          cd VTK-${{ env.VTK }}
+          mkdir build
+
+          patch -p1 < ../patches/9987_try_except_python_import.patch
+          patch -p1 < ../patches/11486.patch
+
+          if [[ $RUNNER_OS == "Windows" ]]; then
+            patch -p1 < ../patches/11486_windows.patch
+          fi
 
       - name: Build Linux Wheel from Scratch
         shell: bash -l {0}
-        if: ${{ runner.os == 'Linux' }}
-        run: |
-          python -V
-          pip install --upgrade setuptools
-          mkdir -p ./vtk/build
-          curl -L -O https://vtk.org/files/release/${{ env.VTK_MAJOR }}/VTK-${{ env.VTK }}.tar.gz  # Update this for newer releases of VTK
-          tar -zxf VTK-${{ env.VTK }}.tar.gz --directory ./vtk/
-          cd ./vtk/build
-          cmake -GNinja -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON -DCMAKE_BUILD_TYPE=Release ../VTK-${{ env.VTK }}
+        if: runner.os == 'Linux'
+        run: |          
+          cd VTK-${{ env.VTK }}/build
+          cmake -GNinja \
+                -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DVTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
+                -DCMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
+                ..\VTK-${{ env.VTK }}
+
           ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
-          python setup.py bdist_wheel
-          cd ../../
-          find ./ -iname *.whl
 
       - name: Build macOS Wheel from Scratch
         shell: bash -l {0}
-        if: ${{ runner.os == 'macOS' }}
+        if: runner.os == 'macOS'
         run: |
-          micromamba info
-          python -V
-          pip install --upgrade setuptools
-          mkdir -p ./vtk/build
-          curl -L -O https://vtk.org/files/release/${{ env.VTK_MAJOR }}/VTK-${{ env.VTK }}.tar.gz  # Update this for newer releases of VTK
-          tar -zxf VTK-${{ env.VTK }}.tar.gz --directory ./vtk/
-          cd ./vtk/build
-          cmake -GNinja -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON -DCMAKE_BUILD_TYPE=Release ../VTK-${{ env.VTK }}
+          cd VTK-${{ env.VTK }}/build
+          env "MACOSX_DEPLOYMENT_TARGET=11.1" cmake -GNinja \
+                -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DVTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
+                -DCMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
+                ..\VTK-${{ env.VTK }}
+
           ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
-          python setup.py bdist_wheel
-          cd ../../
-          find ./ -iname *.whl
 
       - name: Build Windows Wheel from Scratch
         shell: cmd
-        if: ${{ runner.os == 'Windows' }}
+        if: runner.os == 'Windows'
         run: |
-          python -V
-          cl
-          pip install --upgrade setuptools
-          mkdir vtk\build
-          curl -L -O https://vtk.org/files/release/${{ env.VTK_MAJOR }}/VTK-${{ env.VTK }}.tar.gz
-          tar -zxf VTK-${{ env.VTK }}.tar.gz --directory vtk\
-          cd vtk\build
-          cmake -GNinja -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON -DCMAKE_BUILD_TYPE=Release ..\VTK-${{ env.VTK }}
+          cd VTK-${{ env.VTK }}\build          
+          cmake -GNinja \
+                -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DVTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
+                -DCMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
+                ..\VTK-${{ env.VTK }}
+
           ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
-          python setup.py bdist_wheel
-          cd ..\..\
-          dir /s
 
-      - name: Prepare Python version string
-        shell: bash -l {0}
-        run: echo "PYTHON_VERSION_NO_DOTS=$(echo ${{ matrix.python-version }} | tr -d '.')" >> $GITHUB_ENV
-
-      - name: Rename MacOS ARM64 wheel
-        shell: bash -l {0}
-        if: ${{ matrix.os == 'macos-14' }}
-        run: |
-          echo "WHEEL_OS_VERSION=macosx_11_0_arm64" >> $GITHUB_ENV
-
-      - name: Rename MacOS AMD64 wheel
-        shell: bash -l {0}
-        if: ${{ matrix.os == 'macos-13' }}
-        run: |
-          echo "WHEEL_OS_VERSION=macosx_10_13_x86_64" >> $GITHUB_ENV
-
-      - name: Rename Linux AMD64 wheel
-        shell: bash -l {0}
-        if: ${{ matrix.os == 'ubuntu-20.04' }}
-        run: |
-          echo "WHEEL_OS_VERSION=linux_x86_64" >> $GITHUB_ENV
-
-      - name: Rename Windows AMD64 wheel
-        shell: bash -l {0}
-        if: ${{ matrix.os == 'windows-2019' }}
-        run: |
-          echo "WHEEL_OS_VERSION=win_amd64" >> $GITHUB_ENV
-
-      - name: Edit wheel
+      - name: Build wheel
         shell: bash -l {0}
         run: |
-          wheel_file=$(ls vtk/build/dist/*.whl | xargs -n 1 basename)  # Get the wheel file name from an ls of the dist directory
-          echo $wheel_file
-          mkdir ./wheel_build/  # Make a separate build directory
-          unzip vtk/build/dist/${wheel_file} -d ./wheel_build/  # Extract the wheel file
-          sed -i'' -e 's/Name:.*$/Name: cadquery_vtk/' ./wheel_build/*.dist-info/METADATA  # Change the name in the METADATA file
-          sed -i'' -e 's/Version:.${{ env.VTK }}.dev0$/Version: ${{ env.VTK }}/' ./wheel_build/*.dist-info/METADATA  # Remove the .dev0 from the version in the METADATA file
-          mv ./wheel_build/*.dist-info ./wheel_build/cadquery_vtk-${{ env.VTK }}.dist-info  # Rename the dist-info file to the new name
-          wheel pack ./wheel_build/;  # Create a new wheel file with the new name by prepending "cadquery_" to the name
-          rm ./vtk/build/dist/*.whl  # Remove the old wheel file
-          mv *.whl ./vtk/build/dist/  # Move the new wheel file to the dist directory
+          cd VTK-${{ env.VTK }}/build
+          ${{ matrix.sed_i }} "s/dist_name = 'vtk'/dist_name = 'cadquery_vtk'/" dist\*.whl
+          python -m build -n -w
+
+      - name: (All) Cache VTK build folder
+        id: cache-wheel-save
+        uses: actions/cache/save@v4
+        with:
+          path: ~/VTK-*/build/dist/*.whl
+          key: ${{ steps.cache-wheel-restore.outputs.cache-primary-key }}
 
       - name: Test wheel
         shell: bash -l {0}
         run: |
           python -V
-          pip install vtk/build/dist/*.whl
+          pip install VTK-*/build/dist/*.whl
           python -c "import vtk;print('vtk imported successfully')"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
-          path: vtk/build/dist/*.whl
+          path: VTK*/build/dist/*.whl
