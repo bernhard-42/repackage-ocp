@@ -16,19 +16,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [ 'ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019' ]
-        os: [ 'windows-2019' ]
+        os: [ 'ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019' ]
         python-version: [ '3.13' ]
         include:
-          # - os: "macos-13"
-          #   sed_i: "sed -i '.bak'"
-          #   shells: "bash"
-          # - os: "macos-14"
-          #   sed_i: "sed -i '.bak'"
-          #   shells: "bash"
-          # - os: "ubuntu-20.04"
-          #   sed_i: "sed -i"
-          #   shells: "bash"
+          - os: "macos-13"
+            sed_i: "sed -i '.bak'"
+            shells: "bash"
+          - os: "macos-14"
+            sed_i: "sed -i '.bak'"
+            shells: "bash"
+          - os: "ubuntu-20.04"
+            sed_i: "sed -i"
+            shells: "bash"
           - os: "windows-2019"
             sed_i: "sed -i"
             shells: "bash cmd.exe"
@@ -69,11 +68,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade wheel build setuptools
           python -m pip freeze
-          
-      # - name: Setup Windows build environment (MSVC)
-      #   if: runner.os == 'Windows'
-      #   uses: ilammy/msvc-dev-cmd@v1
-        
+
       - name: Ubuntu Deps
         shell: bash -l {0}
         if: runner.os == 'Linux'
@@ -167,10 +162,10 @@ jobs:
           micromamba activate build-vtk
 
           pip install VTK-*/build/dist/*.whl
-          python -c "import vtk;print('vtk imported successfully')"
+          python -c "import vtk;print('vtk imported successfully', vtk.__version__)"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
-          path: VTK*/build/dist/*.whl
+          path: VTK${{ env.VTK }}/build/dist/*.whl
