@@ -109,11 +109,11 @@ jobs:
           micromamba activate build-vtk
 
           cd VTK-${{ env.VTK }}/build
-          cmake -GNinja \
-                -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DVTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
-                -DCMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
+          cmake -G Ninja \
+                -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
+                -D CMAKE_BUILD_TYPE=Release \
+                -D VTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
+                -D CMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
                 ..
 
           ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
@@ -125,11 +125,11 @@ jobs:
           micromamba activate build-vtk
 
           cd VTK-${{ env.VTK }}/build
-          env "MACOSX_DEPLOYMENT_TARGET=11.1" cmake -GNinja \
-                -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DVTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
-                -DCMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
+          env "MACOSX_DEPLOYMENT_TARGET=11.1" cmake -G Ninja \
+                -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
+                -D CMAKE_BUILD_TYPE=Release \
+                -D VTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
+                -D CMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
                 ..
 
           ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
@@ -142,11 +142,11 @@ jobs:
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
 
           cd VTK-${{ env.VTK }}\build          
-          cmake -GNinja \
-                -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DVTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
-                -DCMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
+          cmake -G Ninja ^
+                -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON ^
+                -D CMAKE_BUILD_TYPE=Release ^
+                -D VTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" ^
+                -D CMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW ^
                 ..
 
           ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
