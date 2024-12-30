@@ -91,6 +91,7 @@ jobs:
           key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: Load VTK sources
+        if: steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           curl -L -O https://vtk.org/files/release/${{ env.VTK_MAJOR }}/VTK-${{ env.VTK }}.tar.gz
@@ -108,7 +109,7 @@ jobs:
 
       - name: Build Linux python libraries from Scratch
         shell: bash -l {0}
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         run: |
           micromamba activate build-vtk
 
@@ -124,7 +125,7 @@ jobs:
 
       - name: Build macOS python libraries from Scratch
         shell: bash -l {0}
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         run: |
           micromamba activate build-vtk
 
@@ -140,7 +141,7 @@ jobs:
 
       - name: Build Windows python libraries from Scratch
         shell: cmd
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-vtk 
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
