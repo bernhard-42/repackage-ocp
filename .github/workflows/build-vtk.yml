@@ -16,18 +16,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019' ]
+        # os: [ 'ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019' ]
+        os: [ 'windows-2019' ]
         python-version: [ '3.13' ]
         include:
-          - os: "macos-13"
-            sed_i: "sed -i '.bak'"
-            shells: "bash"
-          - os: "macos-14"
-            sed_i: "sed -i '.bak'"
-            shells: "bash"
-          - os: "ubuntu-20.04"
-            sed_i: "sed -i"
-            shells: "bash"
+          # - os: "macos-13"
+          #   sed_i: "sed -i '.bak'"
+          #   shells: "bash"
+          # - os: "macos-14"
+          #   sed_i: "sed -i '.bak'"
+          #   shells: "bash"
+          # - os: "ubuntu-20.04"
+          #   sed_i: "sed -i"
+          #   shells: "bash"
           - os: "windows-2019"
             sed_i: "sed -i"
             shells: "bash cmd.exe"
@@ -156,6 +157,12 @@ jobs:
 
           python -m build -n -w
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
+          path: VTK-${{ env.VTK }}/build/dist/*.whl
+
       - name: Test wheel
         shell: bash -l {0}
         run: |
@@ -165,8 +172,3 @@ jobs:
           pip install VTK-${{ env.VTK }}/build/dist/*.whl
           python -c "import vtk;print('vtk imported successfully', vtk.__version__)"
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
-          path: VTK-${{ env.VTK }}/build/dist/*.whl
