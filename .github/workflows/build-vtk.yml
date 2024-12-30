@@ -6,6 +6,7 @@ on:
 env:
   PYTHONUTF8: 1
   VTK: 9.3.1
+  VTK_MAJOR: 9.3
 
 jobs:
   build:
@@ -95,7 +96,7 @@ jobs:
           python -V
           pip install --upgrade setuptools
           mkdir -p ./vtk/build
-          curl -L -O https://vtk.org/files/release/9.2/VTK-${{ env.VTK }}.tar.gz  # Update this for newer releases of VTK
+          curl -L -O https://vtk.org/files/release/${{ env.VTK_MAJOR }}/VTK-${{ env.VTK }}.tar.gz  # Update this for newer releases of VTK
           tar -zxf VTK-${{ env.VTK }}.tar.gz --directory ./vtk/
           cd ./vtk/build
           cmake -GNinja -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON -DCMAKE_BUILD_TYPE=Release ../VTK-${{ env.VTK }}
