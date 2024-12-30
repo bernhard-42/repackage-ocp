@@ -23,6 +23,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
+          github-token: ${{ secrets.GH_PAT }}
           run-id: 12550588784
 
       - name: Install wheel
