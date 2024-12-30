@@ -5,6 +5,7 @@ on:
 
 env:
   PYTHONUTF8: 1
+  VTK: ${{ env.VTK }}
 
 jobs:
   build:
@@ -19,6 +20,23 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
+
+      - name: Get number of CPUs
+        shell: bash -l {0}
+        id: cpu-count
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            cpu_count=$(sysctl -n hw.logicalcpu)
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            cpu_count=$(nproc)
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            cpu_count=$NUMBER_OF_PROCESSORS
+          else
+            cpu_count=1
+          fi
+          echo "cpu_count=$cpu_count" >> $GITHUB_OUTPUT
+
+          echo "=> Using $cpu_count CPUs"
 
       - uses: actions/setup-python@v5
         if: ${{ runner.os != 'macOS' }} # setup-python is currently very broken for macos-14 and possibly 13 too
@@ -76,11 +94,11 @@ jobs:
           python -V
           pip install --upgrade setuptools
           mkdir -p ./vtk/build
-          curl -L -O https://vtk.org/files/release/9.2/VTK-9.2.6.tar.gz  # Update this for newer releases of VTK
-          tar -zxf VTK-9.2.6.tar.gz --directory ./vtk/
+          curl -L -O https://vtk.org/files/release/9.2/VTK-${{ env.VTK }}.tar.gz  # Update this for newer releases of VTK
+          tar -zxf VTK-${{ env.VTK }}.tar.gz --directory ./vtk/
           cd ./vtk/build
-          cmake -GNinja -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON -DCMAKE_BUILD_TYPE=Release ../VTK-9.2.6
-          ninja
+          cmake -GNinja -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON -DCMAKE_BUILD_TYPE=Release ../VTK-${{ env.VTK }}
+          ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
           python setup.py bdist_wheel
           cd ../../
           find ./ -iname *.whl
@@ -93,11 +111,11 @@ jobs:
           python -V
           pip install --upgrade setuptools
           mkdir -p ./vtk/build
-          curl -L -O https://vtk.org/files/release/9.2/VTK-9.2.6.tar.gz  # Update this for newer releases of VTK
-          tar -zxf VTK-9.2.6.tar.gz --directory ./vtk/
+          curl -L -O https://vtk.org/files/release/9.2/VTK-${{ env.VTK }}.tar.gz  # Update this for newer releases of VTK
+          tar -zxf VTK-${{ env.VTK }}.tar.gz --directory ./vtk/
           cd ./vtk/build
-          cmake -GNinja -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON -DCMAKE_BUILD_TYPE=Release ../VTK-9.2.6
-          ninja
+          cmake -GNinja -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON -DCMAKE_BUILD_TYPE=Release ../VTK-${{ env.VTK }}
+          ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
           python setup.py bdist_wheel
           cd ../../
           find ./ -iname *.whl
@@ -110,11 +128,11 @@ jobs:
           cl
           pip install --upgrade setuptools
           mkdir vtk\build
-          curl -L -O https://vtk.org/files/release/9.2/VTK-9.2.6.tar.gz
-          tar -zxf VTK-9.2.6.tar.gz --directory vtk\
+          curl -L -O https://vtk.org/files/release/9.2/VTK-${{ env.VTK }}.tar.gz
+          tar -zxf VTK-${{ env.VTK }}.tar.gz --directory vtk\
           cd vtk\build
-          cmake -GNinja -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON -DCMAKE_BUILD_TYPE=Release ..\VTK-9.2.6
-          ninja
+          cmake -GNinja -DVTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON -DCMAKE_BUILD_TYPE=Release ..\VTK-${{ env.VTK }}
+          ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
           python setup.py bdist_wheel
           cd ..\..\
           dir /s
@@ -155,8 +173,8 @@ jobs:
           mkdir ./wheel_build/  # Make a separate build directory
           unzip vtk/build/dist/${wheel_file} -d ./wheel_build/  # Extract the wheel file
           sed -i'' -e 's/Name:.*$/Name: cadquery_vtk/' ./wheel_build/*.dist-info/METADATA  # Change the name in the METADATA file
-          sed -i'' -e 's/Version:.9.2.6.dev0$/Version: 9.2.6/' ./wheel_build/*.dist-info/METADATA  # Remove the .dev0 from the version in the METADATA file
-          mv ./wheel_build/*.dist-info ./wheel_build/cadquery_vtk-9.2.6.dist-info  # Rename the dist-info file to the new name
+          sed -i'' -e 's/Version:.${{ env.VTK }}.dev0$/Version: ${{ env.VTK }}/' ./wheel_build/*.dist-info/METADATA  # Remove the .dev0 from the version in the METADATA file
+          mv ./wheel_build/*.dist-info ./wheel_build/cadquery_vtk-${{ env.VTK }}.dist-info  # Rename the dist-info file to the new name
           wheel pack ./wheel_build/;  # Create a new wheel file with the new name by prepending "cadquery_" to the name
           rm ./vtk/build/dist/*.whl  # Remove the old wheel file
           mv *.whl ./vtk/build/dist/  # Move the new wheel file to the dist directory
