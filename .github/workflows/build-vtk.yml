@@ -155,8 +155,12 @@ jobs:
           cd VTK-${{ env.VTK }}/build
           ${{ matrix.sed_i }} "s/dist_name = 'vtk'/dist_name = 'cadquery_vtk'/" setup.py
 
-          python -m build -n -w
-
+          if [[ $RUNNER_OS == "Windows" ]]; then
+            python setup.py bdist_wheel
+          else
+            python -m build -n -w
+          fi
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
