@@ -152,7 +152,8 @@ jobs:
           micromamba activate build-vtk
 
           cd VTK-${{ env.VTK }}/build
-          ${{ matrix.sed_i }} "s/dist_name = 'vtk'/dist_name = 'cadquery_vtk'/" dist\*.whl
+          ${{ matrix.sed_i }} "s/dist_name = 'vtk'/dist_name = 'cadquery_vtk'/" setup.py
+          
           python -m build -n -w
 
       - name: Test wheel
