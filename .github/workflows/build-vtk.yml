@@ -153,7 +153,7 @@ jobs:
 
           cd VTK-${{ env.VTK }}/build
           ${{ matrix.sed_i }} "s/dist_name = 'vtk'/dist_name = 'cadquery_vtk'/" setup.py
-          
+
           python -m build -n -w
 
       - name: Test wheel
@@ -162,11 +162,11 @@ jobs:
           micromamba create -n test python=${{ matrix.python-version }} -y
           micromamba activate build-vtk
 
-          pip install VTK-*/build/dist/*.whl
+          pip install VTK-${{ env.VTK }}/build/dist/*.whl
           python -c "import vtk;print('vtk imported successfully', vtk.__version__)"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
-          path: VTK${{ env.VTK }}/build/dist/*.whl
+          path: VTK-${{ env.VTK }}/build/dist/*.whl
