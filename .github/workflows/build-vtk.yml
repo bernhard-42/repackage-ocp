@@ -120,7 +120,7 @@ jobs:
                 -DCMAKE_BUILD_TYPE=Release \
                 -DVTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
                 -DCMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
-                ..\VTK-${{ env.VTK }}
+                ..
 
           ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
 
@@ -136,7 +136,7 @@ jobs:
                 -DCMAKE_BUILD_TYPE=Release \
                 -DVTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
                 -DCMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
-                ..\VTK-${{ env.VTK }}
+                ..
 
           ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
 
@@ -152,7 +152,7 @@ jobs:
                 -DCMAKE_BUILD_TYPE=Release \
                 -DVTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
                 -DCMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
-                ..\VTK-${{ env.VTK }}
+                ..
 
           ninja -j ${{ steps.cpu-count.outputs.cpu_count }}
 
