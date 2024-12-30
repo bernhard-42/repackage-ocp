@@ -172,7 +172,7 @@ jobs:
           cd VTK-${{ env.VTK }}/build
           ${{ matrix.sed_i }} "s/dist_name = 'vtk'/dist_name = 'cadquery_vtk'/" setup.py
           if [[ $RUNNER_OS == "Windows" ]]; then
-            ${{ matrix.sed_i }} "s/'\*\.pyd',/'*.pyd','*.dll,'/" setup.py
+            ${{ matrix.sed_i }} "s/'\*\.pyd',/'*.pyd','*.dll',/" setup.py
           fi
           cat setup.py
           python -m build -n -w
