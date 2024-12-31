@@ -16,19 +16,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [ 'ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019' ]
-        os: [ 'windows-2019' ]
+        os: [ 'ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019' ]
         python-version: [ '3.13' ]
         include:
-          # - os: "macos-13"
-          #   sed_i: "sed -i '.bak'"
-          #   shells: "bash"
-          # - os: "macos-14"
-          #   sed_i: "sed -i '.bak'"
-          #   shells: "bash"
-          # - os: "ubuntu-20.04"
-          #   sed_i: "sed -i"
-          #   shells: "bash"
+          - os: "macos-13"
+            sed_i: "sed -i '.bak'"
+            shells: "bash"
+          - os: "macos-14"
+            sed_i: "sed -i '.bak'"
+            shells: "bash"
+          - os: "ubuntu-20.04"
+            sed_i: "sed -i"
+            shells: "bash"
           - os: "windows-2019"
             sed_i: "sed -i"
             shells: "bash cmd.exe"
