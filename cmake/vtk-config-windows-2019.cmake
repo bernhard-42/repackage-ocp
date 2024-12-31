@@ -15,11 +15,11 @@ else()
   set(HOME_DIR "$ENV{HOME}")
 endif()
 
-set(VTK_INCLUDE_DIRS "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/include/vtk-9.2")
+set(VTK_INCLUDE_DIRS "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/include/vtk-${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 set(VTK_LIBRARY_DIRS "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/lib")
 set(VTK_DLL_DIRS "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/bin")
 
-set(VTK_INCLUDE_DIR "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/include/vtk-9.2")
+set(VTK_INCLUDE_DIR "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/include/vtk-${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 set(VTK_LIBRARY_DIR "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/lib")
 set(VTK_DLL_DIR "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/bin")
 
