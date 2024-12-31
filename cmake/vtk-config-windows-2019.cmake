@@ -29,7 +29,7 @@ set(PYTHON_VERSION "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 
 # Define the components
 set(VTK_MODULES_ENABLED
- ommonCore
+    CommonCore
     WebCore
     CommonMath
     CommonTransforms
