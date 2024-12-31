@@ -460,7 +460,7 @@ jobs:
           
           git clone https://github.com/cadquery/OCP.git
           cd OCP
-          if [[ $env.OCP == "7.7.2.1" ]]; then
+          if [[ ${{ env.OCP }} == "7.7.2.1" ]]; then
             git checkout -b V${{ env.OCP }} tags/${{ env.OCP }}
           # else
           # use master for the time being
