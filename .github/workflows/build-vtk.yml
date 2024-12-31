@@ -192,7 +192,7 @@ jobs:
           pip install delvewheel
 
           cd VTK-${{ env.VTK }}/build
-          PATH=~/opt/local/vtk-${{ env.VTK }}/bin/:$PATH delvewheel repair --wheel-dir wheel dist/*.whl
+          PATH=$(pwd)/bin/:$PATH delvewheel repair --wheel-dir wheel dist/*.whl
           rm dist/*.whl
           mv wheel/*.whl dist/
           
