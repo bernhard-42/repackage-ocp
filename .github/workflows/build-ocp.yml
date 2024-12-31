@@ -55,7 +55,7 @@ jobs:
             delocate: auditwheel patchelf
             plat: manylinux_2_31_x86_64
             vtk_libs: "libvtk*.so"
-            vtk_suffix: "/vtk-9.2/"
+            vtk_suffix: "/vtk-9.3/"
             vtk_prefix: ""
             sed_i: "sed -i"
             compilers: ""
@@ -328,12 +328,12 @@ jobs:
 
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             echo VTK symbols  
-            strings ~/opt/local/vtk-9.2.6/lib/libvtk*.so | egrep LIBC_ | grep -v @ | sort | uniq
-            strings ~/opt/local/vtk-9.2.6/lib/libvtk*.so | egrep LIBCXX_ | grep -v @ | sort | uniq
+            strings ~/opt/local/vtk-${{ env.VTK }}/lib/libvtk*.so | egrep LIBC_ | grep -v @ | sort | uniq
+            strings ~/opt/local/vtk-${{ env.VTK }}/lib/libvtk*.so | egrep LIBCXX_ | grep -v @ | sort | uniq
 
             echo OCCT symbols
-            strings build/lin64/gcc/lib/*.so.7.7.2 | egrep LIBC_ | grep -v @ | sort | uniq
-            strings build/lin64/gcc/lib/*.so.7.7.2 | egrep LIBCXX_ | grep -v @ | sort | uniq
+            strings build/lin64/gcc/lib/*.so.${{ env.OCCT }} | egrep LIBC_ | grep -v @ | sort | uniq
+            strings build/lin64/gcc/lib/*.so.${{ env.OCCT }} | egrep LIBCXX_ | grep -v @ | sort | uniq
           fi
 
       - name: (Windows) Compile and install OCCT SDK
@@ -569,7 +569,7 @@ jobs:
               -D CMAKE_CXX_STANDARD=17 \
               -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include" \
               -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include -D_GLIBCXX_USE_CXX11_ABI=0" \
-              -D CMAKE_MODULE_LINKER_FLAGS="-L $CONDA_PREFIX/lib -L $HOME/opt/local/vtk-9.2.6/lib" \
+              -D CMAKE_MODULE_LINKER_FLAGS="-L $CONDA_PREFIX/lib -L $HOME/opt/local/vtk-${{ env.VTK }}/lib" \
               -D CMAKE_BUILD_WITH_INSTALL_RPATH=TRUE
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
@@ -815,7 +815,7 @@ jobs:
             PKG_NAME="cadquery_ocp_novtk"
           fi
 
-          PATH=~/opt/local/occt-7.7.2/win64/vc14/bin/:$PATH delvewheel repair $EXCLUDE --wheel-dir wheel --namespace-pkg ${PKG_NAME} dist/*.whl
+          PATH=~/opt/local/occt-${{ env.OCCT }}/win64/vc14/bin/:$PATH delvewheel repair $EXCLUDE --wheel-dir wheel --namespace-pkg ${PKG_NAME} dist/*.whl
 
       - name: Upload cadquery_ocp wheel
         if: matrix.use-vtk == 'ON'
