@@ -712,6 +712,11 @@ jobs:
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             PKG_NAME="cadquery_ocp"
+            if [[ ${{ matrix.python-version }} == 3.13 ]]; then
+              ${{ matrix.sed_i }} '/requires-python/a\dependencies = [ "cadquery_vtk==${{ env.VTK }}" ]' pyproject.toml
+            else
+              ${{ matrix.sed_i }} '/requires-python/a\dependencies = [ "vtk==${{ env.VTK }}" ]' pyproject.toml
+            fi
           else
             PKG_NAME="cadquery_ocp_novtk"
             ${{ matrix.sed_i }} 's/cadquery-ocp/cadquery-ocp-novtk/g' pyproject.toml
@@ -889,7 +894,11 @@ jobs:
           
           micromamba activate test
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
-            pip install vtk==${{ env.VTK }}
+            if [[ ${{ matrix.python-version }} == 3.13 ]]; then
+              pip install cadquery_vtk==${{ env.VTK }}
+            else
+              pip install vtk==${{ env.VTK }}
+            fi
           fi
           pip install pypi/wheel/*.whl
 
