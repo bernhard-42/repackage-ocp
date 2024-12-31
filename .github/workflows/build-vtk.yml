@@ -94,6 +94,8 @@ jobs:
         if: steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           curl -L -O https://vtk.org/files/release/${{ env.VTK_MAJOR }}/VTK-${{ env.VTK }}.tar.gz
           tar -zxf VTK-${{ env.VTK }}.tar.gz
           
@@ -111,6 +113,8 @@ jobs:
         shell: bash -l {0}
         if: runner.os == 'Linux' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         run: |
+          set -euo pipefail
+          
           micromamba activate build-vtk
 
           cd VTK-${{ env.VTK }}/build
@@ -127,6 +131,8 @@ jobs:
         shell: bash -l {0}
         if: runner.os == 'macOS' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         run: |
+          set -euo pipefail
+          
           micromamba activate build-vtk
 
           cd VTK-${{ env.VTK }}/build
@@ -167,6 +173,8 @@ jobs:
       - name: Build wheel
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate build-vtk
 
           cd VTK-${{ env.VTK }}/build
@@ -176,6 +184,20 @@ jobs:
           fi
           cat setup.py
           python -m build -n -w
+
+      - name: Build wheel 
+        if: runner.os == 'Windows'
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+          
+          micromamba activate build-vtk          
+          pip install delvewheel
+
+          cd VTK-${{ env.VTK }}/build
+          PATH=~/opt/local/vtk-${{ env.VTK }}/bin/:$PATH delvewheel repair --wheel-dir wheel --namespace-pkg ${PKG_NAME} dist/*.whl
+          rm dist/*.whl
+          mv wheel/*.whl dist/
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -186,6 +208,8 @@ jobs:
       - name: Test wheel
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba create -n test python=${{ matrix.python-version }} -y
           micromamba activate build-vtk
 

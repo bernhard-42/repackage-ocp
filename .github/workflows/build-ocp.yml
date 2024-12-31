@@ -156,6 +156,8 @@ jobs:
         if: matrix.use-vtk == 'ON' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+
           # Create an environment with conda VTK to get the include files
           micromamba create -y -n vtk python=${{ matrix.python-version }}
           micromamba activate vtk
@@ -175,6 +177,8 @@ jobs:
         if: matrix.use-vtk == 'ON' && runner.os != 'Windows' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+
           micromamba activate build-ocp
 
           cp $CONDA_PREFIX/lib/python${{ matrix.python-version }}/site-packages/vtkmodules/${{ matrix.vtk_libs }} ~/opt/local/vtk-${{ env.VTK }}/lib/
@@ -190,6 +194,8 @@ jobs:
         if: matrix.use-vtk == 'ON' && runner.os  == 'Windows'  && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+
           micromamba activate build-ocp
 
           PATH='/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/':$PATH
@@ -230,6 +236,8 @@ jobs:
         if: steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+
           git clone https://github.com/Open-Cascade-SAS/OCCT.git
           cd OCCT
           git checkout -b V${{ env.OCCT_ }} tags/V${{ env.OCCT_ }}
@@ -268,6 +276,8 @@ jobs:
         if: runner.os  != 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate build-ocp
           cd OCCT
 
@@ -419,6 +429,8 @@ jobs:
         if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           curl -L -O https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz
           sudo tar -xf MacOSX11.3.sdk.tar.xz -C /opt
           sudo mkdir -p /opt/usr/local/
@@ -430,6 +442,8 @@ jobs:
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate build-ocp
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             micromamba install -y logzero toml pandas joblib tqdm jinja2 toposort schema click py-lief=0.15.1 python-clang pyparsing
@@ -442,6 +456,8 @@ jobs:
         if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           git clone https://github.com/cadquery/OCP.git
           cd OCP
           if [[ $env.OCP == "7.7.2.1" ]]; then
@@ -473,6 +489,8 @@ jobs:
         if: runner.os == 'Linux' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate build-ocp
           cd OCP
 
@@ -491,6 +509,8 @@ jobs:
         if: runner.os == 'macOS' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate build-ocp
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
@@ -548,6 +568,8 @@ jobs:
         if: runner.os == 'Linux' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate build-ocp
 
           cd OCP
@@ -590,6 +612,8 @@ jobs:
         if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate build-ocp
 
           cd OCP
@@ -682,6 +706,8 @@ jobs:
       - name: (All) Create the cadquery_ocp wheel
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate build-ocp
           pip install build wheel ${{ matrix.delocate }}
 
@@ -736,6 +762,8 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate build-ocp
           cd pypi
 
@@ -773,6 +801,8 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate build-ocp
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
@@ -804,6 +834,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate build-ocp
 
           cd pypi/
@@ -848,6 +880,8 @@ jobs:
       - name: Create the test environment
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba create -y -n test python=${{ matrix.python-version }}
           micromamba activate test
           pip install pytest docutils ipython
@@ -855,6 +889,8 @@ jobs:
       - name: Install VTK and OCP wheel
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate test
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             pip install vtk==${{ env.VTK }}
@@ -866,6 +902,8 @@ jobs:
       - name: Run build123d tests
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           git clone https://github.com/gumyr/build123d.git
           
           micromamba activate test
@@ -893,6 +931,8 @@ jobs:
         if: matrix.use-vtk == 'ON' && matrix.python-version != '3.13'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           git clone https://github.com/cadquery/cadquery.git
           cd cadquery
           micromamba activate test
@@ -918,6 +958,8 @@ jobs:
         if: matrix.python-version != '3.13'
         shell: bash -l {0}
         run: |
+          set -euo pipefail
+          
           micromamba activate test
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
              pip uninstall -y cadquery_ocp
