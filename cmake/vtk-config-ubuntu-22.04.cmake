@@ -2,8 +2,8 @@
 
 # Set VTK version
 set(VTK_MAJOR_VERSION 9)
-set(VTK_MINOR_VERSION 2)
-set(VTK_BUILD_VERSION 6)
+set(VTK_MINOR_VERSION 3)
+set(VTK_BUILD_VERSION 1)
 
 # Set full VTK version
 set(VTK_VERSION "${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.${VTK_BUILD_VERSION}")
@@ -24,83 +24,95 @@ set(PYTHON_VERSION "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 
 # Define the components
 set(VTK_MODULES_ENABLED
-    WrappingTools
-    WebPython
+    CommonCore
     WebCore
-    Python
-    vtksys
+    CommonMath
+    CommonTransforms
+    CommonDataModel
+    CommonExecutionModel
+    IOCore
+    ImagingCore
+    IOImage
+    IOXMLParser
+    IOXML
+    CommonMisc
+    FiltersCore
+    RenderingCore
+    RenderingContext2D
+    RenderingFreeType
+    RenderingSceneGraph
+    RenderingVtkJS
+    IOExport
     WebGLExporter
-    ViewsInfovis
-    CommonColor
-    ViewsContext2D
-    loguru
-    TestingRendering
-    TestingCore
-    RenderingQt
-    PythonContext2D
+    CommonComputationalGeometry
+    CommonSystem
+    IOLegacy
+    DomainsChemistry
+    FiltersSources
+    FiltersGeneral
+    RenderingHyperTreeGrid
+    RenderingUI
+    RenderingOpenGL2
+    RenderingContextOpenGL2
+    RenderingVolume
+    ImagingMath
     RenderingVolumeOpenGL2
-    glew
-    opengl
+    InteractionWidgets
+    ViewsCore
+    ViewsContext2D
+    TestingRendering
+    InteractionStyle
+    ViewsInfovis
+    RenderingVolumeAMR
+    PythonContext2D
+    RenderingParallel
+    RenderingVR
     RenderingMatplotlib
-    PythonInterpreter
     RenderingLabel
-    octree
     RenderingLOD
     RenderingLICOpenGL2
     RenderingImage
-    RenderingContextOpenGL2
+    RenderingExternal
+    FiltersCellGrid
+    RenderingCellGrid
     IOXdmf2
-    libxml2
-    xdmf2
-    hdf5
     IOVeraOut
+    IOVPIC
     IOTecplotTable
-    utf8
+    IOTRUCHAS
     IOSegY
-    IOXdmf3
-    xdmf3
     IOParallelXML
-    IOPLY
-    IOOggTheora
-    theora
-    ogg
-    IONetCDF
-    netcdf
-    libproj
-    IOMotionFX
-    pegtl
-    IOParallel
-    jsoncpp
-    IOMINC
     IOLSDyna
-    IOInfovis
-    zlib
-    IOImport
-    IOIOSS
-    fmt
-    ioss
-    cgns
-    exodusII
-    IOFFMPEG
-    IOVideo
-    IOMovie
-    IOExportPDF
-    libharu
-    IOExportGL2PS
-    RenderingGL2PSOpenGL2
-    gl2ps
-    png
-    IOExport
-    RenderingVtkJS
-    nlohmannjson
-    RenderingSceneGraph
+    IOParallelLSDyna
     IOExodus
+    IOParallelExodus
+    IOPLY
+    IOPIO
+    IOMovie
+    IOOggTheora
+    IOOMF
+    IONetCDF
+    IOMotionFX
+    IOGeometry
+    IOParallel
+    IOMINC
+    IOInfovis
+    IOImport
+    ParallelCore
+    IOIOSS
+    IOH5part
+    IOH5Rage
+    IOGeoJSON
+    IOFLUENTCFF
+    IOVideo
+    IOExportPDF
+    RenderingGL2PSOpenGL2
+    IOExportGL2PS
     IOEnSight
     IOCityGML
-    pugixml
     IOChemistry
     IOCesium3DTiles
-    IOGeometry
+    IOCellGrid
     IOCONVERGECFD
     IOHDF
     IOCGNSReader
@@ -109,90 +121,50 @@ set(VTK_MODULES_ENABLED
     InteractionImage
     ImagingStencil
     ImagingStatistics
+    ImagingGeneral
+    ImagingOpenGL2
     ImagingMorphological
-    ImagingMath
     ImagingFourier
     IOSQL
-    sqlite
-    GUISupportQt
+    CommonColor
+    ImagingSources
+    InfovisCore
     GeovisCore
     InfovisLayout
-    ViewsCore
-    InteractionWidgets
-    RenderingVolume
     RenderingAnnotation
     ImagingHybrid
     ImagingColor
-    InteractionStyle
     FiltersTopology
+    FiltersTensor
     FiltersSelection
     FiltersSMP
+    FiltersReduction
     FiltersPython
     FiltersProgrammable
+    FiltersModeling
     FiltersPoints
-    FiltersVerdict
-    verdict
+    FiltersStatistics
+    FiltersParallelStatistics
+    FiltersImaging
+    FiltersExtraction
+    FiltersGeometry
+    FiltersHybrid
+    FiltersHyperTree
+    FiltersTexture
+    FiltersParallel
     FiltersParallelImaging
     FiltersParallelDIY2
-    FiltersImaging
-    ImagingGeneral
+    FiltersGeometryPreview
     FiltersGeneric
     FiltersFlowPaths
-    eigen
     FiltersAMR
-    FiltersParallel
-    FiltersTexture
-    FiltersModeling
     DomainsChemistryOpenGL2
-    RenderingOpenGL2
-    RenderingHyperTreeGrid
-    RenderingUI
-    FiltersHyperTree
-    FiltersHybrid
-    DomainsChemistry
     CommonPython
-    WrappingPythonCore
     ChartsCore
-    InfovisCore
-    FiltersExtraction
-    ParallelDIY
-    diy2
-    IOXML
-    IOXMLParser
-    expat
-    ParallelCore
-    IOLegacy
-    IOCore
-    doubleconversion
-    lz4
-    lzma
-    FiltersStatistics
-    ImagingSources
-    IOImage
-    DICOMParser
-    jpeg
-    metaio
-    tiff
-    RenderingContext2D
-    RenderingFreeType
-    freetype
-    kwiml
-    RenderingCore
-    FiltersSources
-    ImagingCore
-    FiltersGeometry
-    FiltersGeneral
-    CommonComputationalGeometry
-    FiltersCore
-    CommonExecutionModel
-    CommonDataModel
-    CommonSystem
-    CommonMisc
-    exprtk
-    CommonTransforms
-    CommonMath
-    kissfft
-    CommonCore
+    AcceleratorsVTKmCore
+    AcceleratorsVTKmDataModel
+    AcceleratorsVTKmFilters
+    FiltersVerdict
 )
 
 # Create imported targets for each module
