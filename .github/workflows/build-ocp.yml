@@ -32,37 +32,37 @@ jobs:
         #     python-version: 3.13
 
         include:
-          - os: "macos-13"
-            delocate: delocate
-            plat: macosx_11_1_x86_64
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
-            sed_i: "sed -i '.bak'"
-            module: "OCP.*.so"
-            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-            shells: "bash"
-          - os: "macos-14"
-            delocate: delocate
-            plat: macosx_11_1_arm64
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
-            sed_i: "sed -i '.bak'"
-            module: "OCP.*.so"
-            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-            shells: "bash"
-          - os: "ubuntu-20.04"
-            delocate: auditwheel patchelf
-            plat: manylinux_2_31_x86_64
-            vtk_libs: "libvtk*.so"
-            vtk_suffix: "/vtk-9.3/"
-            vtk_prefix: ""
-            sed_i: "sed -i"
-            compilers: ""
-            module: "OCP.*.so"
-            env: "DUMMY=0"
-            shells: "bash"
+          # - os: "macos-13"
+          #   delocate: delocate
+          #   plat: macosx_11_1_x86_64
+          #   vtk_libs: ".dylibs/libvtk*.dylib"
+          #   vtk_suffix: "/"
+          #   vtk_prefix: ""
+          #   sed_i: "sed -i '.bak'"
+          #   module: "OCP.*.so"
+          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+          #   shells: "bash"
+          # - os: "macos-14"
+          #   delocate: delocate
+          #   plat: macosx_11_1_arm64
+          #   vtk_libs: ".dylibs/libvtk*.dylib"
+          #   vtk_suffix: "/"
+          #   vtk_prefix: ""
+          #   sed_i: "sed -i '.bak'"
+          #   module: "OCP.*.so"
+          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+          #   shells: "bash"
+          # - os: "ubuntu-20.04"
+          #   delocate: auditwheel patchelf
+          #   plat: manylinux_2_31_x86_64
+          #   vtk_libs: "libvtk*.so"
+          #   vtk_suffix: "/vtk-9.3/"
+          #   vtk_prefix: ""
+          #   sed_i: "sed -i"
+          #   compilers: ""
+          #   module: "OCP.*.so"
+          #   env: "DUMMY=0"
+          #   shells: "bash"
           - os: "windows-2019"
             delocate: delvewheel
             plat: win_amd64
