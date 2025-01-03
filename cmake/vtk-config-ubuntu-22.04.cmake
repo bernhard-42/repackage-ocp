@@ -227,7 +227,7 @@ set(VTK_MODULES_ENABLED
     vpic
     WebCore
     WebGLExporter
-    WrappingPythonCore3.11
+    WrappingPythonCore
     WrappingTools
     xdmf2
     zfp
