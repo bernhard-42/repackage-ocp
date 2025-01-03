@@ -245,11 +245,13 @@ foreach(module ${VTK_MODULES_ENABLED})
         add_library(VTK::${module} SHARED IMPORTED)
         if(${module} STREQUAL "WrappingPythonCore")
             file(GLOB_RECURSE VTK_DLL "${VTK_DLL_DIRS}/vtk${module}${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.dll")
-            file(GLOB_RECURSE VTK_LIB "${VTK_DLL_DIRS}/vtk${module}${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.lib")        
+            file(GLOB_RECURSE VTK_LIB "${VTK_LIBRARY_DIRS}/vtk${module}${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.lib")        
         else()
             file(GLOB_RECURSE VTK_DLL "${VTK_DLL_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.dll")
-            file(GLOB_RECURSE VTK_LIB "${VTK_DLL_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.lib")        
+            file(GLOB_RECURSE VTK_LIB "${VTK_LIBRARY_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.lib")        
         endif()
+        message(STATUS "VTK::${module} DLL: ${VTK_DLL}")
+        message(STATUS "VTK::${module} LIB: ${VTK_LIB}")
         set_target_properties(VTK::${module} PROPERTIES
             IMPORTED_LOCATION "${VTK_DLL}"
             IMPORTED_IMPLIB "${VTK_LIB}"
