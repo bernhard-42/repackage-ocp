@@ -935,13 +935,14 @@ jobs:
             cd ocpsvg-0.3.3
             ${{ matrix.sed_i }} 's/"cadquery-ocp >= 7.7.0",//' pyproject.toml
             pip install .
+            cd ..
             
-            cd ../build123d
-
-            patch -p1 < ../patches/build123d.patch
+            cd build123d
+            patch -p1 < ../patches/build123d-novtk.patch
             pip install .
           else
             cd build123d
+            patch -p1 < ../patches/build123d-vtk.patch
             pip install .
           fi
 
@@ -955,8 +956,9 @@ jobs:
           
           git clone https://github.com/cadquery/cadquery.git
           cd cadquery
-          micromamba activate test
+          patch -p1 < ../patches/cadquery.patch
 
+          micromamba activate test
           pip install multimethod
 
           # workaround for nlopt 2.9.0 not available for Intel Mac

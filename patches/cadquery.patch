@@ -1,0 +1,13 @@
+diff --git a/cadquery/occ_impl/shapes.py b/cadquery/occ_impl/shapes.py
+index cedc480..dfa75bd 100644
+--- a/cadquery/occ_impl/shapes.py
++++ b/cadquery/occ_impl/shapes.py
+@@ -596,7 +596,7 @@ class Shape(object):
+         Returns a hashed value denoting this shape. It is computed from the
+         TShape and the Location. The Orientation is not used.
+         """
+-        return self.wrapped.HashCode(HASH_CODE_MAX)
++        return hash(self.wrapped)
+ 
+     def isNull(self) -> bool:
+         """

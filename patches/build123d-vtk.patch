@@ -1,0 +1,44 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index 6ef699d..32e4bc3 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -16,7 +16,7 @@ authors = [
+ ]
+ description = "A python CAD programming library"
+ readme = "README.md"
+-requires-python = ">= 3.10, < 3.13"
++requires-python = ">= 3.10, < 3.14"
+ keywords = [
+     "3d models",
+     "3d printing",
+@@ -35,7 +35,7 @@ classifiers = [
+ ]
+ 
+ dependencies = [
+-    "cadquery-ocp >= 7.7.0",
++    "cadquery-ocp >= 7.8.1",
+     "typing_extensions >= 4.6.0, <5",
+     "numpy >= 2, <3",
+     "svgpathtools >= 1.5.1, <2",
+diff --git a/src/build123d/topology.py b/src/build123d/topology.py
+index be15a1b..8ffb4a1 100644
+--- a/src/build123d/topology.py
++++ b/src/build123d/topology.py
+@@ -2172,7 +2172,7 @@ class Shape(NodeMixin):
+ 
+         while explorer.More():
+             item = explorer.Current()
+-            out[item.HashCode(HASH_CODE_MAX)] = (
++            out[hash(item)] = (
+                 item  # needed to avoid pseudo-duplicate entities
+             )
+             explorer.Next()
+@@ -2606,7 +2606,7 @@ class Shape(NodeMixin):
+ 
+     def __hash__(self) -> int:
+         """Return has code"""
+-        return self.hash_code()
++        return hash(self.wrapped)
+ 
+     def _bool_op(
+         self,
