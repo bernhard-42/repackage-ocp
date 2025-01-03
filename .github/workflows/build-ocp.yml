@@ -287,7 +287,7 @@ jobs:
             EXTRAS=""
           else
             export CXXFLAGS="-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1"
-            EXTRAS="-D CMAKE_OSX_DEPLOYMENT_TARGET=\"11.1\" -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++
+            EXTRAS="-D CMAKE_OSX_DEPLOYMENT_TARGET=\"11.1\" -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++"
           fi
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
