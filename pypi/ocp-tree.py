@@ -1,24 +1,34 @@
 import inspect
-from pathlib import Path
-import shutil
 import os
 import platform
+import shutil
 import sys
+from pathlib import Path
 
 sys.path.append(".")
 
 
-if platform.system() == 'Windows':
+if platform.system() == "Windows":
     if len(sys.argv) >= 2:
         occt = sys.argv[1]
-        os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / occt / "win64" / "vc14" / "bin")
+        os.add_dll_directory(
+            Path(os.path.expanduser("~"))
+            / "opt"
+            / "local"
+            / occt
+            / "win64"
+            / "vc14"
+            / "bin"
+        )
     if len(sys.argv) == 3:
         vtk = sys.argv[2]
-        os.add_dll_directory(Path(os.path.expanduser("~")) / "opt" / "local" / vtk / "bin")
+        os.add_dll_directory(
+            Path(os.path.expanduser("~")) / "opt" / "local" / vtk / "bin"
+        )
 
 
-import OCP_novtk
-import OCP_vtk
+import OCP
+
 
 def traverse(module, p, depth=0):
     prefix = "  " * depth
@@ -44,5 +54,4 @@ def traverse(module, p, depth=0):
 Path.mkdir(Path.cwd() / "OCP", exist_ok=True)
 p = Path.cwd() / "OCP"
 shutil.copy("__init__.py", Path.cwd() / "OCP")
-traverse(OCP_novtk, p)
-traverse(OCP_vtk, p)
+traverse(OCP, p)

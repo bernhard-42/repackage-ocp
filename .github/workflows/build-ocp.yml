@@ -283,14 +283,17 @@ jobs:
           rm -fr build
 
           if [[ "$RUNNER_OS" == "Linux" ]]; then
-              export CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" # Disables the C++11 ABI features for VTK compatibility
+            export CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" # Disables the C++11 ABI features for VTK compatibility
+            EXTRAS=""
           else
-              export CXXFLAGS="-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1"
+            export CXXFLAGS="-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1"
+            EXTRAS="-D CMAKE_OSX_DEPLOYMENT_TARGET=\"11.1\" -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++
           fi
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
             env ${{ matrix.env }} cmake -S . -B build  -G Ninja \
               -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }} \
+              $EXTRAS \
               \
               -D USE_VTK=ON \
               -D USE_TBB=OFF \
@@ -318,6 +321,7 @@ jobs:
           else
             env ${{ matrix.env }} cmake -S . -B build  -G Ninja \
               -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }} \
+              $EXTRAS \
               \
               -D USE_VTK=OFF \
               -D USE_TBB=OFF \
@@ -338,9 +342,11 @@ jobs:
           ninja -C build install
 
           if [[ "$RUNNER_OS" == "Linux" ]]; then
-            echo VTK symbols  
-            strings ~/opt/local/vtk-${{ env.VTK }}/lib/libvtk*.so | egrep LIBC_ | grep -v @ | sort | uniq
-            strings ~/opt/local/vtk-${{ env.VTK }}/lib/libvtk*.so | egrep LIBCXX_ | grep -v @ | sort | uniq
+            if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
+              echo VTK symbols  
+              strings ~/opt/local/vtk-${{ env.VTK }}/lib/libvtk*.so | egrep LIBC_ | grep -v @ | sort | uniq
+              strings ~/opt/local/vtk-${{ env.VTK }}/lib/libvtk*.so | egrep LIBCXX_ | grep -v @ | sort | uniq
+            fi
 
             echo OCCT symbols
             strings build/lin64/gcc/lib/*.so.${{ env.OCCT }} | egrep LIBC_ | grep -v @ | sort | uniq
