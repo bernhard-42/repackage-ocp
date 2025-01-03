@@ -166,6 +166,7 @@ set(VTK_MODULES_ENABLED
     AcceleratorsVTKmFilters
     FiltersVerdict
     WrappingPythonCore
+    sys
 )
 
 # Create imported targets for each module
