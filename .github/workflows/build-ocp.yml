@@ -286,8 +286,8 @@ jobs:
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             export CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" # Disables the C++11 ABI features for VTK compatibility
             EXTRAS=""
-          else
-            # EXTRAS="-D CMAKE_OSX_DEPLOYMENT_TARGET=\"11.1\" -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++"
+          # else
+          #   EXTRAS="-D CMAKE_OSX_DEPLOYMENT_TARGET=\"11.1\" -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++"
           fi
 
           if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
