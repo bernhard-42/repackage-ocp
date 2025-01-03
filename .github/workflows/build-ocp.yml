@@ -475,6 +475,11 @@ jobs:
           # cd pywrap
           # patch -p1 < ../../patches/pandas.patch
           # cd ..
+          
+          # TODO: remove if fixed
+          cd pywrap
+          git checkout 6cbeb64e9695703c56bb6309a8351886accdeeb0
+          cd ..
 
           # Patch VTK out of OCP
           if [[ "${{ matrix.use-vtk }}" == "OFF" ]]; then
