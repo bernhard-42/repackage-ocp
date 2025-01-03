@@ -20,12 +20,12 @@ index 1cac14a..64ee8d1 100644
  find_package( OpenCASCADE REQUIRED )
  
  include_directories( ${PROJECT_SOURCE_DIR} )
-@@ -34,7 +25,7 @@ add_library( OCP_novtk MODULE ${CPP_FILES} )
- target_include_directories( OCP_novtk PRIVATE ${OpenCASCADE_INCLUDE_DIR} )
+@@ -34,7 +25,7 @@ add_library( OCP MODULE ${CPP_FILES} )
+ target_include_directories( OCP PRIVATE ${OpenCASCADE_INCLUDE_DIR} )
  
- target_link_libraries( OCP_novtk PRIVATE ${OpenCASCADE_LIBRARIES} )
--target_link_libraries( OCP_novtk PRIVATE pybind11::pybind11 VTK::WrappingPythonCore VTK::RenderingCore VTK::CommonDataModel VTK::CommonExecutionModel)
-+target_link_libraries( OCP_novtk PRIVATE pybind11::pybind11)
- 
- set_target_properties( OCP_novtk
+ target_link_libraries( OCP PRIVATE ${OpenCASCADE_LIBRARIES} )
+-target_link_libraries( OCP PRIVATE pybind11::pybind11 VTK::WrappingPythonCore VTK::RenderingCore VTK::CommonDataModel VTK::CommonExecutionModel)
++target_link_libraries( OCP PRIVATE pybind11::pybind11)
+
+ set_target_properties( OCP
                         PROPERTIES
