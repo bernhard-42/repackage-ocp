@@ -244,18 +244,17 @@ foreach(module ${VTK_MODULES_ENABLED})
     if(NOT TARGET VTK::${module})
         add_library(VTK::${module} SHARED IMPORTED)
         if(${module} STREQUAL "WrappingPythonCore")
-            set_target_properties(VTK::${module} PROPERTIES
-                IMPORTED_LOCATION "${VTK_DLL_DIRS}/vtk${module}${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dll"
-                IMPORTED_IMPLIB "${VTK_LIBRARY_DIRS}/vtk${module}${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.lib"
-                INTERFACE_INCLUDE_DIRECTORIES "${VTK_INCLUDE_DIRS}"
-            )
+            file(GLOB_RECURSE VTK_DLL "${VTK_DLL_DIRS}/vtk${module}${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.dll")
+            file(GLOB_RECURSE VTK_LIB "${VTK_DLL_DIRS}/vtk${module}${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.lib")        
         else()
-            set_target_properties(VTK::${module} PROPERTIES
-                IMPORTED_LOCATION "${VTK_DLL_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dll"
-                IMPORTED_IMPLIB "${VTK_LIBRARY_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.lib"
-                INTERFACE_INCLUDE_DIRECTORIES "${VTK_INCLUDE_DIRS}"
-            )
+            file(GLOB_RECURSE VTK_DLL "${VTK_DLL_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.dll")
+            file(GLOB_RECURSE VTK_LIB "${VTK_DLL_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.lib")        
         endif()
+        set_target_properties(VTK::${module} PROPERTIES
+            IMPORTED_LOCATION "${VTK_DLL}"
+            IMPORTED_IMPLIB "${VTK_LIB}"
+            INTERFACE_INCLUDE_DIRECTORIES "${VTK_INCLUDE_DIRS}"
+        )
     endif()
 endforeach()
 
