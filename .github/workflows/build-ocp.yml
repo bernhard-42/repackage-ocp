@@ -473,7 +473,7 @@ jobs:
           git submodule update --init
 
           # TODO: remove if fixed
-          ${{ matrix.sed_i }} 's/"7.7.2.1"'/"${{ env.OCP }}"/' ocp.toml
+          ${{ matrix.sed_i }} 's/"7.7.2.1"/"${{ env.OCP }}"/' ocp.toml
           
           # TODO: remove if fixed
           cd pywrap
