@@ -923,34 +923,34 @@ jobs:
 
           python -c "import OCP; print('Success: OCP', OCP.__version__)"
 
-      # - name: Run build123d tests
-      #   shell: bash -l {0}
-      #   run: |
-      #     set -euo pipefail
+      - name: Run build123d tests
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
           
-      #     git clone https://github.com/gumyr/build123d.git
+          git clone https://github.com/gumyr/build123d.git
           
-      #     micromamba activate test
+          micromamba activate test
           
-      #     if [[ "${{ matrix.use-vtk }}" == "OFF" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "OFF" ]]; then
 
-      #       curl -O https://files.pythonhosted.org/packages/10/ed/d4c555f74e39be516c9da41ff8e672e5996c95f5dd7865f6a3a7a91fbb22/ocpsvg-0.3.3.tar.gz
-      #       tar -zxvf ocpsvg-0.3.3.tar.gz
-      #       cd ocpsvg-0.3.3
-      #       ${{ matrix.sed_i }} 's/"cadquery-ocp >= 7.7.0",//' pyproject.toml
-      #       pip install .
-      #       cd ..
+            curl -O https://files.pythonhosted.org/packages/10/ed/d4c555f74e39be516c9da41ff8e672e5996c95f5dd7865f6a3a7a91fbb22/ocpsvg-0.3.3.tar.gz
+            tar -zxvf ocpsvg-0.3.3.tar.gz
+            cd ocpsvg-0.3.3
+            ${{ matrix.sed_i }} 's/"cadquery-ocp >= 7.7.0",//' pyproject.toml
+            pip install .
+            cd ..
             
-      #       cd build123d
-      #       patch -p1 < ../patches/build123d-novtk.patch
-      #       pip install .
-      #     else
-      #       cd build123d
-      #       patch -p1 < ../patches/build123d-vtk.patch
-      #       pip install .
-      #     fi
+            cd build123d
+            patch -p1 < ../patches/build123d-novtk.patch
+            pip install .
+          else
+            cd build123d
+            patch -p1 < ../patches/build123d-vtk.patch
+            pip install .
+          fi
 
-      #     pytest tests -v -W ignore
+          pytest tests -v -W ignore
 
       - name: Run cadquery tests
         if: matrix.use-vtk == 'ON' && matrix.python-version != '3.13'
@@ -979,7 +979,7 @@ jobs:
           unset CONDA_PREFIX
           pip install .
           CONDA_PREFIX=$CONDA_PREFIX_BAK
-          
+
           pytest tests -v -W ignore
 
       - name: Uninstall test
