@@ -42,7 +42,7 @@ def traverse(module, p, depth=0):
                 with open(p2 / "__init__.py", "w") as f:
                     f.write("try:\n")
                     f.write("  import vtk\n")
-                    f.write("  from ..{obj.__name__} import *\n")
+                    f.write(f"  from ..{obj.__name__} import *\n")
                     f.write("except:\n")
                     f.write("  print('VTK not installed')\n")
             else:
