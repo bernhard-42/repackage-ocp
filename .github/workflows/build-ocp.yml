@@ -975,9 +975,11 @@ jobs:
             micromamba install -y nlopt casadi
           fi
 
-          unset CONDA_PREFIX_1
+          CONDA_PREFIX_BAK=$CONDA_PREFIX
+          unset CONDA_PREFIX
           pip install .
-
+          CONDA_PREFIX=$CONDA_PREFIX_BAK
+          
           pytest tests -v -W ignore
 
       - name: Uninstall test
