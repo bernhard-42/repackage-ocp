@@ -17,8 +17,8 @@ jobs:
 
   sdks:
     name: Build OCCT SDK for ${{ matrix.python-version }} on ${{ matrix.os }} with VTK ${{ matrix.use-vtk }}
+    uses: ./.github/workflows/common-setup.yml
     runs-on: ${{ matrix.os }}
-
     strategy:
       fail-fast: false
       matrix:
@@ -28,95 +28,39 @@ jobs:
 
         include:
           - os: "macos-13"
-            delocate: delocate
-            plat: macosx_11_1_x86_64
             vtk_libs: ".dylibs/libvtk*.dylib"
             vtk_suffix: "/"
             vtk_prefix: ""
             sed_i: "gsed -i"
-            module: "OCP.*.so"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
             shells: "bash"
           - os: "macos-14"
-            delocate: delocate
-            plat: macosx_11_1_arm64
             vtk_libs: ".dylibs/libvtk*.dylib"
             vtk_suffix: "/"
             vtk_prefix: ""
             sed_i: "gsed -i"
-            module: "OCP.*.so"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
             shells: "bash"
           - os: "ubuntu-20.04"
-            delocate: auditwheel patchelf
-            plat: manylinux_2_31_x86_64
             vtk_libs: "libvtk*.so"
             vtk_suffix: "/vtk-9.3/"
             vtk_prefix: ""
             sed_i: "sed -i"
             compilers: ""
-            module: "OCP.*.so"
             env: "DUMMY=0"
             shells: "bash"
           - os: "windows-2019"
-            delocate: delvewheel
-            plat: win_amd64
             vtk_libs: "vtk*.dll"
             vtk_suffix: "/"
             vtk_prefix: "Library/"
             sed_i: "sed -i"
             shells: "bash cmd.exe"
-            module: "OCP/OCP.*.pyd"
 
     steps:
-      - uses: actions/checkout@v4
 
-      - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          environment-file: environment-${{ matrix.python-version }}.yml
-          log-level: debug
-          init-shell: ${{ matrix.shells }}
-          cache-downloads: true
-
-      - name: Get number of CPUs
-        shell: bash -l {0}
-        id: cpu-count
-        run: |
-          if [[ "$RUNNER_OS" == "macOS" ]]; then
-            cpu_count=$(sysctl -n hw.logicalcpu)
-          elif [[ "$RUNNER_OS" == "Linux" ]]; then
-            cpu_count=$(nproc)
-          elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            cpu_count=$NUMBER_OF_PROCESSORS
-          else
-            cpu_count=1
-          fi
-          echo "cpu_count=$cpu_count" >> $GITHUB_OUTPUT
-
-          echo "=> Using $cpu_count CPUs"
-
-      # Install toolchain if needed
-
-      - name: (Ubuntu) Install dependencies
-        if: runner.os == 'Linux'
-        shell: bash -l {0}
-        run: |
-          # do not use freeimage freetype fontconfig from anaconda. Prevents from manylinux_2_31_x86_64 wheel
-          sudo apt-get install -y mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev \
-                                  libglu1-mesa-dev freeglut3-dev libxcursor-dev \
-                                  libfreeimage-dev libfreetype-dev libfontconfig-dev
-
-      - name: (Mac, Windows) Install dependencies
-        if: runner.os != 'Linux'
-        shell: bash -l {0}
-        run: |
-          micromamba activate build-ocp
-          micromamba install -y fontconfig=2.13.* freetype=2.12.* freeimage=3.18.*
-
-          if [[ "$RUNNER_OS" == "macOS" ]]; then
-            brew install gsed
-          fi
+      # - - - - - - - - - - - - - - - - - - - - -
+      #                Install VTK
+      # - - - - - - - - - - - - - - - - - - - - -
 
       - name: Download wheel artifact
         if: matrix.python-version == '3.13' && matrix.use-vtk == 'vtk'
@@ -412,6 +356,7 @@ jobs:
 
   sources:
     needs: sdks
+    uses: ./.github/workflows/common-setup.yml
     name: Build OCP source on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
@@ -423,112 +368,18 @@ jobs:
 
         include:
           - os: "macos-13"
-            delocate: delocate
-            plat: macosx_11_1_x86_64
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
             sed_i: "gsed -i"
-            module: "OCP.*.so"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-            shells: "bash"
           - os: "macos-14"
-            delocate: delocate
-            plat: macosx_11_1_arm64
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
             sed_i: "gsed -i"
-            module: "OCP.*.so"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-            shells: "bash"
           - os: "ubuntu-20.04"
-            delocate: auditwheel patchelf
-            plat: manylinux_2_31_x86_64
-            vtk_libs: "libvtk*.so"
-            vtk_suffix: "/vtk-9.3/"
-            vtk_prefix: ""
             sed_i: "sed -i"
-            compilers: ""
-            module: "OCP.*.so"
             env: "DUMMY=0"
-            shells: "bash"
           - os: "windows-2019"
-            delocate: delvewheel
-            plat: win_amd64
-            vtk_libs: "vtk*.dll"
-            vtk_suffix: "/"
-            vtk_prefix: "Library/"
             sed_i: "sed -i"
-            shells: "bash cmd.exe"
-            module: "OCP/OCP.*.pyd"
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
-        if: env.PYWRAP == 'true'
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          environment-file: environment-${{ matrix.python-version }}.yml
-          log-level: debug
-          init-shell: ${{ matrix.shells }}
-          cache-downloads: true
-
-      - name: Get number of CPUs
-        if: env.PYWRAP == 'true'
-        shell: bash -l {0}
-        id: cpu-count
-        run: |
-          if [[ "$RUNNER_OS" == "macOS" ]]; then
-            cpu_count=$(sysctl -n hw.logicalcpu)
-          elif [[ "$RUNNER_OS" == "Linux" ]]; then
-            cpu_count=$(nproc)
-          elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            cpu_count=$NUMBER_OF_PROCESSORS
-          else
-            cpu_count=1
-          fi
-          echo "cpu_count=$cpu_count" >> $GITHUB_OUTPUT
-
-          echo "=> Using $cpu_count CPUs"
-
-      # - - - - - - - - - - - - - - - - - - - - -
-      # Install toolchain if needed
-      # - - - - - - - - - - - - - - - - - - - - -
-
-      - name: (Ubuntu) Install dependencies
-        if: env.PYWRAP == 'true' && runner.os == 'Linux'
-        shell: bash -l {0}
-        run: |
-          # do not use freeimage freetype fontconfig from anaconda. Prevents from manylinux_2_31_x86_64 wheel
-          sudo apt-get install -y mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev \
-                                  libglu1-mesa-dev freeglut3-dev libxcursor-dev \
-                                  libfreeimage-dev libfreetype-dev libfontconfig-dev
-
-      - name: (Mac, Windows) Install dependencies
-        if: env.PYWRAP == 'true' && runner.os != 'Linux'
-        shell: bash -l {0}
-        run: |
-          micromamba activate build-ocp
-          micromamba install -y fontconfig=2.13.* freetype=2.12.* freeimage=3.18.*
-
-          if [[ "$RUNNER_OS" == "macOS" ]]; then
-            brew install gsed
-          fi
-
-      - name: (Mac) Install MacOS SDK
-        if: env.PYWRAP == 'true' && runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
-        shell: bash -l {0}
-        run: |
-          set -euo pipefail
-
-          curl -L -O https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz
-          sudo tar -xf MacOSX11.3.sdk.tar.xz -C /opt
-          sudo mkdir -p /opt/usr/local/
-          sudo mkdir -p /usr/local/include
-          sudo ln -s /opt/MacOSX11.3.sdk/usr/include /opt/usr/local/include
-          sudo ln -s /opt/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers /usr/local/include/OpenGL
 
       # - - - - - - - - - - - - - - - - - - - - -
       # Restore SDKs
@@ -673,3 +524,100 @@ jobs:
           path: |
             ./OCP/OCP
           key: ${{ steps.cache-ocp-source-restore.outputs.cache-primary-key }}
+
+  # ========================================
+  # Build OCP
+  # ========================================
+
+  ocp:
+    name: Build OCP for ${{ matrix.python-version }} on ${{ matrix.os }} with VTK ${{ matrix.use-vtk }}
+    uses: ./.github/workflows/common-setup.yml
+    needs: sources
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
+        python-version: ["3.11"]
+        use-vtk: ["vtk", "novtk"]
+
+        include:
+          - os: "macos-13"
+            delocate: delocate
+            plat: macosx_11_1_x86_64
+            vtk_libs: ".dylibs/libvtk*.dylib"
+            vtk_suffix: "/"
+            vtk_prefix: ""
+            sed_i: "gsed -i"
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
+          - os: "macos-14"
+            delocate: delocate
+            plat: macosx_11_1_arm64
+            vtk_libs: ".dylibs/libvtk*.dylib"
+            vtk_suffix: "/"
+            vtk_prefix: ""
+            sed_i: "gsed -i"
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
+          - os: "ubuntu-20.04"
+            delocate: auditwheel patchelf
+            plat: manylinux_2_31_x86_64
+            vtk_libs: "libvtk*.so"
+            vtk_suffix: "/vtk-9.3/"
+            vtk_prefix: ""
+            sed_i: "sed -i"
+            compilers: ""
+            module: "OCP.*.so"
+            env: "DUMMY=0"
+            shells: "bash"
+          - os: "windows-2019"
+            delocate: delvewheel
+            plat: win_amd64
+            vtk_libs: "vtk*.dll"
+            vtk_suffix: "/"
+            vtk_prefix: "Library/"
+            sed_i: "sed -i"
+            shells: "bash cmd.exe"
+            module: "OCP/OCP.*.pyd"
+
+      # - - - - - - - - - - - - - - - - - - - - -
+      # Restore SDKs
+      # - - - - - - - - - - - - - - - - - - - - -
+
+      - name: (All) Restore VTK SDK cache
+        if: env.PYWRAP == 'true'
+        id: cache-vtk-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/opt/local/vtk-${{ env.VTK }}
+          key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
+
+      - name: (All) Restore OCCT SDK cache with VTK support
+        if: env.PYWRAP == 'true'
+        id: cache-occt-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/opt/local/occt-${{ env.OCCT }}-vtk
+          key: OCCT-${{ env.OCCT }}-vtk-${{ matrix.os }}-
+
+      - name: (All) Restore OCCT SDK cache without VTK support
+        if: env.PYWRAP == 'true'
+        id: cache-occt-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/opt/local/occt-${{ env.OCCT }}-novtk
+          key: OCCT-${{ env.OCCT }}-novtk-${{ matrix.os }}-
+
+      - name: (All) Restore OCP source cache
+        id: cache-ocp-source-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ./OCP/OCP
+          key: OCP-source-${{ env.OCP }}-vtk-${{ matrix.os }}-
