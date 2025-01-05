@@ -498,7 +498,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
 
       - name: (Ubuntu) Install dependencies
-        if: env.PYWRAP == 'true' and runner.os == 'Linux'
+        if: env.PYWRAP == 'true' && runner.os == 'Linux'
         shell: bash -l {0}
         run: |
           # do not use freeimage freetype fontconfig from anaconda. Prevents from manylinux_2_31_x86_64 wheel
@@ -507,7 +507,7 @@ jobs:
                                   libfreeimage-dev libfreetype-dev libfontconfig-dev
 
       - name: (Mac, Windows) Install dependencies
-        if: env.PYWRAP == 'true' and runner.os != 'Linux'
+        if: env.PYWRAP == 'true' && runner.os != 'Linux'
         shell: bash -l {0}
         run: |
           micromamba activate build-ocp
@@ -518,7 +518,7 @@ jobs:
           fi
 
       - name: (Mac) Install MacOS SDK
-        if: env.PYWRAP == 'true' and runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: env.PYWRAP == 'true' && runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -566,7 +566,7 @@ jobs:
           key: OCP-source-${{ env.OCP }}-vtk-${{ matrix.os }}-
 
       - name: (All) Install Python prerequisites
-        if: env.PYWRAP == 'true' and steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: env.PYWRAP == 'true' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -580,7 +580,7 @@ jobs:
           fi
 
       - name: (All) Clone OCP
-        if: env.PYWRAP == 'true' and steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: env.PYWRAP == 'true' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -600,7 +600,7 @@ jobs:
           cd ..
 
       - name: (Linux) Generate OCP source
-        if: env.PYWRAP == 'true' and runner.os == 'Linux' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
+        if: env.PYWRAP == 'true' && runner.os == 'Linux' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -614,7 +614,7 @@ jobs:
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())")
 
       - name: (Mac) Generate OCP source
-        if: env.PYWRAP == 'true' and runner.os == 'macOS' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
+        if: env.PYWRAP == 'true' && runner.os == 'macOS' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -632,7 +632,7 @@ jobs:
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
       - name: (Windows) Generate OCP source
-        if: env.PYWRAP == 'true' and runner.os == 'Windows' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
+        if: env.PYWRAP == 'true' && runner.os == 'Windows' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-ocp
