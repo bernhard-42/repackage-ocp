@@ -342,17 +342,17 @@ jobs:
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
           ninja -C build install
 
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
-              echo VTK symbols  
-              strings ~/opt/local/vtk-${{ env.VTK }}/lib/libvtk*.so | egrep LIBC_ | grep -v @ | sort | uniq
-              strings ~/opt/local/vtk-${{ env.VTK }}/lib/libvtk*.so | egrep LIBCXX_ | grep -v @ | sort | uniq
-            fi
+          # if [[ "$RUNNER_OS" == "Linux" ]]; then
+          #   if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
+          #     echo VTK symbols  
+          #     strings ~/opt/local/vtk-${{ env.VTK }}/lib/libvtk*.so | egrep LIBC_ | grep -v @ | sort | uniq
+          #     strings ~/opt/local/vtk-${{ env.VTK }}/lib/libvtk*.so | egrep LIBCXX_ | grep -v @ | sort | uniq
+          #   fi
 
-            echo OCCT symbols
-            strings build/lin64/gcc/lib/*.so.${{ env.OCCT }} | egrep LIBC_ | grep -v @ | sort | uniq
-            strings build/lin64/gcc/lib/*.so.${{ env.OCCT }} | egrep LIBCXX_ | grep -v @ | sort | uniq
-          fi
+          #   echo OCCT symbols
+          #   strings build/lin64/gcc/lib/*.so.${{ env.OCCT }} | egrep LIBC_ | grep -v @ | sort | uniq
+          #   strings build/lin64/gcc/lib/*.so.${{ env.OCCT }} | egrep LIBCXX_ | grep -v @ | sort | uniq
+          # fi
 
       - name: (Windows) Compile and install OCCT SDK
         if: runner.os  == 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
