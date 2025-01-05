@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.append(".")
 
-
+has_vtk = False
 if platform.system() == "Windows":
     if len(sys.argv) >= 2:
         occt = sys.argv[1]
@@ -25,6 +25,7 @@ if platform.system() == "Windows":
         os.add_dll_directory(
             Path(os.path.expanduser("~")) / "opt" / "local" / vtk / "bin"
         )
+        has_vtk = True
 
 
 import OCP
@@ -53,7 +54,7 @@ def traverse(module, p, depth=0):
 
 Path.mkdir(Path.cwd() / "OCP", exist_ok=True)
 p = Path.cwd() / "OCP"
-if platform.system() == "Windows":
+if platform.system() == "Windows" and has_vtk:
     shutil.copy("__init__win.py", Path.cwd() / "OCP" / "__init__.py")
 else:
     shutil.copy("__init__.py", Path.cwd() / "OCP")
