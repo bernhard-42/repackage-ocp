@@ -67,8 +67,6 @@ jobs:
           cache-downloads: true
 
       - uses: ./.github/workflows/common-setup.yml
-        with:
-          os: ${{ matrix.os }}
 
       # - - - - - - - - - - - - - - - - - - - - -
       #                Install VTK
@@ -402,8 +400,6 @@ jobs:
           cache-downloads: true
 
       - uses: ./.github/workflows/common-setup.yml
-        with:
-        os: ${{ matrix.os }}
 
       # - - - - - - - - - - - - - - - - - - - - -
       # Restore SDKs
