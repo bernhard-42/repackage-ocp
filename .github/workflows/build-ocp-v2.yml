@@ -1,4 +1,4 @@
-name: Build OCCT with and without VTK
+name: Build OCP with pypi VTK (v2)
 
 on: workflow_dispatch
 
