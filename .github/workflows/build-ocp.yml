@@ -7,7 +7,6 @@ env:
   VTK: 9.3.1
   VTK_MAJOR: 9.3
   OCCT: 7.8.1
-  OCCT_: 7_8_1
   PY313VTK_RUNID: 12559402061
 
 jobs:
@@ -244,7 +243,8 @@ jobs:
 
           git clone https://github.com/Open-Cascade-SAS/OCCT.git
           cd OCCT
-          git checkout -b V${{ env.OCCT_ }} tags/V${{ env.OCCT_ }}
+          OCCT=$(echo ${{ env.OCCT }} | tr '.' '_')
+          git checkout -b V$OCCT tags/V$OCCT
 
           patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/0001-cmake-Don-t-try-to-write-to-install-directory.-You-k.patch
           patch --posix -p1 < ../patches/occt-${{ env.OCCT }}/0002-GeomPlate_BuildAveragePlane-BasePlan-Don-t-set-yvect.patch
