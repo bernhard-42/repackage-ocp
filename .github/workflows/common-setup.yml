@@ -5,6 +5,7 @@ on: workflow_call
 jobs:
   config:
     steps:
+      - uses: actions/checkout@v4
       - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
