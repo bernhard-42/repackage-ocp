@@ -85,8 +85,8 @@ set(VTK_MODULES_ENABLED
     gl2ps
     glew
     h5part
-    hdf5
     hdf5_hl
+    hdf5
     ImagingColor
     ImagingCore
     ImagingFourier
@@ -162,9 +162,6 @@ set(VTK_MODULES_ENABLED
     lz4
     lzma
     m_cont
-    m_cont_testing
-    mdiympi_nompi.so
-    metaio
     m_filter_clean_grid
     m_filter_connected_components
     m_filter_contour
@@ -173,18 +170,13 @@ set(VTK_MODULES_ENABLED
     m_filter_entity_extraction
     m_filter_field_conversion
     m_filter_field_transform
-    m_filter_flow
     m_filter_geometry_refinement
-    m_filter_image_processing
     m_filter_mesh_info
-    m_filter_multi_block
     m_filter_resampling
-    m_filter_scalar_topology
     m_filter_vector_analysis
-    m_filter_zfp
-    m_io
-    m_source
     m_worklet
+    mdiympi_nompi
+    metaio
     netcdf
     ogg
     ParallelCore
@@ -218,13 +210,9 @@ set(VTK_MODULES_ENABLED
     RenderingVtkJS
     sqlite
     sys
-    TestingDataModel
-    TestingGenericBridge
-    TestingIOSQL
     TestingRendering
     theora
     tiff
-    UtilitiesBenchmarks
     verdict
     ViewsContext2D
     ViewsCore
@@ -233,9 +221,7 @@ set(VTK_MODULES_ENABLED
     WebCore
     WebGLExporter
     WrappingPythonCore
-    WrappingTools
     xdmf2
-    zfp
     zlib
 )
 
