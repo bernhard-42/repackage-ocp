@@ -57,7 +57,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: environment-${{ matrix.python-version }}.yml
+          log-level: debug
+          init-shell: ${{ matrix.shells }}
+          cache-downloads: true
+
       - uses: ./.github/workflows/common-setup.yml
+        with:
+          os: ${{ matrix.os }}
 
       # - - - - - - - - - - - - - - - - - - - - -
       #                Install VTK
@@ -381,7 +392,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: environment-${{ matrix.python-version }}.yml
+          log-level: debug
+          init-shell: ${{ matrix.shells }}
+          cache-downloads: true
+
       - uses: ./.github/workflows/common-setup.yml
+        with:
+        os: ${{ matrix.os }}
 
       # - - - - - - - - - - - - - - - - - - - - -
       # Restore SDKs
