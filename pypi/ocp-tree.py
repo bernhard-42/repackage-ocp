@@ -53,5 +53,8 @@ def traverse(module, p, depth=0):
 
 Path.mkdir(Path.cwd() / "OCP", exist_ok=True)
 p = Path.cwd() / "OCP"
-shutil.copy("__init__.py", Path.cwd() / "OCP")
+if platform.system() == "Windows":
+    shutil.copy("__init__win.py", Path.cwd() / "OCP" / "__init__.py")
+else:
+    shutil.copy("__init__.py", Path.cwd() / "OCP")
 traverse(OCP, p)
