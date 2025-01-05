@@ -480,7 +480,7 @@ jobs:
       #     fi
 
       - name: (Mac) Install MacOS SDK
-        if: unner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
