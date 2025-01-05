@@ -58,7 +58,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: (All) Restore VTK SDK cache
+        if: matrix.use-vtk == 'vtk'
+        id: cache-vtk-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/opt/local/vtk-${{ env.VTK }}
+          key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
+
+      - name: (All) Restore OCCT SDK cache
+        id: cache-occt-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
+          key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
+
       - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
+        if: steps.cache-vtk-restore.outputs.cache-hit != 'true' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: environment-${{ matrix.python-version }}.yml
@@ -67,6 +85,7 @@ jobs:
           cache-downloads: true
 
       - name: Get number of CPUs
+        if: steps.cache-vtk-restore.outputs.cache-hit != 'true' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         id: cpu-count
         run: |
@@ -88,7 +107,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
 
       - name: (Ubuntu) Install dependencies
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && steps.cache-vtk-restore.outputs.cache-hit != 'true' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           # do not use freeimage freetype fontconfig from anaconda. Prevents from manylinux_2_31_x86_64 wheel
@@ -97,7 +116,7 @@ jobs:
                                   libfreeimage-dev libfreetype-dev libfontconfig-dev
 
       - name: (Mac, Windows) Install dependencies
-        if: runner.os != 'Linux'
+        if: runner.os != 'Linux' && steps.cache-vtk-restore.outputs.cache-hit != 'true' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           micromamba activate build-ocp
@@ -112,7 +131,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
 
       - name: Download wheel artifact
-        if: matrix.python-version == '3.13' && matrix.use-vtk == 'vtk'
+        if: matrix.python-version == '3.13' && matrix.use-vtk == 'vtk' && && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         uses: actions/download-artifact@v4
         with:
           name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
@@ -120,7 +139,7 @@ jobs:
           run-id: ${{ env.PY313VTK_RUNID }}
 
       - name: (All) Install VTK ${{ env.VTK }} from pypi
-        if: matrix.use-vtk == 'vtk'
+        if: matrix.use-vtk == 'vtk' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           if [[ ${{ matrix.python-version }} == "3.13" ]]; then
@@ -135,15 +154,6 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
       #                VTK SDK
       # - - - - - - - - - - - - - - - - - - - - -
-
-      - name: (All) Restore VTK SDK cache
-        if: matrix.use-vtk == 'vtk'
-        id: cache-vtk-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ~/opt/local/vtk-${{ env.VTK }}
-          key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (All) Install VTK SDK include files
         if: matrix.use-vtk == 'vtk' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
@@ -216,14 +226,6 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
       #                OCCT SDK
       # - - - - - - - - - - - - - - - - - - - - -
-
-      - name: (All) Restore OCCT SDK cache
-        id: cache-occt-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
-          key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
 
       - name: (All) Download and prepare OCCT SDK
         if: steps.cache-occt-restore.outputs.cache-hit != 'true'
