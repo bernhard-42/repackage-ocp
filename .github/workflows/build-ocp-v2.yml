@@ -611,7 +611,7 @@ jobs:
 
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} ^
             -D CMAKE_BUILD_TYPE=Release ^
-            VTK_DIR=-D VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }} ^
+            -D VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }} ^
             -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\occt-${{ env.OCCT }}-vtk\cmake ^
             -D pybind11_DIR=%pybind11_DIR% ^
             -D CMAKE_CXX_STANDARD=17 ^
