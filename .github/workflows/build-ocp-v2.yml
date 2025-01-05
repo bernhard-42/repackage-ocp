@@ -8,9 +8,14 @@ env:
   VTK_MAJOR: 9.3
   OCCT: 7.8.1
   PY313VTK_RUNID: 12559402061
+  PYWRAP: true
 
 jobs:
-  build:
+  # ========================================
+  # Build SDKs
+  # ========================================
+
+  sdks:
     name: Build OCCT SDK for ${{ matrix.python-version }} on ${{ matrix.os }} with VTK ${{ matrix.use-vtk }}
     runs-on: ${{ matrix.os }}
 
@@ -134,9 +139,9 @@ jobs:
             pip install vtk==${{ env.VTK }}
           fi
 
-      # ========================================
+      # - - - - - - - - - - - - - - - - - - - - -
       #                VTK SDK
-      # ========================================
+      # - - - - - - - - - - - - - - - - - - - - -
 
       - name: (All) Restore VTK SDK cache
         if: matrix.use-vtk == 'vtk'
@@ -215,16 +220,16 @@ jobs:
             ~/opt/local/vtk-${{ env.VTK }}
           key: ${{ steps.cache-vtk-restore.outputs.cache-primary-key }}
 
-      # ========================================
+      # - - - - - - - - - - - - - - - - - - - - -
       #                OCCT SDK
-      # ========================================
+      # - - - - - - - - - - - - - - - - - - - - -
 
       - name: (All) Restore OCCT SDK cache
         id: cache-occt-restore
         uses: actions/cache/restore@v4
         with:
           path: |
-            ~/opt/local/occt-${{ env.OCCT }}
+            ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
           key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
 
       - name: (All) Download and prepare OCCT SDK
@@ -400,3 +405,271 @@ jobs:
           path: |
             ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
           key: ${{ steps.cache-occt-restore.outputs.cache-primary-key }}
+
+  # ========================================
+  # Generate OCP sources
+  # ========================================
+
+  sources:
+    needs: sdks
+    name: Build OCP source on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
+        python-version: ["3.11"]
+
+        include:
+          - os: "macos-13"
+            delocate: delocate
+            plat: macosx_11_1_x86_64
+            vtk_libs: ".dylibs/libvtk*.dylib"
+            vtk_suffix: "/"
+            vtk_prefix: ""
+            sed_i: "gsed -i"
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
+          - os: "macos-14"
+            delocate: delocate
+            plat: macosx_11_1_arm64
+            vtk_libs: ".dylibs/libvtk*.dylib"
+            vtk_suffix: "/"
+            vtk_prefix: ""
+            sed_i: "gsed -i"
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
+          - os: "ubuntu-20.04"
+            delocate: auditwheel patchelf
+            plat: manylinux_2_31_x86_64
+            vtk_libs: "libvtk*.so"
+            vtk_suffix: "/vtk-9.3/"
+            vtk_prefix: ""
+            sed_i: "sed -i"
+            compilers: ""
+            module: "OCP.*.so"
+            env: "DUMMY=0"
+            shells: "bash"
+          - os: "windows-2019"
+            delocate: delvewheel
+            plat: win_amd64
+            vtk_libs: "vtk*.dll"
+            vtk_suffix: "/"
+            vtk_prefix: "Library/"
+            sed_i: "sed -i"
+            shells: "bash cmd.exe"
+            module: "OCP/OCP.*.pyd"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
+        if: env.PYWRAP == 'true'
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: environment-${{ matrix.python-version }}.yml
+          log-level: debug
+          init-shell: ${{ matrix.shells }}
+          cache-downloads: true
+
+      - name: Get number of CPUs
+        if: env.PYWRAP == 'true'
+        shell: bash -l {0}
+        id: cpu-count
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            cpu_count=$(sysctl -n hw.logicalcpu)
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            cpu_count=$(nproc)
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            cpu_count=$NUMBER_OF_PROCESSORS
+          else
+            cpu_count=1
+          fi
+          echo "cpu_count=$cpu_count" >> $GITHUB_OUTPUT
+
+          echo "=> Using $cpu_count CPUs"
+
+      # - - - - - - - - - - - - - - - - - - - - -
+      # Install toolchain if needed
+      # - - - - - - - - - - - - - - - - - - - - -
+
+      - name: (Ubuntu) Install dependencies
+        if: env.PYWRAP == 'true' and runner.os == 'Linux'
+        shell: bash -l {0}
+        run: |
+          # do not use freeimage freetype fontconfig from anaconda. Prevents from manylinux_2_31_x86_64 wheel
+          sudo apt-get install -y mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev \
+                                  libglu1-mesa-dev freeglut3-dev libxcursor-dev \
+                                  libfreeimage-dev libfreetype-dev libfontconfig-dev
+
+      - name: (Mac, Windows) Install dependencies
+        if: env.PYWRAP == 'true' and runner.os != 'Linux'
+        shell: bash -l {0}
+        run: |
+          micromamba activate build-ocp
+          micromamba install -y fontconfig=2.13.* freetype=2.12.* freeimage=3.18.*
+
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew install gsed
+          fi
+
+      - name: (Mac) Install MacOS SDK
+        if: env.PYWRAP == 'true' and runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+
+          curl -L -O https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz
+          sudo tar -xf MacOSX11.3.sdk.tar.xz -C /opt
+          sudo mkdir -p /opt/usr/local/
+          sudo mkdir -p /usr/local/include
+          sudo ln -s /opt/MacOSX11.3.sdk/usr/include /opt/usr/local/include
+          sudo ln -s /opt/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers /usr/local/include/OpenGL
+
+      # - - - - - - - - - - - - - - - - - - - - -
+      # Restore SDKs
+      # - - - - - - - - - - - - - - - - - - - - -
+
+      - name: (All) Restore VTK SDK cache
+        if: env.PYWRAP == 'true'
+        id: cache-vtk-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/opt/local/vtk-${{ env.VTK }}
+          key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
+
+      # Use vtk enabled OCCT SDK here
+      - name: (All) Restore OCCT SDK cache
+        if: env.PYWRAP == 'true'
+        id: cache-occt-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/opt/local/occt-${{ env.OCCT }}-vtk
+          key: OCCT-${{ env.OCCT }}-vtk-${{ matrix.os }}-
+
+      # - - - - - - - - - - - - - - - - - - - - -
+      # Build OCP sources using pywrap
+      # - - - - - - - - - - - - - - - - - - - - -
+
+      - name: (All) Restore OCP source cache
+        id: cache-ocp-source-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ./OCP/OCP
+          key: OCP-source-${{ env.OCP }}-vtk-${{ matrix.os }}-
+
+      - name: (All) Install Python prerequisites
+        if: env.PYWRAP == 'true' and steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+
+          micromamba activate build-ocp
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            micromamba install -y logzero toml pandas joblib tqdm jinja2 toposort schema click py-lief=0.15.1 python-clang pyparsing
+            pip install "pybind11==2.10.*" path  # cannot be installed with micromamba on Py3.12 and Py3.13
+          else
+            pip install "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click lief==0.15.1 clang==15.0.7 pyparsing
+          fi
+
+      - name: (All) Clone OCP
+        if: env.PYWRAP == 'true' and steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+
+          git clone https://github.com/cadquery/OCP.git
+          cd OCP
+          # use master for the time being
+          # git checkout -b V${{ env.OCP }} tags/${{ env.OCP }}
+          git submodule update --init
+
+          # TODO: remove if fixed
+          ${{ matrix.sed_i }} 's/"7.7.2.1"/"${{ env.OCP }}"/' ocp.toml
+
+          # TODO: remove if fixed
+          cd pywrap
+          git checkout 6cbeb64e9695703c56bb6309a8351886accdeeb0
+          cd ..
+
+      - name: (Linux) Generate OCP source
+        if: env.PYWRAP == 'true' and runner.os == 'Linux' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+
+          micromamba activate build-ocp
+          cd OCP
+
+          cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
+              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }} \
+              -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
+              -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())")
+
+      - name: (Mac) Generate OCP source
+        if: env.PYWRAP == 'true' and runner.os == 'macOS' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+
+          micromamba activate build-ocp
+
+          cd OCP
+
+          export LDFLAGS="-L$HOME/opt/local/vtk-${{ env.VTK }}/lib"
+
+          env ${{ matrix.env }} cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} \
+              -D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }} \
+              -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
+              -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
+              -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
+
+      - name: (Windows) Generate OCP source
+        if: env.PYWRAP == 'true' and runner.os == 'Windows' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-ocp
+          cd OCP
+
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+
+          set CC=clang.exe
+          set CXX=clang.exe
+
+          set pybind11_DIR="%CONDA_PREFIX%\Lib\site-packages\pybind11\share\cmake\pybind11"
+
+          cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} ^
+            -D CMAKE_BUILD_TYPE=Release ^
+            VTK_DIR=-D VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }} ^
+            -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\occt-${{ env.OCCT }}\cmake ^
+            -D pybind11_DIR=%pybind11_DIR% ^
+            -D CMAKE_CXX_STANDARD=17 ^
+            -D CMAKE_PREFIX_PATH=%CONDA_PREFIX%\Library ^
+            -D CMAKE_SHARED_LINKER_FLAGS="-L %USERPROFILE%\opt\local\vtk-${{ env.VTK }}\lib"
+
+      # - - - - - - - - - - - - - - - - - - - - -
+      # Download official OCP sources
+      # - - - - - - - - - - - - - - - - - - - - -
+
+      - name: (All) Download official OCP source
+        if: env.PYWRAP == 'false'
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+
+          # TODO
+
+      - name: (All) Cache OCP source folder
+        id: cache-ocp-source-save
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ./OCP/OCP
+          key: ${{ steps.cache-ocp-source-restore.outputs.cache-primary-key }}
