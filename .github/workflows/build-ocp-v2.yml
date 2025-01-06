@@ -275,6 +275,18 @@ jobs:
 
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
 
+      - name: Checkout VTK
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true'
+        shell: bash -l  {0}
+        run: |
+          pushd ~/opt/local
+          mv vtk-${{ env.VTK }} vtk-${{ env.VTK }}-all
+          if [[ ${{ matrix.python-version }} == "3.13" ]]; then          
+            mv vtk-${{ env.VTK }}-all/3.13 vtk-${{ env.VTK }}
+          else
+            mv vtk-${{ env.VTK }}-all/3.11 vtk-${{ env.VTK }}
+          fi
+
       - name: (Linux, Mac) Compile and install OCCT SDK
         if: runner.os  != 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
@@ -295,8 +307,6 @@ jobs:
 
           if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             
-            [[ ${{ matrix.python-version }} == "3.13" ]] && FOLDER=3.13 || FOLDER=3.11
-
             env ${{ matrix.env }} cmake -S . -B build  -G Ninja \
               -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }} \
               \
@@ -314,8 +324,8 @@ jobs:
               -D CMAKE_PREFIX_PATH=$CONDA_PREFIX \
               \
               -D VTK_RENDERING_BACKEND=OpenGL2 \
-              -D 3RDPARTY_VTK_INCLUDE_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/$FOLDER/include${{ matrix.vtk_suffix }} \
-              -D 3RDPARTY_VTK_LIBRARY_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/$FOLDER/lib/ \
+              -D 3RDPARTY_VTK_INCLUDE_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/include${{ matrix.vtk_suffix }} \
+              -D 3RDPARTY_VTK_LIBRARY_DIR=$HOME/opt/local/vtk-${{ env.VTK }}/lib/ \
               -D CMAKE_CXX_STANDARD_LIBRARIES="-lvtkCommonMath-${{ env.VTK_MAJOR }} -lvtkCommonTransforms-${{ env.VTK_MAJOR }} -lvtksys-${{ env.VTK_MAJOR }} -lvtkCommonExecutionModel-${{ env.VTK_MAJOR }} -lvtkCommonDataModel-${{ env.VTK_MAJOR }}"
 
               # Patch build file to use VTK libraries with "${{ env.VTK_MAJOR }}" suffix
@@ -356,12 +366,6 @@ jobs:
           set CC=cl.exe
           set CXX=cl.exe
 
-          if "${{ matrix.python-version }}"=="3.13" (
-              set FOLDER=3.13
-          ) else (
-              set FOLDER=3.11
-          )
-
           if "${{ matrix.use-vtk }}"=="vtk" (
             cmake -S . -B build -G Ninja ^
               -D USE_VTK=ON ^
@@ -383,9 +387,9 @@ jobs:
               ^
               -D VTK_RENDERING_BACKEND=OpenGL2 ^
               -D VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }} ^
-              -D 3RDPARTY_VTK_INCLUDE_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}\%FOLDER%\include\vtk-${{ env.VTK_MAJOR }} ^
-              -D 3RDPARTY_VTK_LIBRARY_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}\%FOLDER%\lib ^
-              -D 3RDPARTY_VTK_DLL_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}\%FOLDER%\bin
+              -D 3RDPARTY_VTK_INCLUDE_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}\include\vtk-${{ env.VTK_MAJOR }} ^
+              -D 3RDPARTY_VTK_LIBRARY_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}\lib ^
+              -D 3RDPARTY_VTK_DLL_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}\bin
 
           ) else (
             cmake -S . -B build -G Ninja ^
