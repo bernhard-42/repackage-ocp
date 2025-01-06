@@ -198,8 +198,10 @@ jobs:
 
             if [[ $PY_VER == 3.13 ]]; then
               pip install cadquery_vtk-9.3.1-*.whl
+              PKG=cadquery_vtk
             else
               pip install vtk==${{ env.VTK }}
+              PKG=vtk
             fi
 
             DEST=~/opt/local/vtk-${{ env.VTK }}/$PY_VER
@@ -207,7 +209,7 @@ jobs:
             cp create_lib.sh $DEST
 
             CONDA_PREFIX_POSIX=$(cygpath -u $CONDA_PREFIX)
-            cp $CONDA_PREFIX_POSIX/Lib/site-packages/vtk.libs/*.dll $DEST/bin/
+            cp $CONDA_PREFIX_POSIX/Lib/site-packages/$PKG.libs/*.dll $DEST/bin/
             cp $CONDA_PREFIX_POSIX/Lib/site-packages/vtk.py $DEST
             # cp -r $CONDA_PREFIX_POSIX/Lib/site-packages/vtkmodules $DEST
 
