@@ -532,7 +532,7 @@ jobs:
         with:
           path: |
             ~/opt/local/vtk-${{ env.VTK }}
-          key: VTK-${{ env.VTK }}-py${{ matrix.python-version }}-${{ matrix.os }}-
+          key: VTK-${{ env.VTK }}-${{ matrix.os }}-
 
       # Use vtk enabled OCCT SDK here
       - name: (All) Restore OCCT SDK cache
