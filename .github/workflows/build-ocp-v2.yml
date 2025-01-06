@@ -75,7 +75,7 @@ jobs:
           key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
 
       - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
-        if: steps.cache-vtk-restore.outputs.cache-hit != 'true' || steps.cache-occt-restore.outputs.cache-hit != 'true'
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true'
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: environment-${{ matrix.python-version }}.yml
@@ -84,7 +84,7 @@ jobs:
           cache-downloads: true
 
       - name: Get number of CPUs
-        if: steps.cache-vtk-restore.outputs.cache-hit != 'true' || steps.cache-occt-restore.outputs.cache-hit != 'true'
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         id: cpu-count
         run: |
@@ -99,7 +99,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
 
       - name: (Ubuntu) Install dependencies
-        if: runner.os == 'Linux' && (steps.cache-vtk-restore.outputs.cache-hit != 'true' || steps.cache-occt-restore.outputs.cache-hit != 'true')
+        if: runner.os == 'Linux' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           # do not use freeimage freetype fontconfig from anaconda. Prevents from manylinux_2_31_x86_64 wheel
@@ -108,7 +108,7 @@ jobs:
                                   libfreeimage-dev libfreetype-dev libfontconfig-dev
 
       - name: (Mac, Windows) Install dependencies
-        if: runner.os != 'Linux' && (steps.cache-vtk-restore.outputs.cache-hit != 'true' || steps.cache-occt-restore.outputs.cache-hit != 'true')
+        if: runner.os != 'Linux' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           micromamba activate build-ocp
@@ -545,7 +545,7 @@ jobs:
           key: OCCT-${{ env.OCCT }}-vtk-${{ matrix.os }}-
           
       - name: Checkout VTK
-        if: matrix.use-vtk == 'vtk' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
+        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l  {0}
         run: |
           pushd ~/opt/local
