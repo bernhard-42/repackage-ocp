@@ -741,17 +741,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            ~/opt/local/occt-${{ env.OCCT }}-vtk
-          key: OCCT-${{ env.OCCT }}-vtk-${{ matrix.os }}-
-
-      - name: (All) Restore OCCT SDK cache without VTK support
-        if: env.PYWRAP == 'true'
-        id: cache-occt-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ~/opt/local/occt-${{ env.OCCT }}-novtk
-          key: OCCT-${{ env.OCCT }}-novtk-${{ matrix.os }}-
+            ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
+          key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
 
       - name: (All) Restore OCP source cache
         id: cache-ocp-source-restore
