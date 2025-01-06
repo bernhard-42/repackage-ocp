@@ -286,6 +286,7 @@ jobs:
           else
             mv vtk-${{ env.VTK }}-all/3.11 vtk-${{ env.VTK }}
           fi
+          popd
 
       - name: (Linux, Mac) Compile and install OCCT SDK
         if: runner.os  != 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
