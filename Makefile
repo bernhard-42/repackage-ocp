@@ -19,9 +19,5 @@ clean:
 	PATH=$(echo $PATH | tr ':' '\n' | grep -v /opt/homebrew/opt/llvm@15/bin | paste -s -d':' -)
 	
 Build:
-	@for conf in create-vtk-occt-sdks create-ocp-sources; do \
-		python get-config.py $$conf $(vtk); \
-		sed 's/$${{ \([^}]*\) }}/{{{ \1 }}}/g' .github/workflows/$$conf.yml > /tmp/b.sh; \
-		mustache conf-$$conf.json /tmp/b.sh > Build-$$conf.sh; \
-	done
+	python get-config.py $(vtk);
 
