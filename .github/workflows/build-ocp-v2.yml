@@ -276,7 +276,7 @@ jobs:
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
 
       - name: Checkout VTK
-        if: steps.cache-occt-restore.outputs.cache-hit != 'true'
+        if: matrix.use-vtk == 'vtk' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l  {0}
         run: |
           pushd ~/opt/local
