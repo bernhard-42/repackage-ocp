@@ -126,7 +126,7 @@ jobs:
         if: matrix.use-vtk == 'vtk' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         uses: actions/download-artifact@v4
         with:
-          name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
+          name: cadquery-vtk-${{ matrix.os }}-cp3.13
           github-token: ${{ secrets.GH_PAT }}
           run-id: ${{ env.PY313VTK_RUNID }}
                 
