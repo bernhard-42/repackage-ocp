@@ -541,10 +541,6 @@ jobs:
       # (env.PYWRAP=true)
       # - - - - - - - - - - - - - - - - - - - - -
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 68eedf30cf0511da147cc0c5b402a5d39a961c10
       - name: (All) Install Python prerequisites
         if: env.PYWRAP == 'true' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
