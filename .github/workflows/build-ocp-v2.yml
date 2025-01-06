@@ -176,7 +176,7 @@ jobs:
             cp $CONDA_PREFIX/lib/python$PY_VER/site-packages/vtk.py $DEST
             # cp -r $CONDA_PREFIX/lib/pythonPY_VER/site-packages/vtkmodules $DEST
 
-            if [[ "$RUNNER_OS" == "Linux" ]]; then
+            if [[ "$RUNNER_OS" == "Linux" && "${{ matrix.python-version }}" != "3.13" ]]; then
               # copy libXcursor and libXfixes to the VTK lib folder
               cp $CONDA_PREFIX/lib/python$PY_VER/site-packages/vtk.libs/* $DEST/lib/
             fi
