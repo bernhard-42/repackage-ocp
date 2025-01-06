@@ -45,7 +45,6 @@ jobs:
             vtk_suffix: "/vtk-9.3/"
             vtk_prefix: ""
             sed_i: "sed -i"
-            compilers: ""
             env: "DUMMY=0"
             shells: "bash"
           - os: "windows-2019"
@@ -475,6 +474,30 @@ jobs:
           echo "cpu_count=$cpu_count" >> $GITHUB_OUTPUT
           echo "=> Using $cpu_count CPUs"
 
+      # - - - - - - - - - - - - - - - - - - - - -
+      # Install toolchain if needed
+      # - - - - - - - - - - - - - - - - - - - - -
+
+      # - name: (Ubuntu) Install dependencies
+      #   if: runner.os == 'Linux'
+      #   shell: bash -l {0}
+      #   run: |
+      #     # do not use freeimage freetype fontconfig from anaconda. Prevents from manylinux_2_31_x86_64 wheel
+      #     sudo apt-get install -y mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev \
+      #                             libglu1-mesa-dev freeglut3-dev libxcursor-dev \
+      #                             libfreeimage-dev libfreetype-dev libfontconfig-dev
+
+      # - name: (Mac, Windows) Install dependencies
+      #   if: runner.os != 'Linux'
+      #   shell: bash -l {0}
+      #   run: |
+      #     micromamba activate build-ocp
+      #     micromamba install -y fontconfig=2.13.* freetype=2.12.* freeimage=3.18.*
+      #
+      #     if [[ "$RUNNER_OS" == "macOS" ]]; then
+      #       brew install gsed
+      #     fi
+
       - name: (Mac) Install MacOS SDK
         if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
@@ -487,6 +510,8 @@ jobs:
           sudo mkdir -p /usr/local/include
           sudo ln -s /opt/MacOSX11.3.sdk/usr/include /opt/usr/local/include
           sudo ln -s /opt/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers /usr/local/include/OpenGL
+
+          brew install gsed
 
       # - - - - - - - - - - - - - - - - - - - - -
       # Restore SDKs
@@ -516,6 +541,10 @@ jobs:
       # (env.PYWRAP=true)
       # - - - - - - - - - - - - - - - - - - - - -
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 68eedf30cf0511da147cc0c5b402a5d39a961c10
       - name: (All) Install Python prerequisites
         if: env.PYWRAP == 'true' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
@@ -598,7 +627,7 @@ jobs:
 
           cmake -B new -S . -G Ninja -D N_PROC=${{ steps.cpu-count.outputs.cpu_count }} ^
             -D CMAKE_BUILD_TYPE=Release ^
-            VTK_DIR=-D VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }} ^
+            -D VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }} ^
             -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\occt-${{ env.OCCT }}-vtk\cmake ^
             -D pybind11_DIR=%pybind11_DIR% ^
             -D CMAKE_CXX_STANDARD=17 ^
