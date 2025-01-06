@@ -212,8 +212,9 @@ jobs:
             # cp -r $CONDA_PREFIX_POSIX/Lib/site-packages/vtkmodules $DEST
 
             # Create the lib files needed for compilation
-            cd $DEST/lib/
+            pushd $DEST/lib/
             ../create_lib.sh
+            popd
             
             micromamba deactivate
           done
