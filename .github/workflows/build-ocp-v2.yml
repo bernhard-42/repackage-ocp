@@ -463,7 +463,7 @@ jobs:
           key: OCP-source-${{ env.OCP }}-vtk-${{ matrix.os }}-
 
       - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
-        if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: environment-${{ matrix.python-version }}.yml
@@ -472,7 +472,7 @@ jobs:
           cache-downloads: true
 
       - name: Get number of CPUs
-        if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         id: cpu-count
         run: |
@@ -507,7 +507,7 @@ jobs:
       #     fi
 
       - name: (Mac) Install MacOS SDK
-        if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: runner.os == 'macOS' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -526,7 +526,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
 
       - name: (All) Restore VTK SDK cache
-        if: env.PYWRAP == 'true' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: env.PYWRAP == 'true' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         id: cache-vtk-restore
         uses: actions/cache/restore@v4
         with:
@@ -536,21 +536,34 @@ jobs:
 
       # Use vtk enabled OCCT SDK here
       - name: (All) Restore OCCT SDK cache
-        if: env.PYWRAP == 'true' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: env.PYWRAP == 'true' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         id: cache-occt-restore
         uses: actions/cache/restore@v4
         with:
           path: |
             ~/opt/local/occt-${{ env.OCCT }}-vtk
           key: OCCT-${{ env.OCCT }}-vtk-${{ matrix.os }}-
-
+          
+      - name: Checkout VTK
+        if: matrix.use-vtk == 'vtk' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
+        shell: bash -l  {0}
+        run: |
+          pushd ~/opt/local
+          mv vtk-${{ env.VTK }} vtk-${{ env.VTK }}-all
+          if [[ ${{ matrix.python-version }} == "3.13" ]]; then          
+            mv vtk-${{ env.VTK }}-all/3.13 vtk-${{ env.VTK }}
+          else
+            mv vtk-${{ env.VTK }}-all/3.11 vtk-${{ env.VTK }}
+          fi
+          popd
+          
       # - - - - - - - - - - - - - - - - - - - - -
       # Option 1: Build OCP sources using pywrap 
       # (env.PYWRAP=true)
       # - - - - - - - - - - - - - - - - - - - - -
 
       - name: (All) Install Python prerequisites
-        if: env.PYWRAP == 'true' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: env.PYWRAP == 'true' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -564,7 +577,7 @@ jobs:
           fi
 
       - name: (All) Clone OCP
-        if: env.PYWRAP == 'true' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: env.PYWRAP == 'true' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
