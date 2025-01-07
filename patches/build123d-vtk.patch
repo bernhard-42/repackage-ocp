@@ -70,7 +70,7 @@ index 5986e08..ec9c586 100644
          if self.wrapped is None:
              return 0
 -        return self.wrapped.HashCode(HASH_CODE_MAX)
-+        return hash(self)
++        return hash(self.wrapped)
  
      def is_null(self) -> bool:
          """Returns true if this shape is null. In other words, it references no
