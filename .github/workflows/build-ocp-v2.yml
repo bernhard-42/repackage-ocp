@@ -1003,7 +1003,7 @@ jobs:
             ${{ matrix.sed_i }} 's/cadquery_ocp/cadquery_ocp_novtk/g' pyproject.toml
           fi
 
-          PKG_NAME="cadquery_ocp"
+          # PKG_NAME="cadquery_ocp"
 
           mkdir $PKG_NAME
           cd $PKG_NAME
