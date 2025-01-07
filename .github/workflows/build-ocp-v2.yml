@@ -745,7 +745,7 @@ jobs:
 
       # use vtk source
       - name: (All) Restore OCP source cache
-        id: cache-ocp-restore
+        id: cache-ocp-source-restore
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -762,10 +762,19 @@ jobs:
           rm OCP/IVtk*
           for module in IVtk IVtkOCC IVtkTools IVtkVTK; do
             ${{ matrix.sed_i }} '/register_IVtk/d' OCP/OCP.cpp
+          done
 
       # - - - - - - - - - - - - - - - - - - - - -
       #  Build OCP
       # - - - - - - - - - - - - - - - - - - - - -
+
+      - name: (All) Restore OCP cache
+        id: cache-ocp-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ./OCP/build/${{ matrix.module }}
+          key: OCP-${{ env.OCP }}-VTK-${{ matrix.use-vtk }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
         uses: mamba-org/setup-micromamba@v1
