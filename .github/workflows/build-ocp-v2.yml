@@ -429,7 +429,7 @@ jobs:
 
   sources:
     needs: sdks
-    name: Build OCP source on ${{ matrix.os }} with PYWRAP = ${{ env.PYWRAP }}
+    name: Build OCP source on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
     strategy:
