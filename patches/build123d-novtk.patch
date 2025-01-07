@@ -1,5 +1,5 @@
 diff --git a/pyproject.toml b/pyproject.toml
-index 6ef699d..32e4bc3 100644
+index 6ef699d..c882c8f 100644
 --- a/pyproject.toml
 +++ b/pyproject.toml
 @@ -16,7 +16,7 @@ authors = [
@@ -62,7 +62,7 @@ index b869ac5..1aad514 100644
                  p.reverse()
              if len(p) == 2:
 diff --git a/src/build123d/topology.py b/src/build123d/topology.py
-index 5986e08..f70c8bd 100644
+index 5986e08..8eb46d4 100644
 --- a/src/build123d/topology.py
 +++ b/src/build123d/topology.py
 @@ -69,8 +69,6 @@ from IPython.lib.pretty import pretty, PrettyPrinter
@@ -172,7 +172,7 @@ index 5986e08..f70c8bd 100644
          )
          explorer.Next()
 diff --git a/tests/test_direct_api.py b/tests/test_direct_api.py
-index bc17a35..5ba3140 100644
+index bc17a35..a188d24 100644
 --- a/tests/test_direct_api.py
 +++ b/tests/test_direct_api.py
 @@ -35,9 +35,6 @@ from OCP.gp import (
@@ -193,7 +193,15 @@ index bc17a35..5ba3140 100644
  from build123d.objects_curve import Spline
  from build123d.objects_sketch import Circle, Rectangle, RegularPolygon
  from build123d.geometry import (
-@@ -1709,26 +1705,6 @@ class TestImportExport(DirectApiTestCase):
+@@ -102,7 +98,6 @@ from build123d.topology import (
+     delta,
+     unwrap_topods_compound,
+ )
+-from build123d.jupyter_tools import display
+ 
+ DEG2RAD = math.pi / 180
+ RAD2DEG = 180 / math.pi
+@@ -1709,26 +1704,6 @@ class TestImportExport(DirectApiTestCase):
          self.assertVectorAlmostEquals(stl_box.position, (0, 0, 0), 5)
  
  
@@ -220,7 +228,7 @@ index bc17a35..5ba3140 100644
  class TestLocation(DirectApiTestCase):
      def test_location(self):
          loc0 = Location()
-@@ -4605,56 +4581,6 @@ class TestVertex(DirectApiTestCase):
+@@ -4605,56 +4580,6 @@ class TestVertex(DirectApiTestCase):
              Vertex(1, 2, 3) & Vertex(5, 6, 7)
  
  
