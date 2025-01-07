@@ -792,6 +792,26 @@ jobs:
             ./OCP/build/${{ matrix.module }}
           key: OCP-${{ env.OCP }}-VTK-${{ matrix.use-vtk }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
+      - name: (Ubuntu) Install dependencies
+        if: runner.os == 'Linux'
+        shell: bash -l {0}
+        run: |
+          # do not use freeimage freetype fontconfig from anaconda. Prevents from manylinux_2_31_x86_64 wheel
+          sudo apt-get install -y mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev \
+                                  libglu1-mesa-dev freeglut3-dev libxcursor-dev \
+                                  libfreeimage-dev libfreetype-dev libfontconfig-dev
+
+      - name: (Mac, Windows) Install dependencies
+        if: runner.os != 'Linux'
+        shell: bash -l {0}
+        run: |
+          micromamba activate build-ocp
+          micromamba install -y fontconfig=2.13.* freetype=2.12.* freeimage=3.18.*
+
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew install gsed
+          fi
+
       - name: (Mac) Install MacOS SDK
         if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
