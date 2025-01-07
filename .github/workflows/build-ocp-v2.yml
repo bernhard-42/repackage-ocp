@@ -931,12 +931,16 @@ jobs:
         shell: cmd
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-ocp
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
 
           PATH="C:\Program Files\Git\usr\bin";%PATH%
 
-          cd OCP
+          echo "TOP LEVEL"
+          dir
 
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          cd OCP
+          echo "OCP"
+          dir
 
           sed -i "s/find_package( LLVM/# find_package( LLVM/" CMakeLists.txt
           sed -i "s/find_package( Clang/# find_package( Clang/" CMakeLists.txt
