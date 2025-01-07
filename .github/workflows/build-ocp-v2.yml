@@ -707,6 +707,8 @@ jobs:
             module: "OCP/OCP.*.pyd"
 
     steps:
+      - uses: actions/checkout@v4
+
       # - - - - - - - - - - - - - - - - - - - - -
       # Restore SDKs
       # - - - - - - - - - - - - - - - - - - - - -
