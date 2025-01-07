@@ -459,7 +459,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            ./OCP/OCP
+            ./OCP
           key: OCP-source-${{ env.OCP }}-vtk-${{ matrix.os }}-
 
       - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
@@ -609,9 +609,9 @@ jobs:
         shell: cmd
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-ocp
-          cd OCP
-
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+
+          cd OCP
 
           set CC=clang.exe
           set CXX=clang.exe
@@ -645,14 +645,14 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            ./OCP/OCP
+            ./OCP
           key: ${{ steps.cache-ocp-source-restore.outputs.cache-primary-key }}
 
       - name: Upload OCP source
         uses: actions/upload-artifact@v4
         with:
           name: OCP-source_${{ env.OCCT }}-${{ matrix.os }}
-          path: ./OCP/OCP
+          path: ./OCP
 
   # ========================================
   # Build OCP
@@ -795,7 +795,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            ./OCP/OCP
+            ./OCP
           key: OCP-source-${{ env.OCP }}-vtk-${{ matrix.os }}-
 
       - name: (All) Patch vtk out of OCP
