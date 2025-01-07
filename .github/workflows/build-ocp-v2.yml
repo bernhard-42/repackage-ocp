@@ -714,6 +714,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
 
       - name: (All) Restore VTK SDK cache
+        if: matrix.use-vtk == 'vtk'
         id: cache-vtk-restore
         uses: actions/cache/restore@v4
         with:
@@ -730,6 +731,7 @@ jobs:
           key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
 
       - name: Checkout VTK
+        if: matrix.use-vtk == 'vtk'
         shell: bash -l  {0}
         run: |
           pushd ~/opt/local
@@ -741,13 +743,25 @@ jobs:
           fi
           popd
 
+      # use vtk source
       - name: (All) Restore OCP source cache
         id: cache-ocp-restore
         uses: actions/cache/restore@v4
         with:
           path: |
-            ./OCP/build/${{ matrix.module }}
-          key: OCP-source-${{ env.OCP }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
+            ./OCP/OCP
+          key: OCP-source-${{ env.OCP }}-vtk-${{ matrix.os }}-
+
+      - name: (All) Patch vtk out of OCP
+        if: matrix.use-vtk == 'novtk'
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+
+          cd OCP
+          rm OCP/IVtk*
+          for module in IVtk IVtkOCC IVtkTools IVtkVTK; do
+            ${{ sed_i }} '/register_IVtk/d' OCP/OCP.cpp
 
       # - - - - - - - - - - - - - - - - - - - - -
       #  Build OCP
