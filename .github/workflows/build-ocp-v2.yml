@@ -710,7 +710,7 @@ jobs:
             vtk_prefix: "Library/"
             sed_i: "sed -i"
             shells: "bash cmd.exe"
-            module: "OCP/OCP.*.pyd"
+            module: "OCP.*.pyd"
 
     steps:
       - uses: actions/checkout@v4
@@ -957,10 +957,6 @@ jobs:
             set "VTK_DIR= "
           )
 
-          # sed -i "s/find_package( LLVM/# find_package( LLVM/" CMakeLists.txt
-          # sed -i "s/find_package( Clang/# find_package( Clang/" CMakeLists.txt
-          # sed -i "s/get_target_property( LIBCLANG_PATH/# get_target_property( LIBCLANG_PATH/" CMakeLists.txt
-
           echo "VTK_DIR = %VTK_DIR%"
           type CMakeLists.txt
 
@@ -996,6 +992,8 @@ jobs:
 
           micromamba activate build-ocp
           pip install build wheel ${{ matrix.delocate }}
+
+          ls -lR OCP/build
 
           cd pypi
           cp ../OCP/build/${{ matrix.module }} .
