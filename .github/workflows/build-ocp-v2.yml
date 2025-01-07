@@ -709,6 +709,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Get number of CPUs
+        shell: bash -l {0}
+        id: cpu-count
+        run: |
+          micromamba activate build-ocp
+
+          cpu_count=$(python -c "import multiprocessing; print(multiprocessing.cpu_count())") 
+          echo "cpu_count=$cpu_count" >> $GITHUB_OUTPUT
+          echo "=> Using $cpu_count CPUs"
+
+      - name: (Mac) Install MacOS SDK
+        if: runner.os == 'macOS'
+        shell: bash -l {0}
+        run: |
+          brew install gsed
+
       # - - - - - - - - - - - - - - - - - - - - -
       # Restore SDKs
       # - - - - - - - - - - - - - - - - - - - - -
@@ -776,6 +792,19 @@ jobs:
             ./OCP/build/${{ matrix.module }}
           key: OCP-${{ env.OCP }}-VTK-${{ matrix.use-vtk }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
+      - name: (Mac) Install MacOS SDK
+        if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+
+          curl -L -O https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz
+          sudo tar -xf MacOSX11.3.sdk.tar.xz -C /opt
+          sudo mkdir -p /opt/usr/local/
+          sudo mkdir -p /usr/local/include
+          sudo ln -s /opt/MacOSX11.3.sdk/usr/include /opt/usr/local/include
+          sudo ln -s /opt/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers /usr/local/include/OpenGL
+
       - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
@@ -797,31 +826,6 @@ jobs:
           else
             pip install "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click lief==0.15.1 clang==15.0.7 pyparsing
           fi
-
-      - name: Get number of CPUs
-        shell: bash -l {0}
-        id: cpu-count
-        run: |
-          micromamba activate build-ocp
-
-          cpu_count=$(python -c "import multiprocessing; print(multiprocessing.cpu_count())") 
-          echo "cpu_count=$cpu_count" >> $GITHUB_OUTPUT
-          echo "=> Using $cpu_count CPUs"
-
-      - name: (Mac) Install MacOS SDK
-        if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
-        shell: bash -l {0}
-        run: |
-          set -euo pipefail
-
-          curl -L -O https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz
-          sudo tar -xf MacOSX11.3.sdk.tar.xz -C /opt
-          sudo mkdir -p /opt/usr/local/
-          sudo mkdir -p /usr/local/include
-          sudo ln -s /opt/MacOSX11.3.sdk/usr/include /opt/usr/local/include
-          sudo ln -s /opt/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers /usr/local/include/OpenGL
-
-          brew install gsed
 
       - name: (Linux) Generate OCP build files and build OCP
         if: runner.os == 'Linux' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
@@ -845,7 +849,7 @@ jobs:
           cmake -B build -S OCP -G Ninja \
           -D CMAKE_BUILD_TYPE=Release \
               $VTK_DIR \
-              -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
+              -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_CXX_STANDARD=17 \
               -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include" \
@@ -893,7 +897,7 @@ jobs:
               -D CMAKE_OSX_DEPLOYMENT_TARGET="11.1" \
               -D CMAKE_CXX_FLAGS="-isystem $CONDA_PREFIX/include" \
               $VTK_DIR \
-              -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}/lib/cmake/opencascade \
+              -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_CXX_STANDARD=17 \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
@@ -944,7 +948,7 @@ jobs:
             -D Python3_ROOT_DIR=%CONDA_PREFIX% ^
             -D CMAKE_LINKER=lld-link.exe ^
             %VTK_DIR% ^
-            -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\occt-${{ env.OCCT }}\cmake ^
+            -D OpenCASCADE_DIR=%USERPROFILE%\opt\local\occt-${{ env.OCCT }}-${{ matrix.use-vtk }}\cmake ^
             -D pybind11_DIR=%pybind11_DIR%
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
