@@ -966,7 +966,10 @@ jobs:
             set "VTK_DIR= "
           )
 
-          xcopy "%CONDA_PREFIX%/Library/include/rapidjson" "%USERPROFILE%\opt\local\occt-${{ env.OCCT }}\inc\rapidjson" /E /I /H /C
+          echo "VTK_DIR = %VTK_DIR%"
+          type CMakeLists.txt
+
+          xcopy "%CONDA_PREFIX%/Library/include/rapidjson" "%USERPROFILE%\opt\local\occt-${{ env.OCCT }}-${{ matrix.use-vtk }}\inc\rapidjson" /E /I /H /C
 
           cmake -B build -S . -G Ninja ^
             -D CMAKE_BUILD_TYPE=Release ^
