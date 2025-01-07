@@ -1201,6 +1201,7 @@ jobs:
           set -euo pipefail
 
           git clone https://github.com/gumyr/build123d.git
+          git checkout 6621e3bb24d3d062fbec4c7731da174f195f6de8
 
           micromamba activate test
 

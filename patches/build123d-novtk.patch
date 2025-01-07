@@ -1,5 +1,5 @@
 diff --git a/pyproject.toml b/pyproject.toml
-index 6ef699d..c882c8f 100644
+index 6ef699d..32e4bc3 100644
 --- a/pyproject.toml
 +++ b/pyproject.toml
 @@ -16,7 +16,7 @@ authors = [
@@ -16,21 +16,21 @@ index 6ef699d..c882c8f 100644
  
  dependencies = [
 -    "cadquery-ocp >= 7.7.0",
-+    "cadquery-ocp-novtk >= 7.8.1",
++    "cadquery-ocp >= 7.8.1",
      "typing_extensions >= 4.6.0, <5",
      "numpy >= 2, <3",
      "svgpathtools >= 1.5.1, <2",
 diff --git a/src/build123d/exporters.py b/src/build123d/exporters.py
-index b56914c..5a6f255 100644
+index b869ac5..1aad514 100644
 --- a/src/build123d/exporters.py
 +++ b/src/build123d/exporters.py
-@@ -761,8 +761,20 @@ class ExportDXF(Export2D):
+@@ -759,8 +759,20 @@ class ExportDXF(Export2D):
          spline.Transform(t)
  
          order = spline.Degree() + 1
 -        knots = list(spline.KnotSequence())
 -        poles = [self._convert_point(p) for p in spline.Poles()]
-+        
++
 +        # knots = list(spline.KnotSequence())
 +        knots = []
 +        for i in range(1, spline.NbKnots() + 1):
@@ -47,154 +47,56 @@ index b56914c..5a6f255 100644
          weights = (
              [spline.Weight(i) for i in range(1, spline.NbPoles() + 1)]
              if spline.IsRational()
-@@ -1294,7 +1306,11 @@ class ExportSVG(Export2D):
+@@ -1293,7 +1305,12 @@ class ExportSVG(Export2D):
          )
  
          def make_segment(bezier: Geom_BezierCurve, reverse: bool) -> PathSegment:
 -            p = [self._path_point(p) for p in bezier.Poles()]
++
 +            # p = [self._path_point(p) for p in bezier.Poles()]
 +            p = []
 +            for i in range(1, bezier.NbPoles() + 1):
 +                p.append(self._path_point(bezier.Pole(i)))
-+
++                
              if reverse:
                  p.reverse()
-             if len(p) == 2:     
+             if len(p) == 2:
 diff --git a/src/build123d/topology.py b/src/build123d/topology.py
-index be15a1b..eec2ffb 100644
+index 5986e08..ec9c586 100644
 --- a/src/build123d/topology.py
 +++ b/src/build123d/topology.py
-@@ -68,8 +68,6 @@ from IPython.lib.pretty import pretty
- from numpy import ndarray
- from scipy.optimize import minimize
- from scipy.spatial import ConvexHull
--from vtkmodules.vtkCommonDataModel import vtkPolyData
--from vtkmodules.vtkFiltersCore import vtkPolyDataNormals, vtkTriangleFilter
+@@ -9612,7 +9612,7 @@ def _topods_entities(shape: TopoDS_Shape, topo_type: Shapes) -> list[TopoDS_Shap
  
- import OCP.GeomAbs as ga  # Geometry type enum
- import OCP.TopAbs as ta  # Topology type enum
-@@ -201,8 +199,6 @@ from OCP.HLRAlgo import HLRAlgo_Projector
- from OCP.HLRBRep import HLRBRep_Algo, HLRBRep_HLRToShape
- from OCP.IFSelect import IFSelect_ReturnStatus
- from OCP.Interface import Interface_Static
--from OCP.IVtkOCC import IVtkOCC_Shape, IVtkOCC_ShapeMesher
--from OCP.IVtkVTK import IVtkVTK_ShapeData
- from OCP.LocOpe import LocOpe_DPrism
- from OCP.NCollection import NCollection_Utf8String
- from OCP.Precision import Precision
-@@ -267,6 +263,7 @@ from OCP.TopoDS import (
- from OCP.TopTools import (
-     TopTools_HSequenceOfShape,
-     TopTools_IndexedDataMapOfShapeListOfShape,
-+    TopTools_IndexedMapOfShape,
-     TopTools_ListOfShape,
-     TopTools_SequenceOfShape,
- )
-@@ -2172,7 +2169,7 @@ class Shape(NodeMixin):
- 
-         while explorer.More():
-             item = explorer.Current()
--            out[item.HashCode(HASH_CODE_MAX)] = (
-+            out[hash(item)] = (
-                 item  # needed to avoid pseudo-duplicate entities
-             )
-             explorer.Next()
-@@ -2606,7 +2603,7 @@ class Shape(NodeMixin):
- 
-     def __hash__(self) -> int:
-         """Return has code"""
--        return self.hash_code()
-+        return hash(self.wrapped)
- 
-     def _bool_op(
-         self,
-@@ -3095,59 +3092,6 @@ class Shape(NodeMixin):
- 
-         return self.__class__(result)
- 
--    def to_vtk_poly_data(
--        self,
--        tolerance: float = None,
--        angular_tolerance: float = None,
--        normals: bool = False,
--    ) -> vtkPolyData:
--        """Convert shape to vtkPolyData
--
--        Args:
--          tolerance: float:
--          angular_tolerance: float:  (Default value = 0.1)
--          normals: bool:  (Default value = True)
--
--        Returns: data object in VTK consisting of points, vertices, lines, and polygons
--        """
--        vtk_shape = IVtkOCC_Shape(self.wrapped)
--        shape_data = IVtkVTK_ShapeData()
--        shape_mesher = IVtkOCC_ShapeMesher()
--
--        drawer = vtk_shape.Attributes()
--        drawer.SetUIsoAspect(Prs3d_IsoAspect(Quantity_Color(), Aspect_TOL_SOLID, 1, 0))
--        drawer.SetVIsoAspect(Prs3d_IsoAspect(Quantity_Color(), Aspect_TOL_SOLID, 1, 0))
--
--        if tolerance:
--            drawer.SetDeviationCoefficient(tolerance)
--
--        if angular_tolerance:
--            drawer.SetDeviationAngle(angular_tolerance)
--
--        shape_mesher.Build(vtk_shape, shape_data)
--
--        vtk_poly_data = shape_data.getVtkPolyData()
--
--        # convert to triangles and split edges
--        t_filter = vtkTriangleFilter()
--        t_filter.SetInputData(vtk_poly_data)
--        t_filter.Update()
--
--        return_value = t_filter.GetOutput()
--
--        # compute normals
--        if normals:
--            n_filter = vtkPolyDataNormals()
--            n_filter.SetComputePointNormals(True)
--            n_filter.SetComputeCellNormals(True)
--            n_filter.SetFeatureAngle(360)
--            n_filter.SetInputData(return_value)
--            n_filter.Update()
--
--            return_value = n_filter.GetOutput()
--
--        return return_value
--
-     def to_arcs(self, tolerance: float = 1e-3) -> Face:
-         """to_arcs
- 
-@@ -3161,13 +3105,6 @@ class Shape(NodeMixin):
-         """
-         return self.__class__(BRepAlgo.ConvertFace_s(self.wrapped, tolerance))
- 
--    def _repr_javascript_(self):
--        """Jupyter 3D representation support"""
--
--        from .jupyter_tools import display
--
--        return display(self)._repr_javascript_()
--
-     def transformed(
-         self, rotate: VectorLike = (0, 0, 0), offset: VectorLike = (0, 0, 0)
-     ) -> Self:
+     while explorer.More():
+         item = explorer.Current()
+-        out[item.HashCode(HASH_CODE_MAX)] = (
++        out[hash(item)] = (
+             item  # needed to avoid pseudo-duplicate entities
+         )
+         explorer.Next()
 diff --git a/tests/test_direct_api.py b/tests/test_direct_api.py
-index 9eba3db..cc7f43b 100644
+index bc17a35..5ba3140 100644
 --- a/tests/test_direct_api.py
 +++ b/tests/test_direct_api.py
-@@ -92,7 +92,6 @@ from build123d.topology import (
-     delta,
-     unwrap_topods_compound,
- )
--from build123d.jupyter_tools import display
+@@ -35,9 +35,6 @@ from OCP.gp import (
+ from OCP.GProp import GProp_GProps
+ from OCP.ShapeUpgrade import ShapeUpgrade_UnifySameDomain  # Correct import
  
- DEG2RAD = math.pi / 180
- RAD2DEG = 180 / math.pi
-@@ -1632,20 +1631,6 @@ class TestImportExport(DirectApiTestCase):
+-from vtkmodules.vtkCommonDataModel import vtkPolyData
+-from vtkmodules.vtkFiltersCore import vtkPolyDataNormals, vtkTriangleFilter
+-
+ from build123d.build_common import GridLocations, Locations, PolarLocations
+ from build123d.build_enums import (
+     Align,
+@@ -64,7 +61,6 @@ from build123d.objects_part import Box, Cylinder
+ from build123d.objects_curve import CenterArc, EllipticalCenterArc, JernArc, Polyline
+ from build123d.build_sketch import BuildSketch
+ from build123d.build_line import BuildLine
+-from build123d.jupyter_tools import to_vtkpoly_string
+ from build123d.objects_curve import Spline
+ from build123d.objects_sketch import Circle, Rectangle, RegularPolygon
+ from build123d.geometry import (
+@@ -1709,26 +1705,6 @@ class TestImportExport(DirectApiTestCase):
          self.assertVectorAlmostEquals(stl_box.position, (0, 0, 0), 5)
  
  
@@ -211,7 +113,70 @@ index 9eba3db..cc7f43b 100644
 -        with self.assertRaises(AttributeError):
 -            display(Vector())
 -
+-        with self.assertRaises(ValueError):
+-            to_vtkpoly_string("invalid")
+-
+-        with self.assertRaises(ValueError):
+-            display("invalid")
+-
 -
  class TestLocation(DirectApiTestCase):
      def test_location(self):
          loc0 = Location()
+@@ -4605,56 +4581,6 @@ class TestVertex(DirectApiTestCase):
+             Vertex(1, 2, 3) & Vertex(5, 6, 7)
+ 
+ 
+-class TestVTKPolyData(unittest.TestCase):
+-    def setUp(self):
+-        # Create a simple test object (e.g., a cylinder)
+-        self.object_under_test = Solid.make_cylinder(1, 2)
+-
+-    def test_to_vtk_poly_data(self):
+-        # Generate VTK data
+-        vtk_data = self.object_under_test.to_vtk_poly_data(
+-            tolerance=0.1, angular_tolerance=0.2, normals=True
+-        )
+-
+-        # Verify the result is of type vtkPolyData
+-        self.assertIsInstance(vtk_data, vtkPolyData)
+-
+-        # Further verification can include:
+-        # - Checking the number of points, polygons, or cells
+-        self.assertGreater(
+-            vtk_data.GetNumberOfPoints(), 0, "VTK data should have points."
+-        )
+-        self.assertGreater(
+-            vtk_data.GetNumberOfCells(), 0, "VTK data should have cells."
+-        )
+-
+-        # Optionally, compare the output with a known reference object
+-        # (if available) by exporting or analyzing the VTK data
+-        known_filter = vtkTriangleFilter()
+-        known_filter.SetInputData(vtk_data)
+-        known_filter.Update()
+-        known_output = known_filter.GetOutput()
+-
+-        self.assertEqual(
+-            vtk_data.GetNumberOfPoints(),
+-            known_output.GetNumberOfPoints(),
+-            "Number of points in VTK data does not match the expected output.",
+-        )
+-        self.assertEqual(
+-            vtk_data.GetNumberOfCells(),
+-            known_output.GetNumberOfCells(),
+-            "Number of cells in VTK data does not match the expected output.",
+-        )
+-
+-    def test_empty_shape(self):
+-        # Test handling of empty shape
+-        empty_object = Solid()  # Create an empty object
+-        with self.assertRaises(ValueError) as context:
+-            empty_object.to_vtk_poly_data()
+-
+-        self.assertEqual(str(context.exception), "Cannot convert an empty shape")
+-
+-
+ class TestWire(DirectApiTestCase):
+     def test_ellipse_arc(self):
+         full_ellipse = Wire.make_ellipse(2, 1)
