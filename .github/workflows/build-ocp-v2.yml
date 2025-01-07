@@ -121,7 +121,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
       #                VTK SDK
       # - - - - - - - - - - - - - - - - - - - - -
-      
+
       - name: Download wheel artifact
         if: matrix.use-vtk == 'vtk' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         uses: actions/download-artifact@v4
@@ -129,7 +129,7 @@ jobs:
           name: cadquery-vtk-${{ matrix.os }}-cp3.13
           github-token: ${{ secrets.GH_PAT }}
           run-id: ${{ env.PY313VTK_RUNID }}
-                
+
       - name: (All) Install VTK SDK include files
         if: matrix.use-vtk == 'vtk' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
@@ -304,7 +304,7 @@ jobs:
           # else
           #   EXTRAS="-D CMAKE_OSX_DEPLOYMENT_TARGET=\"11.1\" -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++"            
           fi
-          
+
 
           if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             
@@ -482,30 +482,6 @@ jobs:
           echo "cpu_count=$cpu_count" >> $GITHUB_OUTPUT
           echo "=> Using $cpu_count CPUs"
 
-      # - - - - - - - - - - - - - - - - - - - - -
-      # Install toolchain if needed
-      # - - - - - - - - - - - - - - - - - - - - -
-
-      # - name: (Ubuntu) Install dependencies
-      #   if: runner.os == 'Linux'
-      #   shell: bash -l {0}
-      #   run: |
-      #     # do not use freeimage freetype fontconfig from anaconda. Prevents from manylinux_2_31_x86_64 wheel
-      #     sudo apt-get install -y mesa-common-dev libegl1-mesa-dev libgl1-mesa-dev \
-      #                             libglu1-mesa-dev freeglut3-dev libxcursor-dev \
-      #                             libfreeimage-dev libfreetype-dev libfontconfig-dev
-
-      # - name: (Mac, Windows) Install dependencies
-      #   if: runner.os != 'Linux'
-      #   shell: bash -l {0}
-      #   run: |
-      #     micromamba activate build-ocp
-      #     micromamba install -y fontconfig=2.13.* freetype=2.12.* freeimage=3.18.*
-      #
-      #     if [[ "$RUNNER_OS" == "macOS" ]]; then
-      #       brew install gsed
-      #     fi
-
       - name: (Mac) Install MacOS SDK
         if: runner.os == 'macOS' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
@@ -543,7 +519,7 @@ jobs:
           path: |
             ~/opt/local/occt-${{ env.OCCT }}-vtk
           key: OCCT-${{ env.OCCT }}-vtk-${{ matrix.os }}-
-          
+
       - name: Checkout VTK
         if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l  {0}
@@ -556,9 +532,9 @@ jobs:
             mv vtk-${{ env.VTK }}-all/3.11 vtk-${{ env.VTK }}
           fi
           popd
-          
+
       # - - - - - - - - - - - - - - - - - - - - -
-      # Option 1: Build OCP sources using pywrap 
+      # Option 1: Build OCP sources using pywrap
       # (env.PYWRAP=true)
       # - - - - - - - - - - - - - - - - - - - - -
 
@@ -730,34 +706,20 @@ jobs:
             shells: "bash cmd.exe"
             module: "OCP/OCP.*.pyd"
 
+    steps:
       # - - - - - - - - - - - - - - - - - - - - -
       # Restore SDKs
       # - - - - - - - - - - - - - - - - - - - - -
-    
-    steps:
-      - name: Download wheel artifact
-        if: matrix.python-version == '3.13' && matrix.use-vtk == 'vtk' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: cadquery-vtk-${{ matrix.os }}-cp${{ matrix.python-version }}
-          github-token: ${{ secrets.GH_PAT }}
-          run-id: ${{ env.PY313VTK_RUNID }}
 
-      - name: (All) Install VTK ${{ env.VTK }} from pypi
-        if: matrix.use-vtk == 'vtk' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
-        shell: bash -l {0}
-        run: |
-          if [[ ${{ matrix.python-version }} == "3.13" ]]; then
-            # For Python 3.13, we need to install the VTK from the cadquery_vtk package
-            # pip install cadquery_vtk==${{ env.VTK }}
-            pip install cadquery_vtk*.whl
-          else
-            # For other Python versions up to Python 3.12, we can install the VTK from the vtk package
-            pip install vtk==${{ env.VTK }}
-          fi
+      - name: (All) Restore VTK SDK cache
+        id: cache-vtk-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/opt/local/vtk-${{ env.VTK }}
+          key: VTK-${{ env.VTK }}-${{ matrix.os }}-
 
       - name: (All) Restore OCCT SDK cache with VTK support
-        if: env.PYWRAP == 'true'
         id: cache-occt-restore
         uses: actions/cache/restore@v4
         with:
@@ -765,28 +727,31 @@ jobs:
             ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
           key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
 
-      - name: (All) Restore OCP source cache
-        id: cache-ocp-source-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ./OCP/OCP
-          key: OCP-source-${{ env.OCP }}-vtk-${{ matrix.os }}-
+      - name: Checkout VTK
+        shell: bash -l  {0}
+        run: |
+          pushd ~/opt/local
+          mv vtk-${{ env.VTK }} vtk-${{ env.VTK }}-all
+          if [[ ${{ matrix.python-version }} == "3.13" ]]; then          
+            mv vtk-${{ env.VTK }}-all/3.13 vtk-${{ env.VTK }}
+          else
+            mv vtk-${{ env.VTK }}-all/3.11 vtk-${{ env.VTK }}
+          fi
+          popd
 
-      # - - - - - - - - - - - - - - - - - - - - -
-      #  Build OCP
-      # - - - - - - - - - - - - - - - - - - - - -
-      
-      - name: (All) Restore OCP cache
+      - name: (All) Restore OCP source cache
         id: cache-ocp-restore
         uses: actions/cache/restore@v4
         with:
           path: |
             ./OCP/build/${{ matrix.module }}
-          key: OCP-${{ env.OCP }}-VTK-${{ matrix.use-vtk }}-py${{ matrix.python-version }}-${{ matrix.os }}-
+          key: OCP-source-${{ env.OCP }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
+
+      # - - - - - - - - - - - - - - - - - - - - -
+      #  Build OCP
+      # - - - - - - - - - - - - - - - - - - - - -
 
       - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
-        if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: environment-${{ matrix.python-version }}.yml
@@ -795,7 +760,6 @@ jobs:
           cache-downloads: true
 
       - name: Get number of CPUs
-        if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         id: cpu-count
         run: |
