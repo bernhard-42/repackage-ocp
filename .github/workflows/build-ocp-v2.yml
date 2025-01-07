@@ -776,6 +776,20 @@ jobs:
             ./OCP/build/${{ matrix.module }}
           key: OCP-${{ env.OCP }}-VTK-${{ matrix.use-vtk }}-py${{ matrix.python-version }}-${{ matrix.os }}-
 
+      - name: (All) Install Python prerequisites
+        if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+
+          micromamba activate build-ocp
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            micromamba install -y logzero toml pandas joblib tqdm jinja2 toposort schema click py-lief=0.15.1 python-clang pyparsing
+            pip install "pybind11==2.10.*" path  # cannot be installed with micromamba on Py3.12 and Py3.13
+          else
+            pip install "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click lief==0.15.1 clang==15.0.7 pyparsing
+          fi
+
       - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
