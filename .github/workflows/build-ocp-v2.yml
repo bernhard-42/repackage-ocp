@@ -761,7 +761,7 @@ jobs:
           cd OCP
           rm OCP/IVtk*
           for module in IVtk IVtkOCC IVtkTools IVtkVTK; do
-            ${{ sed_i }} '/register_IVtk/d' OCP/OCP.cpp
+            ${{ matrix.sed_i }} '/register_IVtk/d' OCP/OCP.cpp
 
       # - - - - - - - - - - - - - - - - - - - - -
       #  Build OCP
