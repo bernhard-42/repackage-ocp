@@ -1199,7 +1199,9 @@ jobs:
           set -euo pipefail
 
           git clone https://github.com/gumyr/build123d.git
+          cd build123d
           git checkout 6621e3bb24d3d062fbec4c7731da174f195f6de8
+          cd ..
 
           micromamba activate test
 
@@ -1231,6 +1233,8 @@ jobs:
 
           git clone https://github.com/cadquery/cadquery.git
           cd cadquery
+          git checkout 23af517a66928e7c0bc3ebb6b86edf643af4751c
+
           patch -p1 < ../patches/cadquery.patch
 
           micromamba activate test
