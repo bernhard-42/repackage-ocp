@@ -65,6 +65,15 @@ diff --git a/src/build123d/topology.py b/src/build123d/topology.py
 index 5986e08..ec9c586 100644
 --- a/src/build123d/topology.py
 +++ b/src/build123d/topology.py
+@@ -969,7 +965,7 @@ class Shape(NodeMixin, Generic[TOPODS]):
+         """
+         if self.wrapped is None:
+             return 0
+-        return self.wrapped.HashCode(HASH_CODE_MAX)
++        return hash(self)
+ 
+     def is_null(self) -> bool:
+         """Returns true if this shape is null. In other words, it references no
 @@ -9612,7 +9612,7 @@ def _topods_entities(shape: TopoDS_Shape, topo_type: Shapes) -> list[TopoDS_Shap
  
      while explorer.More():
