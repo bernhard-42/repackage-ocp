@@ -429,7 +429,7 @@ jobs:
 
   sources:
     needs: sdks
-    name: Build OCP source on ${{ matrix.os }}
+    name: Build OCP source on ${{ matrix.os }} with PYWRAP=${{ env.PYWRAP }}
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -538,7 +538,7 @@ jobs:
       # (env.PYWRAP=true)
       # - - - - - - - - - - - - - - - - - - - - -
 
-      - name: (All) Install Python prerequisites
+      - name: (All) Install Python prerequisites [PYWRAP=true]
         if: env.PYWRAP == 'true' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
@@ -552,7 +552,7 @@ jobs:
             pip install "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click lief==0.15.1 clang==15.0.7 pyparsing
           fi
 
-      - name: (All) Clone OCP
+      - name: (All) Clone OCP [PYWRAP=true]
         if: env.PYWRAP == 'true' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
@@ -572,7 +572,7 @@ jobs:
           git checkout 6cbeb64e9695703c56bb6309a8351886accdeeb0
           cd ..
 
-      - name: (Linux) Generate OCP source
+      - name: (Linux) Generate OCP source [PYWRAP=true]
         if: env.PYWRAP == 'true' && runner.os == 'Linux' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
@@ -586,7 +586,7 @@ jobs:
               -D OpenCASCADE_DIR=$HOME/opt/local/occt-${{ env.OCCT }}-vtk/lib/cmake/opencascade \
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())")
 
-      - name: (Mac) Generate OCP source
+      - name: (Mac) Generate OCP source [PYWRAP=true]
         if: env.PYWRAP == 'true' && runner.os == 'macOS' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
@@ -604,7 +604,7 @@ jobs:
               -D pybind11_DIR=$(python -c "import pybind11; print(pybind11.get_cmake_dir())") \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
-      - name: (Windows) Generate OCP source
+      - name: (Windows) Generate OCP source [PYWRAP=true]
         if: env.PYWRAP == 'true' && runner.os == 'Windows' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
@@ -632,7 +632,7 @@ jobs:
       # (env.PYWRAP=false)
       # - - - - - - - - - - - - - - - - - - - - -
 
-      - name: (All) Download official OCP source
+      - name: (All) Download official OCP source [PYWRAP=false]
         if: env.PYWRAP == 'false'
         shell: bash -l {0}
         run: |
@@ -651,7 +651,7 @@ jobs:
       - name: Upload OCP source
         uses: actions/upload-artifact@v4
         with:
-          name: OCP-source_${{ env.OCCT }}-${{ matrix.os }}
+          name: OCP-source_${{ env.OCP }}-${{ matrix.os }}
           path: ./OCP
 
   # ========================================
