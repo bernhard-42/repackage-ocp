@@ -996,7 +996,7 @@ jobs:
           cd pypi
           cp ../OCP/build/${{ matrix.module }} .
 
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             PKG_NAME="cadquery_ocp"
             if [[ ${{ matrix.python-version }} == 3.13 ]]; then
               ${{ matrix.sed_i }} '/requires-python/a\dependencies = [ "cadquery_vtk==${{ env.VTK }}" ]' pyproject.toml
@@ -1017,20 +1017,20 @@ jobs:
           cd ..
 
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
-              python ocp-tree.py occt-${{ env.OCCT }} vtk-${{ env.VTK }} 
+            if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
+              python ocp-tree.py occt-${{ env.OCCT }}-${{ matrix.use-vtk }} vtk-${{ env.VTK }} 
             else
-              python ocp-tree.py occt-${{ env.OCCT }} 
+              python ocp-tree.py occt-${{ env.OCCT }}-${{ matrix.use-vtk }} 
             fi
             mv *.pyd OCP
 
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            DYLD_LIBRARY_PATH=$HOME/opt/local/vtk-${{ env.VTK }}/lib:$HOME/opt/local/occt-${{ env.OCCT }}/lib \
+            DYLD_LIBRARY_PATH=$HOME/opt/local/vtk-${{ env.VTK }}/lib:$HOME/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}/lib \
             python ocp-tree.py
             mv *.so OCP
             
           else
-            LD_LIBRARY_PATH=$HOME/opt/local/vtk-${{ env.VTK }}/lib:$HOME/opt/local/occt-${{ env.OCCT }}/lib \
+            LD_LIBRARY_PATH=$HOME/opt/local/vtk-${{ env.VTK }}/lib:$HOME/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}/lib \
             python ocp-tree.py
             mv *.so OCP
           fi
@@ -1055,7 +1055,7 @@ jobs:
           micromamba activate build-ocp
           cd pypi
 
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             EXCLUDE="--exclude $(ls -1  ~/opt/local/vtk-${{ env.VTK }}/lib/ | xargs | sed 's/ / --exclude /g')"
             PKG_NAME="cadquery_ocp"
           else
@@ -1063,7 +1063,7 @@ jobs:
             PKG_NAME="cadquery_ocp_novtk"
           fi
 
-          env LD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib:$CONDA_PREFIX/lib \
+          env LD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}/lib:$CONDA_PREFIX/lib \
               python -m auditwheel \
               repair \
               --plat=${{ matrix.plat }} \
@@ -1075,7 +1075,7 @@ jobs:
           python -m wheel unpack ${PKG_NAME}*.whl
           rm ${PKG_NAME}*.whl
 
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             patchelf --add-rpath '$ORIGIN/../vtk.libs'    ${PKG_NAME}-${{ env.OCP }}/OCP/OCP.*.so
             patchelf --add-rpath '$ORIGIN/../vtkmodules'  ${PKG_NAME}-${{ env.OCP }}/OCP/OCP.*.so
             patchelf --add-rpath '$ORIGIN/../vtkmodules'  ${PKG_NAME}-${{ env.OCP }}/${PKG_NAME}.libs/*
@@ -1093,7 +1093,7 @@ jobs:
 
           micromamba activate build-ocp
 
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             PKG_NAME="cadquery_ocp"
           else
             PKG_NAME="cadquery_ocp_novtk"
@@ -1102,9 +1102,9 @@ jobs:
           cd pypi/dist
           python -m wheel unpack ${PKG_NAME}*.whl
           rm ${PKG_NAME}*.whl
-          install_name_tool -delete_rpath $(realpath ~/opt/local/occt-${{ env.OCCT }}/lib) ${PKG_NAME}-${{ env.OCP }}/OCP/OCP.*.so
+          install_name_tool -delete_rpath $(realpath ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}/lib) ${PKG_NAME}-${{ env.OCP }}/OCP/OCP.*.so
 
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             install_name_tool -add_rpath @loader_path/../vtkmodules/.dylibs/ ${PKG_NAME}-${{ env.OCP }}/OCP/OCP.*.so
           fi
 
@@ -1112,7 +1112,7 @@ jobs:
           cd ..
 
           # env MACOSX_DEPLOYMENT_TARGET=11.1 \
-          env DYLD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}/lib:$HOME/opt/local/vtk-${{ env.VTK }}/lib:$CONDA_PREFIX/lib \
+          env DYLD_LIBRARY_PATH=$HOME/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}/lib:$HOME/opt/local/vtk-${{ env.VTK }}/lib:$CONDA_PREFIX/lib \
               python -m delocate.cmd.delocate_wheel \
               -e libvtk \
               --wheel-dir=wheel \
@@ -1127,7 +1127,7 @@ jobs:
           micromamba activate build-ocp
 
           cd pypi/
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             EXCLUDE="--exclude $(ls -1  ~/opt/local/vtk-${{ env.VTK }}/bin/vtk*.dll | xargs -n 1 basename | xargs | sed 's/ /;/g')"
             PKG_NAME="cadquery_ocp"
           else
@@ -1135,17 +1135,17 @@ jobs:
             PKG_NAME="cadquery_ocp_novtk"
           fi
 
-          PATH=~/opt/local/occt-${{ env.OCCT }}/win64/vc14/bin/:$PATH delvewheel repair $EXCLUDE --wheel-dir wheel --namespace-pkg ${PKG_NAME} dist/*.whl
+          PATH=~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}/win64/vc14/bin/:$PATH delvewheel repair $EXCLUDE --wheel-dir wheel --namespace-pkg ${PKG_NAME} dist/*.whl
 
       - name: Upload cadquery_ocp wheel
-        if: matrix.use-vtk == 'ON'
+        if: matrix.use-vtk == 'vtk'
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-ocp-${{ env.OCCT }}-${{ matrix.os }}-cp${{ matrix.python-version }}
           path: pypi/wheel/*.whl
 
       - name: Upload cadquery_ocp wheel
-        if: matrix.use-vtk == 'OFF'
+        if: matrix.use-vtk == 'novtk'
         uses: actions/upload-artifact@v4
         with:
           name: cadquery-ocp-novtk-${{ env.OCCT }}-${{ matrix.os }}-cp${{ matrix.python-version }}
@@ -1180,7 +1180,7 @@ jobs:
           set -euo pipefail
 
           micromamba activate test
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             if [[ ${{ matrix.python-version }} == 3.13 ]]; then
               pip install cadquery_vtk==${{ env.VTK }}
             else
@@ -1200,7 +1200,7 @@ jobs:
 
           micromamba activate test
 
-          if [[ "${{ matrix.use-vtk }}" == "OFF" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "novtk" ]]; then
 
             curl -O https://files.pythonhosted.org/packages/10/ed/d4c555f74e39be516c9da41ff8e672e5996c95f5dd7865f6a3a7a91fbb22/ocpsvg-0.3.3.tar.gz
             tar -zxvf ocpsvg-0.3.3.tar.gz
@@ -1221,7 +1221,7 @@ jobs:
           pytest tests -v -W ignore
 
       - name: Run cadquery tests
-        if: matrix.use-vtk == 'ON' && matrix.python-version != '3.13'
+        if: matrix.use-vtk == 'vtk' && matrix.python-version != '3.13'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -1257,7 +1257,7 @@ jobs:
           set -euo pipefail
 
           micromamba activate test
-          if [[ "${{ matrix.use-vtk }}" == "ON" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
              pip uninstall -y cadquery_ocp
           else
             pip uninstall -y cadquery_ocp_novtk
