@@ -957,16 +957,16 @@ jobs:
             set "VTK_DIR= "
           )
 
-          sed -i "s/find_package( LLVM/# find_package( LLVM/" CMakeLists.txt
-          sed -i "s/find_package( Clang/# find_package( Clang/" CMakeLists.txt
-          sed -i "s/get_target_property( LIBCLANG_PATH/# get_target_property( LIBCLANG_PATH/" CMakeLists.txt
+          # sed -i "s/find_package( LLVM/# find_package( LLVM/" CMakeLists.txt
+          # sed -i "s/find_package( Clang/# find_package( Clang/" CMakeLists.txt
+          # sed -i "s/get_target_property( LIBCLANG_PATH/# get_target_property( LIBCLANG_PATH/" CMakeLists.txt
 
           echo "VTK_DIR = %VTK_DIR%"
           type CMakeLists.txt
 
           xcopy "%CONDA_PREFIX%/Library/include/rapidjson" "%USERPROFILE%\opt\local\occt-${{ env.OCCT }}-${{ matrix.use-vtk }}\inc\rapidjson" /E /I /H /C
 
-          cmake -B build -S . -G Ninja ^
+          cmake -B build -S OCP -G Ninja ^
             -D CMAKE_BUILD_TYPE=Release ^
             -D Python3_FIND_STRATEGY=LOCATION ^
             -D Python3_ROOT_DIR=%CONDA_PREFIX% ^
