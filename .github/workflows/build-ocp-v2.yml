@@ -807,6 +807,8 @@ jobs:
           sudo ln -s /opt/MacOSX11.3.sdk/usr/include /opt/usr/local/include
           sudo ln -s /opt/MacOSX11.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers /usr/local/include/OpenGL
 
+          brew install gsed
+
       - name: (Linux) Generate OCP build files and build OCP
         if: runner.os == 'Linux' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
