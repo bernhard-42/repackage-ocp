@@ -20,47 +20,6 @@ index 6ef699d..c882c8f 100644
      "typing_extensions >= 4.6.0, <5",
      "numpy >= 2, <3",
      "svgpathtools >= 1.5.1, <2",
-diff --git a/src/build123d/exporters.py b/src/build123d/exporters.py
-index b869ac5..1aad514 100644
---- a/src/build123d/exporters.py
-+++ b/src/build123d/exporters.py
-@@ -759,8 +759,20 @@ class ExportDXF(Export2D):
-         spline.Transform(t)
- 
-         order = spline.Degree() + 1
--        knots = list(spline.KnotSequence())
--        poles = [self._convert_point(p) for p in spline.Poles()]
-+
-+        # knots = list(spline.KnotSequence())
-+        knots = []
-+        for i in range(1, spline.NbKnots() + 1):
-+            knot = spline.Knot(i)
-+            for j in range(spline.Multiplicity(i)):
-+                knots.append(knot)
-+
-+        # poles = [(p.X(), p.Y(), p.Z()) for p in spline.Poles()]
-+        poles = []
-+        for i in range(1, spline.NbPoles() + 1):
-+            p = spline.Pole(i)
-+            poles.append((p.X(), p.Y(), p.Z()))
-+
-         weights = (
-             [spline.Weight(i) for i in range(1, spline.NbPoles() + 1)]
-             if spline.IsRational()
-@@ -1293,7 +1305,12 @@ class ExportSVG(Export2D):
-         )
- 
-         def make_segment(bezier: Geom_BezierCurve, reverse: bool) -> PathSegment:
--            p = [self._path_point(p) for p in bezier.Poles()]
-+
-+            # p = [self._path_point(p) for p in bezier.Poles()]
-+            p = []
-+            for i in range(1, bezier.NbPoles() + 1):
-+                p.append(self._path_point(bezier.Pole(i)))
-+                
-             if reverse:
-                 p.reverse()
-             if len(p) == 2:
 diff --git a/src/build123d/topology.py b/src/build123d/topology.py
 index 5986e08..8eb46d4 100644
 --- a/src/build123d/topology.py
