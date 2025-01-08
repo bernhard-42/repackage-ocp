@@ -649,8 +649,7 @@ jobs:
       matrix:
         # os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
         os: ["windows-2019"]
-        # python-version: ["3.10", "3.11", "3.12", "3.13"]
-        python-version: ["3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         use-vtk: ["vtk", "novtk"]
 
         include:
@@ -967,6 +966,10 @@ jobs:
 
           cd pypi
           cp ../OCP/build/${{ matrix.module }} .
+
+          echo "- - - - - - - - - pypi - - - - - - - - -"
+          ls -l
+          echo "- - - - - - - - - pypi - - - - - - - - -"
 
           if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             PKG_NAME="cadquery_ocp"
