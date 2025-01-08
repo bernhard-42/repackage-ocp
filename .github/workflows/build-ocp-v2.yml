@@ -16,7 +16,6 @@ jobs:
   # ========================================
 
   sdks:
-    if: false
     name: Build OCCT SDK for ${{ matrix.python-version }} on ${{ matrix.os }} with VTK ${{ matrix.use-vtk }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -419,7 +418,6 @@ jobs:
   # ========================================
 
   sources:
-    if: false
     needs: sdks
     name: Build OCP source on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
