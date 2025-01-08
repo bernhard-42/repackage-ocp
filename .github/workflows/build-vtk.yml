@@ -1,7 +1,6 @@
 name: Build VTK from source
 
-on:
-  workflow_dispatch
+on: workflow_dispatch
 
 env:
   PYTHONUTF8: 1
@@ -16,8 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'ubuntu-20.04', 'macos-13', 'macos-14', 'windows-2019' ]
-        python-version: [ '3.13' ]
+        os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
+        python-version: ["3.13"]
         include:
           - os: "macos-13"
             sed_i: "sed -i '.bak'"
@@ -74,7 +73,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt install -y build-essential cmake mesa-common-dev mesa-utils freeglut3-dev python3-dev python3-venv git-core ninja-build cmake wget libglvnd0 libglvnd-dev
-      
+
       - name: (Mac) MacOS Deps # 13 and 14
         shell: bash -l {0}
         if: ${{ runner.os == 'macOS' }}
@@ -94,10 +93,10 @@ jobs:
         shell: bash -l {0}
         run: |
           set -euo pipefail
-          
+
           curl -L -O https://vtk.org/files/release/${{ env.VTK_MAJOR }}/VTK-${{ env.VTK }}.tar.gz
           tar -zxf VTK-${{ env.VTK }}.tar.gz
-          
+
           cd VTK-${{ env.VTK }}
           mkdir build
 
@@ -113,11 +112,12 @@ jobs:
         if: runner.os == 'Linux' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
-          
+
           micromamba activate build-vtk
 
           cd VTK-${{ env.VTK }}/build
           cmake -G Ninja \
+                -D VTK_VERSIONED_INSTALL=ON \
                 -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
                 -D CMAKE_BUILD_TYPE=Release \
                 -D VTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
@@ -131,11 +131,12 @@ jobs:
         if: runner.os == 'macOS' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
-          
+
           micromamba activate build-vtk
 
           cd VTK-${{ env.VTK }}/build
           env "MACOSX_DEPLOYMENT_TARGET=11.1" cmake -G Ninja \
+                -D VTK_VERSIONED_INSTALL=ON \
                 -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
                 -D CMAKE_BUILD_TYPE=Release \
                 -D VTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
@@ -153,6 +154,7 @@ jobs:
 
           cd VTK-${{ env.VTK }}\build          
           cmake -G Ninja ^
+                -D VTK_VERSIONED_INSTALL=ON ^
                 -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON ^
                 -D CMAKE_BUILD_TYPE=Release ^
                 -D VTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" ^
@@ -173,7 +175,7 @@ jobs:
         shell: bash -l {0}
         run: |
           set -euo pipefail
-          
+
           micromamba activate build-vtk
 
           cd VTK-${{ env.VTK }}/build
@@ -181,12 +183,12 @@ jobs:
 
           python -m build -n -w
 
-      - name: (Windows) Deloacte wheel 
+      - name: (Windows) Deloacte wheel
         if: runner.os == 'Windows'
         shell: bash -l {0}
         run: |
           set -euo pipefail
-          
+
           micromamba activate build-vtk          
           pip install delvewheel
 
@@ -194,7 +196,7 @@ jobs:
           PATH=$(pwd)/bin/:$PATH delvewheel repair --wheel-dir wheel dist/*.whl
           rm dist/*.whl
           mv wheel/*.whl dist/
-          
+
       - name: (All) Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -205,10 +207,9 @@ jobs:
         shell: bash -l {0}
         run: |
           set -euo pipefail
-          
+
           micromamba create -n test python=${{ matrix.python-version }} -y
           micromamba activate build-vtk
 
           pip install VTK-${{ env.VTK }}/build/dist/*.whl
           python -c "import vtk;print('vtk imported successfully', vtk.__version__)"
-
