@@ -805,6 +805,16 @@ jobs:
             pip install "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click lief==0.15.1 clang==15.0.7 pyparsing
           fi
 
+      - name: QUICKFIX
+        if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+
+          micromamba activate build-ocp
+          DEST=~/opt/local/vtk-${{ env.VTK }}
+          cp cmake/vtk-config-${{ matrix.os }}.cmake $DEST/vtk-config.cmake
+
       - name: (Linux) Generate OCP build files and build OCP
         if: runner.os == 'Linux' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
