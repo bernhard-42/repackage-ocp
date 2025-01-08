@@ -120,7 +120,6 @@ jobs:
                 -D VTK_VERSIONED_INSTALL=ON \
                 -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
                 -D CMAKE_BUILD_TYPE=Release \
-                -D VTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
                 -D CMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
                 ..
 
@@ -139,7 +138,6 @@ jobs:
                 -D VTK_VERSIONED_INSTALL=ON \
                 -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
                 -D CMAKE_BUILD_TYPE=Release \
-                -D VTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" \
                 -D CMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
                 ..
 
@@ -157,7 +155,6 @@ jobs:
                 -D VTK_VERSIONED_INSTALL=ON ^
                 -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON ^
                 -D CMAKE_BUILD_TYPE=Release ^
-                -D VTK_CUSTOM_LIBRARY_SUFFIX="" -DVTK_VERSION_SUFFIX="" ^
                 -D CMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW ^
                 ..
 
