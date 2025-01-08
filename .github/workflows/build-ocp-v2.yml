@@ -806,7 +806,7 @@ jobs:
           fi
 
       - name: QUICKFIX
-        if: steps.cache-ocp-restore.outputs.cache-hit != 'true'
+        if: ${{ matrix.use-vtk }} == 'vtk' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
