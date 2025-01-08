@@ -7,7 +7,7 @@ env:
   VTK: 9.3.1
   VTK_MAJOR: 9.3
   OCCT: 7.8.1
-  PY313VTK_RUNID: 12559402061
+  PY313VTK_RUNID: 12659476146
   PYWRAP: true
 
 jobs:
@@ -442,14 +442,18 @@ jobs:
           - os: "macos-13"
             sed_i: "gsed -i"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
           - os: "macos-14"
             sed_i: "gsed -i"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
           - os: "ubuntu-20.04"
             sed_i: "sed -i"
             env: "DUMMY=0"
+            shells: "bash"
           - os: "windows-2019"
             sed_i: "sed -i"
+            shells: "bash cmd.exe"
 
     steps:
       - uses: actions/checkout@v4
@@ -568,9 +572,9 @@ jobs:
           ${{ matrix.sed_i }} 's/"7.7.2.1"/"${{ env.OCP }}"/' ocp.toml
 
           # TODO: remove if fixed
-          cd pywrap
-          git checkout 6cbeb64e9695703c56bb6309a8351886accdeeb0
-          cd ..
+          # cd pywrap
+          # git checkout 6cbeb64e9695703c56bb6309a8351886accdeeb0
+          # cd ..
 
       - name: (Linux) Generate OCP source [PYWRAP=true]
         if: env.PYWRAP == 'true' && runner.os == 'Linux' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
@@ -674,9 +678,6 @@ jobs:
           - os: "macos-13"
             delocate: delocate
             plat: macosx_11_1_x86_64
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
             sed_i: "gsed -i"
             module: "OCP.*.so"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
@@ -684,9 +685,6 @@ jobs:
           - os: "macos-14"
             delocate: delocate
             plat: macosx_11_1_arm64
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
             sed_i: "gsed -i"
             module: "OCP.*.so"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
@@ -694,9 +692,6 @@ jobs:
           - os: "ubuntu-20.04"
             delocate: auditwheel patchelf
             plat: manylinux_2_31_x86_64
-            vtk_libs: "libvtk*.so"
-            vtk_suffix: "/vtk-9.3/"
-            vtk_prefix: ""
             sed_i: "sed -i"
             compilers: ""
             module: "OCP.*.so"
@@ -705,9 +700,6 @@ jobs:
           - os: "windows-2019"
             delocate: delvewheel
             plat: win_amd64
-            vtk_libs: "vtk*.dll"
-            vtk_suffix: "/"
-            vtk_prefix: "Library/"
             sed_i: "sed -i"
             shells: "bash cmd.exe"
             module: "OCP.*.pyd"
@@ -863,7 +855,7 @@ jobs:
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
             cd OCP
-            patch -p1 < ../../patches/no-vtk-2.patch
+            patch -p1 < ../../patches/no-vtk.patch
             cd ..
             VTK_DIR=""
           fi
@@ -908,7 +900,7 @@ jobs:
             VTK_DIR="-D VTK_DIR=$HOME/opt/local/vtk-${{ env.VTK }}"
           else
             cd OCP
-            patch -p1 < ../../patches/no-vtk-2.patch
+            patch -p1 < ../../patches/no-vtk.patch
             cd ..
             VTK_DIR=""
           fi
@@ -952,7 +944,7 @@ jobs:
             set "VTK_DIR=-D VTK_DIR=%USERPROFILE%\opt\local\vtk-${{ env.VTK }}"
           ) else (
             cd OCP
-            patch -p1 < ../../patches/no-vtk-2.patch
+            patch -p1 < ../../patches/no-vtk.patch
             cd ..
             set "VTK_DIR= "
           )
@@ -1011,7 +1003,7 @@ jobs:
             ${{ matrix.sed_i }} 's/cadquery_ocp/cadquery_ocp_novtk/g' pyproject.toml
           fi
 
-          PKG_NAME="cadquery_ocp"
+          # PKG_NAME="cadquery_ocp"
 
           mkdir $PKG_NAME
           cd $PKG_NAME
