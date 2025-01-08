@@ -81,6 +81,11 @@ jobs:
             ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
           key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
 
+      - name: (DEBUG) vtk SDK
+        run: ls -lR ~/opt/local/vtk*
+      - name: (DEBUG) occt SDK
+        run: ls -lR ~/opt/local/occt*
+
       - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
         if: steps.cache-occt-restore.outputs.cache-hit != 'true'
         uses: mamba-org/setup-micromamba@v1
@@ -843,11 +848,11 @@ jobs:
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
 
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            echo OCP symbols
-            strings build/OCP.cpython-311-x86_64-linux-gnu.so | egrep LIBC_ | grep -v @ | sort | uniq
-            strings build/OCP.cpython-311-x86_64-linux-gnu.so | egrep LIBCXX_ | grep -v @ | sort | uniq
-          fi
+          # if [[ "$RUNNER_OS" == "Linux" ]]; then
+          #   echo OCP symbols
+          #   strings build/OCP.cpython-*-x86_64-linux-gnu.so | egrep LIBC_ | grep -v @ | sort | uniq
+          #   strings build/OCP.cpython-*-x86_64-linux-gnu.so | egrep LIBCXX_ | grep -v @ | sort | uniq
+          # fi
 
       - name: (Mac) Generate OCP build files and build OCP
         if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
@@ -976,9 +981,9 @@ jobs:
 
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
-              python ocp-tree.py occt-${{ env.OCCT }}-${{ matrix.use-vtk }} vtk-${{ env.VTK }} 
+              python ocp-tree.py occt-${{ env.OCCT }}-vtk vtk-${{ env.VTK }} 
             else
-              python ocp-tree.py occt-${{ env.OCCT }}-${{ matrix.use-vtk }} 
+              python ocp-tree.py occt-${{ env.OCCT }}-novtk 
             fi
             mv *.pyd OCP
 
