@@ -27,6 +27,12 @@ set(VTK_DLL_DIR "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/bin")
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(PYTHON_VERSION "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 
+if(PYTHON_VERSION STREQUAL "3.13")
+    set(SUFFIX "")
+else()
+    set(SUFFIX "-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
+endif()
+
 # Define the components
 set(VTK_MODULES_ENABLED
     AcceleratorsVTKmCore
@@ -230,11 +236,11 @@ foreach(module ${VTK_MODULES_ENABLED})
     if(NOT TARGET VTK::${module})
         add_library(VTK::${module} SHARED IMPORTED)
         if(${module} STREQUAL "WrappingPythonCore")
-            file(GLOB VTK_DLL "${VTK_DLL_DIRS}/vtk${module}${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.dll")
-            file(GLOB VTK_LIB "${VTK_LIBRARY_DIRS}/vtk${module}${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.lib")        
+            file(GLOB VTK_DLL "${VTK_DLL_DIRS}/vtk${module}${PYTHON_VERSION}${SUFFIX}*.dll")
+            file(GLOB VTK_LIB "${VTK_LIBRARY_DIRS}/vtk${module}${PYTHON_VERSION}${SUFFIX}*.lib")        
         else()
-            file(GLOB VTK_DLL "${VTK_DLL_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.dll")
-            file(GLOB VTK_LIB "${VTK_LIBRARY_DIRS}/vtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}-*.lib")        
+            file(GLOB VTK_DLL "${VTK_DLL_DIRS}/vtk${module}${SUFFIX}*.dll")
+            file(GLOB VTK_LIB "${VTK_LIBRARY_DIRS}/vtk${module}${SUFFIX}*.lib")        
         endif()
         message(STATUS "VTK::${module} DLL: ${VTK_DLL}   LIB: ${VTK_LIB}")
         set_target_properties(VTK::${module} PROPERTIES
