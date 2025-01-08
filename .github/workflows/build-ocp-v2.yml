@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
-        python-version: ["3.11"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         use-vtk: ["vtk", "novtk"]
 
         include:
@@ -64,7 +64,7 @@ jobs:
         with:
           path: |
             ~/opt/local/vtk-${{ env.VTK }}
-          key: VTK-${{ env.VTK }}-${{ matrix.os }}-
+          key: VTK-${{ env.VTK }}-py-${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (All) Restore OCCT SDK cache
         id: cache-occt-restore
@@ -123,7 +123,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
 
       - name: Download wheel artifact
-        if: matrix.use-vtk == 'vtk' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
+        if: ${{ matrix.python-version }} == '3.13' && matrix.use-vtk == 'vtk' && steps.cache-vtk-restore.outputs.cache-hit != 'true'
         uses: actions/download-artifact@v4
         with:
           name: cadquery-vtk-${{ matrix.os }}-cp3.13
@@ -141,17 +141,16 @@ jobs:
           micromamba activate vtk
           micromamba install -y vtk=${{ env.VTK }}
 
-          for PY_VER in ${{ matrix.python-version }} 3.13; do
-            DEST=~/opt/local/vtk-${{ env.VTK }}/$PY_VER
-            rm -fr $DEST
-            mkdir -p $DEST/include
-            mkdir -p $DEST/bin
-            mkdir -p $DEST/lib
-            mkdir -p $DEST/lib/cmake
+          DEST=~/opt/local/vtk-${{ env.VTK }}/${{ matrix.python-version }}
+          rm -fr $DEST
+          mkdir -p $DEST/include
+          mkdir -p $DEST/bin
+          mkdir -p $DEST/lib
+          mkdir -p $DEST/lib/cmake
 
-            cp -r $CONDA_PREFIX/${{ matrix.vtk_prefix }}include/vtk-${{ env.VTK_MAJOR }}/ $DEST/include/
-            cp cmake/vtk-config-${{ matrix.os }}.cmake $DEST/vtk-config.cmake
-          done
+          cp -r $CONDA_PREFIX/${{ matrix.vtk_prefix }}include/vtk-${{ env.VTK_MAJOR }}/ $DEST/include/
+          cp cmake/vtk-config-${{ matrix.os }}.cmake $DEST/vtk-config.cmake
+
           micromamba deactivate
 
       - name: (Linux, Mac) Install VTK SDK libs
@@ -160,29 +159,27 @@ jobs:
         run: |
           set -euo pipefail
 
-          for PY_VER in ${{ matrix.python-version }} 3.13; do
-            micromamba create -y -n vtk-$PY_VER python=$PY_VER
-            micromamba activate vtk-$PY_VER
+          PY_VER=${{ matrix.python-version }}
 
-            if [[ $PY_VER == 3.13 ]]; then
-              pip install cadquery_vtk-9.3.1-*.whl
-            else
-              pip install vtk==${{ env.VTK }}
-            fi
-            
-            DEST=~/opt/local/vtk-${{ env.VTK }}/$PY_VER
+          micromamba create -y -n vtk-$PY_VER python=$PY_VER
+          micromamba activate vtk-$PY_VER
 
-            cp $CONDA_PREFIX/lib/python$PY_VER/site-packages/vtkmodules/${{ matrix.vtk_libs }} $DEST/lib/
-            cp $CONDA_PREFIX/lib/python$PY_VER/site-packages/vtk.py $DEST
-            # cp -r $CONDA_PREFIX/lib/pythonPY_VER/site-packages/vtkmodules $DEST
+          if [[ $PY_VER == 3.13 ]]; then
+            pip install cadquery_vtk-9.3.1-*.whl
+          else
+            pip install vtk==${{ env.VTK }}
+          fi
 
-            if [[ "$RUNNER_OS" == "Linux" && "$PY_VER" != "3.13" ]]; then
-              # copy libXcursor and libXfixes to the VTK lib folder
-              cp $CONDA_PREFIX/lib/python$PY_VER/site-packages/vtk.libs/* $DEST/lib/
-            fi
-            
-            micromamba deactivate
-          done
+          DEST=~/opt/local/vtk-${{ env.VTK }}/$PY_VER
+
+          cp $CONDA_PREFIX/lib/python$PY_VER/site-packages/vtkmodules/${{ matrix.vtk_libs }} $DEST/lib/
+          cp $CONDA_PREFIX/lib/python$PY_VER/site-packages/vtk.py $DEST
+
+          if [[ "$RUNNER_OS" == "Linux" && "$PY_VER" != "3.13" ]]; then
+            cp $CONDA_PREFIX/lib/python$PY_VER/site-packages/vtk.libs/* $DEST/lib/
+          fi
+
+          micromamba deactivate
 
       - name: (Windows) Install VTK SDK libs
         if: matrix.use-vtk == 'vtk' && runner.os  == 'Windows'  && steps.cache-vtk-restore.outputs.cache-hit != 'true'
@@ -190,36 +187,34 @@ jobs:
         run: |
           set -euo pipefail
 
+          PY_VER=${{ matrix.python-version }}
+
+          micromamba create -y -n vtk-$PY_VER python=$PY_VER
+          micromamba activate vtk-$PY_VER
+
+          if [[ $PY_VER == 3.13 ]]; then
+            pip install cadquery_vtk-9.3.1-*.whl
+            PKG=cadquery_vtk
+          else
+            pip install vtk==${{ env.VTK }}
+            PKG=vtk
+          fi
+
+          DEST=~/opt/local/vtk-${{ env.VTK }}/$PY_VER
+
+          CONDA_PREFIX_POSIX=$(cygpath -u $CONDA_PREFIX)
+          cp $CONDA_PREFIX_POSIX/Lib/site-packages/$PKG.libs/*.dll $DEST/bin/
+          cp $CONDA_PREFIX_POSIX/Lib/site-packages/vtk.py $DEST
+
+          # Create the lib files needed for compilation
+
           PATH='/c/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/':$PATH
+          cp create_lib.sh $DEST
+          pushd $DEST/lib/
+          ../create_lib.sh
+          popd
 
-          for PY_VER in ${{ matrix.python-version }} 3.13; do
-            micromamba create -y -n vtk-$PY_VER python=$PY_VER
-            micromamba activate vtk-$PY_VER
-
-            if [[ $PY_VER == 3.13 ]]; then
-              pip install cadquery_vtk-9.3.1-*.whl
-              PKG=cadquery_vtk
-            else
-              pip install vtk==${{ env.VTK }}
-              PKG=vtk
-            fi
-
-            DEST=~/opt/local/vtk-${{ env.VTK }}/$PY_VER
-
-            cp create_lib.sh $DEST
-
-            CONDA_PREFIX_POSIX=$(cygpath -u $CONDA_PREFIX)
-            cp $CONDA_PREFIX_POSIX/Lib/site-packages/$PKG.libs/*.dll $DEST/bin/
-            cp $CONDA_PREFIX_POSIX/Lib/site-packages/vtk.py $DEST
-            # cp -r $CONDA_PREFIX_POSIX/Lib/site-packages/vtkmodules $DEST
-
-            # Create the lib files needed for compilation
-            pushd $DEST/lib/
-            ../create_lib.sh
-            popd
-            
-            micromamba deactivate
-          done
+          micromamba deactivate
 
       - name: (All) Cache VTK build folder
         if: matrix.use-vtk == 'vtk'
@@ -235,7 +230,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
 
       - name: (All) Download and prepare OCCT SDK
-        if: steps.cache-occt-restore.outputs.cache-hit != 'true'
+        if: matrix.python-version == '3.11' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -276,20 +271,16 @@ jobs:
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
 
       - name: Checkout VTK
-        if: matrix.use-vtk == 'vtk' && steps.cache-occt-restore.outputs.cache-hit != 'true'
+        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l  {0}
         run: |
           pushd ~/opt/local
           mv vtk-${{ env.VTK }} vtk-${{ env.VTK }}-all
-          if [[ ${{ matrix.python-version }} == "3.13" ]]; then          
-            mv vtk-${{ env.VTK }}-all/3.13 vtk-${{ env.VTK }}
-          else
-            mv vtk-${{ env.VTK }}-all/3.11 vtk-${{ env.VTK }}
-          fi
+          mv vtk-${{ env.VTK }}-all/%{{ matrix.python-version }} vtk-${{ env.VTK }}
           popd
 
       - name: (Linux, Mac) Compile and install OCCT SDK
-        if: runner.os  != 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
+        if: matrix.python-version == '3.11' && runner.os  != 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -357,7 +348,7 @@ jobs:
           ninja -C build install
 
       - name: (Windows) Compile and install OCCT SDK
-        if: runner.os  == 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
+        if: matrix.python-version == '3.11' && runner.os  == 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-ocp 
@@ -416,6 +407,7 @@ jobs:
           ninja -C build install
 
       - name: (All) Cache OCCT build folder
+        if: matrix.python-version == '3.11'
         id: cache-occt-save
         uses: actions/cache/save@v4
         with:
@@ -512,7 +504,7 @@ jobs:
         with:
           path: |
             ~/opt/local/vtk-${{ env.VTK }}
-          key: VTK-${{ env.VTK }}-${{ matrix.os }}-
+          key: VTK-${{ env.VTK }}-py-${{ matrix.python-version }}-${{ matrix.os }}-
 
       # Use vtk enabled OCCT SDK here
       - name: (All) Restore OCCT SDK cache
@@ -530,11 +522,7 @@ jobs:
         run: |
           pushd ~/opt/local
           mv vtk-${{ env.VTK }} vtk-${{ env.VTK }}-all
-          if [[ ${{ matrix.python-version }} == "3.13" ]]; then          
-            mv vtk-${{ env.VTK }}-all/3.13 vtk-${{ env.VTK }}
-          else
-            mv vtk-${{ env.VTK }}-all/3.11 vtk-${{ env.VTK }}
-          fi
+          mv vtk-${{ env.VTK }}-all/%{{ matrix.python-version }} vtk-${{ env.VTK }}
           popd
 
       # - - - - - - - - - - - - - - - - - - - - -
@@ -758,7 +746,7 @@ jobs:
         with:
           path: |
             ~/opt/local/vtk-${{ env.VTK }}
-          key: VTK-${{ env.VTK }}-${{ matrix.os }}-
+          key: VTK-${{ env.VTK }}-py-${{ matrix.python-version }}-${{ matrix.os }}-
 
       - name: (All) Restore OCCT SDK cache with VTK support
         id: cache-occt-restore
@@ -769,16 +757,12 @@ jobs:
           key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
 
       - name: Checkout VTK
-        if: matrix.use-vtk == 'vtk'
+        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l  {0}
         run: |
           pushd ~/opt/local
           mv vtk-${{ env.VTK }} vtk-${{ env.VTK }}-all
-          if [[ ${{ matrix.python-version }} == "3.13" ]]; then          
-            mv vtk-${{ env.VTK }}-all/3.13 vtk-${{ env.VTK }}
-          else
-            mv vtk-${{ env.VTK }}-all/3.11 vtk-${{ env.VTK }}
-          fi
+          mv vtk-${{ env.VTK }}-all/%{{ matrix.python-version }} vtk-${{ env.VTK }}
           popd
 
       # use vtk source
