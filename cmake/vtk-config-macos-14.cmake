@@ -22,6 +22,12 @@ set(VTK_LIBRARY_DIRS "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/lib")
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(PYTHON_VERSION "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 
+if(PYTHON_VERSION STREQUAL "3.13")
+    set(SUFFIX "")
+else()
+    set(SUFFIX "-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
+endif()
+
 # Define the components
 set(VTK_MODULES_ENABLED
     AcceleratorsVTKmCore
@@ -240,12 +246,12 @@ foreach(module ${VTK_MODULES_ENABLED})
         add_library(VTK::${module} SHARED IMPORTED)
         if(${module} STREQUAL "WrappingPythonCore")
             set_target_properties(VTK::${module} PROPERTIES
-                IMPORTED_LOCATION "${VTK_LIBRARY_DIRS}/libvtkWrappingPythonCore${PYTHON_VERSION}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dylib"
+                IMPORTED_LOCATION "${VTK_LIBRARY_DIRS}/libvtkWrappingPythonCore${PYTHON_VERSION}${SUFFIX}.dylib"
                 INTERFACE_INCLUDE_DIRECTORIES "${VTK_INCLUDE_DIRS}"
             )
         else()
             set_target_properties(VTK::${module} PROPERTIES
-                IMPORTED_LOCATION "${VTK_LIBRARY_DIRS}/libvtk${module}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dylib"
+                IMPORTED_LOCATION "${VTK_LIBRARY_DIRS}/libvtk${module}${SUFFIX}.dylib"
                 INTERFACE_INCLUDE_DIRECTORIES "${VTK_INCLUDE_DIRS}"
             )
         endif()
