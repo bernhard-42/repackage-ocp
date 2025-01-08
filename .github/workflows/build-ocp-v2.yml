@@ -148,7 +148,7 @@ jobs:
           micromamba activate vtk
           micromamba install -y vtk=${{ env.VTK }}
 
-          DEST=~/opt/local/vtk-${{ env.VTK }}/${{ matrix.python-version }}
+          DEST=~/opt/local/vtk-${{ env.VTK }}
           rm -fr $DEST
           mkdir -p $DEST/include
           mkdir -p $DEST/bin
@@ -177,7 +177,7 @@ jobs:
             pip install vtk==${{ env.VTK }}
           fi
 
-          DEST=~/opt/local/vtk-${{ env.VTK }}/$PY_VER
+          DEST=~/opt/local/vtk-${{ env.VTK }}
 
           cp $CONDA_PREFIX/lib/python$PY_VER/site-packages/vtkmodules/${{ matrix.vtk_libs }} $DEST/lib/
           cp $CONDA_PREFIX/lib/python$PY_VER/site-packages/vtk.py $DEST
@@ -207,7 +207,7 @@ jobs:
             PKG=vtk
           fi
 
-          DEST=~/opt/local/vtk-${{ env.VTK }}/$PY_VER
+          DEST=~/opt/local/vtk-${{ env.VTK }}
 
           CONDA_PREFIX_POSIX=$(cygpath -u $CONDA_PREFIX)
           cp $CONDA_PREFIX_POSIX/Lib/site-packages/$PKG.libs/*.dll $DEST/bin/
@@ -276,15 +276,6 @@ jobs:
           fi
 
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
-
-      - name: Checkout VTK
-        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
-        shell: bash -l  {0}
-        run: |
-          pushd ~/opt/local
-          mv vtk-${{ env.VTK }} vtk-${{ env.VTK }}-all
-          mv vtk-${{ env.VTK }}-all/${{ matrix.python-version }} vtk-${{ env.VTK }}
-          popd
 
       - name: (Linux, Mac) Compile and install OCCT SDK
         if: matrix.python-version == '3.11' && runner.os  != 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
@@ -523,15 +514,6 @@ jobs:
             ~/opt/local/occt-${{ env.OCCT }}-vtk
           key: OCCT-${{ env.OCCT }}-vtk-${{ matrix.os }}-
 
-      - name: Checkout VTK
-        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
-        shell: bash -l  {0}
-        run: |
-          pushd ~/opt/local
-          mv vtk-${{ env.VTK }} vtk-${{ env.VTK }}-all
-          mv vtk-${{ env.VTK }}-all/%{{ matrix.python-version }} vtk-${{ env.VTK }}
-          popd
-
       # - - - - - - - - - - - - - - - - - - - - -
       # Option 1: Build OCP sources using pywrap
       # (env.PYWRAP=true)
@@ -762,15 +744,6 @@ jobs:
           path: |
             ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
           key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
-
-      - name: Checkout VTK
-        if: steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
-        shell: bash -l  {0}
-        run: |
-          pushd ~/opt/local
-          mv vtk-${{ env.VTK }} vtk-${{ env.VTK }}-all
-          mv vtk-${{ env.VTK }}-all/%{{ matrix.python-version }} vtk-${{ env.VTK }}
-          popd
 
       # use vtk source
       - name: (All) Restore OCP source cache
