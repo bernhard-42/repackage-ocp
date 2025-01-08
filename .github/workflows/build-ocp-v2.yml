@@ -647,8 +647,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        # os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
+        os: ["macos-13", "macos-14", "ubuntu-20.04"]
+        # python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.13"]
         use-vtk: ["vtk", "novtk"]
 
         include:
@@ -845,7 +847,7 @@ jobs:
               -D CMAKE_MODULE_LINKER_FLAGS="-L $CONDA_PREFIX/lib -L $HOME/opt/local/vtk-${{ env.VTK }}/lib" \
               -D CMAKE_BUILD_WITH_INSTALL_RPATH=TRUE
 
-          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" && "${{ matrix.python-version}}" != "3.13"]]; then
             for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
                 ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
             done
@@ -890,7 +892,7 @@ jobs:
               -D CMAKE_CXX_STANDARD=17 \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
-          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" && "${{ matrix.python-version}}" != "3.13" ]]; then
             for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
                 ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
             done
