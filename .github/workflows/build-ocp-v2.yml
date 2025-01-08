@@ -82,6 +82,7 @@ jobs:
           key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
 
       - name: (DEBUG) vtk SDK
+        if: matrix.use-vtk == 'vtk'
         run: ls -lR ~/opt/local/vtk*
       - name: (DEBUG) occt SDK
         run: ls -lR ~/opt/local/occt*
