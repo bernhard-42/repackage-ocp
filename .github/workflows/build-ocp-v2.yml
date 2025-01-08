@@ -83,8 +83,10 @@ jobs:
 
       - name: (DEBUG) vtk SDK
         if: matrix.use-vtk == 'vtk'
+        shell: bash -l {0}
         run: ls -lR ~/opt/local/vtk*
       - name: (DEBUG) occt SDK
+        shell: bash -l {0}
         run: ls -lR ~/opt/local/occt*
 
       - name: (All) Set up Python ${{ matrix.python-version }} via micromamba
