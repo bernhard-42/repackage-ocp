@@ -283,7 +283,7 @@ jobs:
         run: |
           pushd ~/opt/local
           mv vtk-${{ env.VTK }} vtk-${{ env.VTK }}-all
-          mv vtk-${{ env.VTK }}-all/%{{ matrix.python-version }} vtk-${{ env.VTK }}
+          mv vtk-${{ env.VTK }}-all/${{ matrix.python-version }} vtk-${{ env.VTK }}
           popd
 
       - name: (Linux, Mac) Compile and install OCCT SDK
