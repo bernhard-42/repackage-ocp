@@ -15,7 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
+        # os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
+        os: ["macos-14"]
         python-version: ["3.13"]
         include:
           - os: "macos-13"
@@ -180,7 +181,7 @@ jobs:
 
           cd VTK-${{ env.VTK }}/build
           ${{ matrix.sed_i }} "s/dist_name = 'vtk'/dist_name = 'cadquery_vtk'/" setup.py
-
+          cat setup.py
           python -m build -n -w
 
       - name: (Windows) Deloacte wheel
