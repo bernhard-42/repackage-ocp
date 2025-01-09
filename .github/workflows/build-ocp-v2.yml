@@ -200,7 +200,7 @@ jobs:
           micromamba activate vtk-$PY_VER
 
           if [[ $PY_VER == 3.13 ]]; then
-            pip install cadquery_vtk-9.3.1-*.whl
+            pip install cadquery_vtk-9.3.1*.whl
             PKG=cadquery_vtk
           else
             pip install vtk==${{ env.VTK }}
@@ -738,7 +738,7 @@ jobs:
             ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
           key: OCCT-${{ env.OCCT }}-${{ matrix.use-vtk }}-${{ matrix.os }}-
 
-      # use vtk source
+      # Create sources for supporting vtk - will be patched later for novtk
       - name: (All) Restore OCP source cache
         id: cache-ocp-source-restore
         uses: actions/cache/restore@v4
