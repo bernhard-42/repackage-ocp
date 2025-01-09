@@ -28,7 +28,7 @@ index 9ad7b6b..bd15298 100644
          "multimethod>=1.11,<2.0",
          "nlopt>=2.9.0,<3.0",
 diff --git a/tests/test_assembly.py b/tests/test_assembly.py
-index bae54ab..3d5cd55 100644
+index bae54ab..e44edf2 100644
 --- a/tests/test_assembly.py
 +++ b/tests/test_assembly.py
 @@ -6,6 +6,7 @@ import copy
@@ -39,7 +39,34 @@ index bae54ab..3d5cd55 100644
  
  import cadquery as cq
  from cadquery.occ_impl.exporters.assembly import (
-@@ -702,18 +703,19 @@ def test_save(extension, args, nested_assy, nested_assy_sphere):
+@@ -578,7 +579,8 @@ def test_assembly(simple_assy, nested_assy):
+ 
+ 
+ @pytest.mark.parametrize(
+-    "assy_fixture, root_name", [("simple_assy", None), ("nested_assy", "TOP")],
++    "assy_fixture, root_name",
++    [("simple_assy", None), ("nested_assy", "TOP")],
+ )
+ def test_assy_root_name(assy_fixture, root_name, request):
+     assy = request.getfixturevalue(assy_fixture)
+@@ -618,8 +620,14 @@ def test_step_export(nested_assy, tmp_path_factory):
+ @pytest.mark.parametrize(
+     "assy_fixture, expected",
+     [
+-        ("boxes8_assy", {"nsolids": 2, "center": (0.5, 10, 0.5)},),
+-        ("boxes9_assy", {"nsolids": 2, "center": (0.5, 10, 0.5)},),
++        (
++            "boxes8_assy",
++            {"nsolids": 2, "center": (0.5, 10, 0.5)},
++        ),
++        (
++            "boxes9_assy",
++            {"nsolids": 2, "center": (0.5, 10, 0.5)},
++        ),
+     ],
+ )
+ def test_step_export_loc(assy_fixture, expected, request, tmpdir):
+@@ -702,18 +710,19 @@ def test_save(extension, args, nested_assy, nested_assy_sphere):
          ("stl", ("STL",), {}),
      ],
  )
@@ -50,16 +77,67 @@ index bae54ab..3d5cd55 100644
  
 -    with tmpdir:
 +    with tempfile.TemporaryDirectory() as tmpdir:
-+        filename = Path(tmpdir, "assembly")
++        filename = str(Path(tmpdir, "assembly"))
          nested_assy.export(filename, *args, **kwargs)
          assert os.path.exists(filename)
  
  
 -def test_export_vtkjs(tmpdir, nested_assy):
-+def test_export_vtkjs( nested_assy):
++def test_export_vtkjs(nested_assy):
  
 -    with tmpdir:
 +    with tempfile.TemporaryDirectory() as tmpdir:
          nested_assy.export("nested.vtkjs")
          assert os.path.exists("nested.vtkjs.zip")
  
+@@ -821,7 +830,11 @@ def test_save_raises(nested_assy):
+ 
+ @pytest.mark.parametrize(
+     "assy_fixture, count",
+-    [("simple_assy", 3), ("nested_assy", 3), ("empty_top_assy", 1),],
++    [
++        ("simple_assy", 3),
++        ("nested_assy", 3),
++        ("empty_top_assy", 1),
++    ],
+ )
+ def test_leaf_node_count(assy_fixture, count, request):
+ 
+@@ -908,7 +921,12 @@ def test_colors_assy0(assy_fixture, expected, request):
+                 ),
+             ],
+         ),
+-        ("empty_top_assy", [([".*_part"], {"color_shape": (0.0, 1.0, 0.0, 1.0)}),]),
++        (
++            "empty_top_assy",
++            [
++                ([".*_part"], {"color_shape": (0.0, 1.0, 0.0, 1.0)}),
++            ],
++        ),
+         (
+             "boxes0_assy",
+             [
+@@ -1510,7 +1528,11 @@ def test_infinite_face_constraint_Plane(kind):
+     assy = cq.Assembly(cq.Workplane().sphere(1), name="part0")
+     assy.add(cq.Workplane().sphere(1), name="part1")
+     assy.constrain(
+-        "part0", cq.Face.makePlane(), "part1", cq.Face.makePlane(), kind,
++        "part0",
++        cq.Face.makePlane(),
++        "part1",
++        cq.Face.makePlane(),
++        kind,
+     )
+     assy.solve()
+     assert solve_result_check(assy._solve_result)
+@@ -1657,7 +1679,9 @@ def test_order_of_transform():
+     marker = cq.Workplane().sphere(0.2)
+ 
+     assy0 = cq.Assembly().add(
+-        part, name="part1", loc=cq.Location((0, 0, 1.5), (0, 0, 1), 45),
++        part,
++        name="part1",
++        loc=cq.Location((0, 0, 1.5), (0, 0, 1), 45),
+     )
+ 
+     assy1 = (
