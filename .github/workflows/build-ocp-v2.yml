@@ -942,13 +942,17 @@ jobs:
             ./OCP/build/${{ matrix.module }}
           key: ${{ steps.cache-ocp-restore.outputs.cache-primary-key }}
 
-      - name: Debug Upload
+      - name: Debug Upload SDK
         uses: actions/upload-artifact@v4
         with:
           name: debug_${{ matrix.os }}-py_${{ matrix.python-version }}
-          path: |
-            $HOME/opt/local
-            ./OCP/build/${{ matrix.module }}
+          path: $HOME/opt/local
+
+      - name: Debug Upload module
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug_${{ matrix.os }}-py_${{ matrix.python-version }}
+          path: ./OCP/build/${{ matrix.module }}
 
       # ========================================
       #               OCP wheel
