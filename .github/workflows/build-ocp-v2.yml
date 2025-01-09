@@ -1,4 +1,4 @@
-name: Build OCP with pypi VTK (v2)
+name: Build OCP with pypi VTK V2
 
 on: workflow_dispatch
 
