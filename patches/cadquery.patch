@@ -12,15 +12,47 @@ index cedc480..dfa75bd 100644
      def isNull(self) -> bool:
          """
 diff --git a/setup.py b/setup.py
-index 9ad7b6b..16c700c 100644
+index 9ad7b6b..bd15298 100644
 --- a/setup.py
 +++ b/setup.py
-@@ -26,7 +26,7 @@ is_conda = "CONDA_PREFIX" in os.environ
+@@ -24,9 +24,9 @@ is_azure = "CONDA_PY" in os.environ
+ is_conda = "CONDA_PREFIX" in os.environ
+ 
  # Only include the installation dependencies if we are not running on RTD or AppVeyor or in a conda env
- if not is_rtd and not is_appveyor and not is_azure and not is_conda:
+-if not is_rtd and not is_appveyor and not is_azure and not is_conda:
++if not is_rtd and not is_appveyor and not is_azure:
      reqs = [
 -        "cadquery-ocp>=7.7.0,<7.8",
 +        "cadquery-ocp>=7.8.0,<7.9",
          "ezdxf",
          "multimethod>=1.11,<2.0",
          "nlopt>=2.9.0,<3.0",
+diff --git a/tests/test_assembly.py b/tests/test_assembly.py
+index bae54ab..6ed995a 100644
+--- a/tests/test_assembly.py
++++ b/tests/test_assembly.py
+@@ -35,11 +35,20 @@ from OCP.TDF import TDF_ChildIterator
+ from OCP.Quantity import Quantity_ColorRGBA, Quantity_TOC_RGB
+ from OCP.TopAbs import TopAbs_ShapeEnum
+ 
+-
++import contextlib, sys
+ @pytest.fixture(scope="function")
+-def tmpdir(tmp_path_factory):
+-    return tmp_path_factory.mktemp("assembly")
+-
++def version_specific_tmp_path(tmp_path_factory):
++    if sys.version_info >= (3, 13):
++        # For Python 3.13+, use a workaround with contextlib.chdir
++        temp_dir = tmp_path_factory.mktemp("py313_temp")
++        @contextlib.contextmanager
++        def temp_dir_context():
++            with contextlib.chdir(temp_dir):
++                yield temp_dir
++        return temp_dir_context()
++    else:
++        # For Python 3.12 and below, use the standard approach
++        return tmp_path_factory.mktemp("standard_temp")
+ 
+ @pytest.fixture
+ def simple_assy():
