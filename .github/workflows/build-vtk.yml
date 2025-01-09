@@ -115,6 +115,10 @@ jobs:
 
           micromamba activate build-vtk
 
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            export CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" # Disables the C++11 ABI features for VTK compatibility
+          fi
+
           cd VTK-${{ env.VTK }}/build
           cmake -G Ninja \
                 -D VTK_VERSIONED_INSTALL=ON \
