@@ -181,6 +181,7 @@ jobs:
 
           cd VTK-${{ env.VTK }}/build
           ${{ matrix.sed_i }} "s/dist_name = 'vtk'/dist_name = 'cadquery_vtk'/" setup.py
+          ${{ matrix.sed_i }} "s/version_suffix = '9.3'/version_suffix = ''/" setup.py
           cat setup.py
           python -m build -n -w
 
