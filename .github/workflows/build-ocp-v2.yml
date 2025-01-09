@@ -26,9 +26,9 @@ jobs:
         # os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
         # python-version: ["3.10", "3.11", "3.12", "3.13"]
         # use-vtk: ["vtk", "novtk"]
-        os: ["macos-14"]
-        python-version: ["3.10"]
-        use-vtk: ["novtk"]
+        os: ["windows-2019"]
+        python-version: ["3.11"]
+        use-vtk: ["vtk"]
 
         include:
           # - os: "macos-13"
@@ -38,13 +38,13 @@ jobs:
           #   sed_i: "gsed -i"
           #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
           #   shells: "bash"
-          - os: "macos-14"
-            vtk_libs: ".dylibs/libvtk*.dylib"
-            vtk_suffix: "/"
-            vtk_prefix: ""
-            sed_i: "gsed -i"
-            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-            shells: "bash"
+          # - os: "macos-14"
+          #   vtk_libs: ".dylibs/libvtk*.dylib"
+          #   vtk_suffix: "/"
+          #   vtk_prefix: ""
+          #   sed_i: "gsed -i"
+          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+          #   shells: "bash"
         #   - os: "ubuntu-20.04"
         #     vtk_libs: "libvtk*.so"
         #     vtk_suffix: "/vtk-9.3/"
@@ -52,12 +52,12 @@ jobs:
         #     sed_i: "sed -i"
         #     env: "DUMMY=0"
         #     shells: "bash"
-        #   - os: "windows-2019"
-        #     vtk_libs: "vtk*.dll"
-        #     vtk_suffix: "/"
-        #     vtk_prefix: "Library/"
-        #     sed_i: "sed -i"
-        #     shells: "bash cmd.exe"
+          - os: "windows-2019"
+            vtk_libs: "vtk*.dll"
+            vtk_suffix: "/"
+            vtk_prefix: "Library/"
+            sed_i: "sed -i"
+            shells: "bash cmd.exe"
         # exclude:
         #   - use-vtk: "novtk"
         #     python-version: "3.10"
@@ -415,6 +415,16 @@ jobs:
             ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
           key: ${{ steps.cache-occt-restore.outputs.cache-primary-key }}
 
+      # ========================================
+      #                 SDK
+      # ========================================
+
+      - name: Upload VTK and OCCT SDK archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: SDK-occt_${{ env.OCCT }}-vtk_${{ env.VTK }}_${{ matrix.use-vtk }}-Py_${{ matrix.python-version }}
+          path: ~/opt/local
+          
   # ========================================
   # Generate OCP sources
   # ========================================
@@ -428,7 +438,7 @@ jobs:
       fail-fast: false
       matrix:
         # os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
-        os: ["macos-14"]
+        os: ["windows-2019"]
         python-version: ["3.11"]
 
         include:
@@ -436,17 +446,17 @@ jobs:
           #   sed_i: "gsed -i"
           #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
           #   shells: "bash"
-          - os: "macos-14"
-            sed_i: "gsed -i"
-            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-            shells: "bash"
+          # - os: "macos-14"
+          #   sed_i: "gsed -i"
+          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+          #   shells: "bash"
           # - os: "ubuntu-20.04"
           #   sed_i: "sed -i"
           #   env: "DUMMY=0"
           #   shells: "bash"
-          # - os: "windows-2019"
-          #   sed_i: "sed -i"
-          #   shells: "bash cmd.exe"
+          - os: "windows-2019"
+            sed_i: "sed -i"
+            shells: "bash cmd.exe"
 
     steps:
       - uses: actions/checkout@v4
@@ -648,8 +658,8 @@ jobs:
         # os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
         # python-version: ["3.10", "3.11", "3.12", "3.13"]
         # use-vtk: ["vtk", "novtk"]
-        os: ["ubuntu-20.04", "macos-14"]
-        python-version: ["3.13", "3.10", "3.12"]
+        os: ["windows-2019"]
+        python-version: ["3.11"]
         use-vtk: ["vtk"]
 
         include:
@@ -667,20 +677,20 @@ jobs:
           #   module: "OCP.*.so"
           #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
           #   shells: "bash"
-          - os: "ubuntu-20.04"
-            delocate: auditwheel patchelf
-            plat: manylinux_2_31_x86_64
-            sed_i: "sed -i"
-            compilers: ""
-            module: "OCP.*.so"
-            env: "DUMMY=0"
-          #   shells: "bash"
-          # - os: "windows-2019"
-          #   delocate: delvewheel
-          #   plat: win_amd64
+          # - os: "ubuntu-20.04"
+          #   delocate: auditwheel patchelf
+          #   plat: manylinux_2_31_x86_64
           #   sed_i: "sed -i"
-          #   shells: "bash cmd.exe"
-          #   module: "OCP.*.pyd"
+          #   compilers: ""
+          #   module: "OCP.*.so"
+          #   env: "DUMMY=0"
+          #   shells: "bash"
+          - os: "windows-2019"
+            delocate: delvewheel
+            plat: win_amd64
+            sed_i: "sed -i"
+            shells: "bash cmd.exe"
+            module: "OCP.*.pyd"
 
     steps:
       - uses: actions/checkout@v4
@@ -1131,16 +1141,6 @@ jobs:
         with:
           name: cadquery-ocp-novtk-${{ env.OCCT }}-${{ matrix.os }}-cp${{ matrix.python-version }}
           path: pypi/wheel/*.whl
-
-      # ========================================
-      #                 SDK
-      # ========================================
-
-      - name: Upload VTK and OCCT SDK archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: SDK-occt_${{ env.OCCT }}-vtk_${{ env.VTK }}_${{ matrix.use-vtk }}-Py_${{ matrix.python-version }}
-          path: $HOME/opt/local
 
       # ========================================
       #                 Test
