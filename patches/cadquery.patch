@@ -28,31 +28,38 @@ index 9ad7b6b..bd15298 100644
          "multimethod>=1.11,<2.0",
          "nlopt>=2.9.0,<3.0",
 diff --git a/tests/test_assembly.py b/tests/test_assembly.py
-index bae54ab..6ed995a 100644
+index bae54ab..3d5cd55 100644
 --- a/tests/test_assembly.py
 +++ b/tests/test_assembly.py
-@@ -35,11 +35,20 @@ from OCP.TDF import TDF_ChildIterator
- from OCP.Quantity import Quantity_ColorRGBA, Quantity_TOC_RGB
- from OCP.TopAbs import TopAbs_ShapeEnum
+@@ -6,6 +6,7 @@ import copy
+ from pathlib import Path, PurePath
+ import re
+ from pytest import approx
++import tempfile
  
--
-+import contextlib, sys
- @pytest.fixture(scope="function")
--def tmpdir(tmp_path_factory):
--    return tmp_path_factory.mktemp("assembly")
--
-+def version_specific_tmp_path(tmp_path_factory):
-+    if sys.version_info >= (3, 13):
-+        # For Python 3.13+, use a workaround with contextlib.chdir
-+        temp_dir = tmp_path_factory.mktemp("py313_temp")
-+        @contextlib.contextmanager
-+        def temp_dir_context():
-+            with contextlib.chdir(temp_dir):
-+                yield temp_dir
-+        return temp_dir_context()
-+    else:
-+        # For Python 3.12 and below, use the standard approach
-+        return tmp_path_factory.mktemp("standard_temp")
+ import cadquery as cq
+ from cadquery.occ_impl.exporters.assembly import (
+@@ -702,18 +703,19 @@ def test_save(extension, args, nested_assy, nested_assy_sphere):
+         ("stl", ("STL",), {}),
+     ],
+ )
+-def test_export(extension, args, kwargs, tmpdir, nested_assy):
++def test_export(extension, args, kwargs, nested_assy):
  
- @pytest.fixture
- def simple_assy():
+     filename = "nested." + extension
+ 
+-    with tmpdir:
++    with tempfile.TemporaryDirectory() as tmpdir:
++        filename = Path(tmpdir, "assembly")
+         nested_assy.export(filename, *args, **kwargs)
+         assert os.path.exists(filename)
+ 
+ 
+-def test_export_vtkjs(tmpdir, nested_assy):
++def test_export_vtkjs( nested_assy):
+ 
+-    with tmpdir:
++    with tempfile.TemporaryDirectory() as tmpdir:
+         nested_assy.export("nested.vtkjs")
+         assert os.path.exists("nested.vtkjs.zip")
+ 
