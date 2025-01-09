@@ -645,20 +645,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
+        # os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
         # python-version: ["3.10", "3.11", "3.12", "3.13"]
         # use-vtk: ["vtk", "novtk"]
+        os: ["macos-14", "ubuntu-20.04", "windows-2019"]
         python-version: ["3.13"]
         use-vtk: ["vtk"]
 
         include:
-          - os: "macos-13"
-            delocate: delocate
-            plat: macosx_11_1_x86_64
-            sed_i: "gsed -i"
-            module: "OCP.*.so"
-            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-            shells: "bash"
+          # - os: "macos-13"
+          #   delocate: delocate
+          #   plat: macosx_11_1_x86_64
+          #   sed_i: "gsed -i"
+          #   module: "OCP.*.so"
+          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+          #   shells: "bash"
           - os: "macos-14"
             delocate: delocate
             plat: macosx_11_1_arm64
@@ -941,6 +942,14 @@ jobs:
             ./OCP/build/${{ matrix.module }}
           key: ${{ steps.cache-ocp-restore.outputs.cache-primary-key }}
 
+      - name: Debug Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug_${{ matrix.os }}-py_${{ matrix.python-version }}
+          path: |
+            $HOME/opt/local
+            ./OCP/build/${{ matrix.module }}
+
       # ========================================
       #               OCP wheel
       # ========================================
@@ -1200,7 +1209,7 @@ jobs:
           pytest tests -v -W ignore
 
       - name: Run cadquery tests
-        if: matrix.use-vtk == 'vtk' && matrix.python-version != '3.13'
+        if: matrix.use-vtk == 'vtk'
         shell: bash -l {0}
         run: |
           set -euo pipefail
