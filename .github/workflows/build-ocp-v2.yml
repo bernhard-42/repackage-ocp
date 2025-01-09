@@ -27,7 +27,7 @@ jobs:
         # python-version: ["3.10", "3.11", "3.12", "3.13"]
         # use-vtk: ["vtk", "novtk"]
         os: ["windows-2019"]
-        python-version: ["3.11"]
+        python-version: ["3.12", "3.13"]
         use-vtk: ["vtk"]
 
         include:
@@ -424,7 +424,7 @@ jobs:
         with:
           name: SDK-occt_${{ env.OCCT }}-vtk_${{ env.VTK }}_${{ matrix.use-vtk }}-Py_${{ matrix.python-version }}
           path: ~/opt/local
-          
+
   # ========================================
   # Generate OCP sources
   # ========================================
