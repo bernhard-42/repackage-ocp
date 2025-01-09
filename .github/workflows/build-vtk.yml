@@ -118,6 +118,7 @@ jobs:
           cd VTK-${{ env.VTK }}/build
           cmake -G Ninja \
                 -D VTK_VERSIONED_INSTALL=ON \
+                -D VTK_CUSTOM_LIBRARY_SUFFIX="9.3" -DVTK_VERSION_SUFFIX="9.3" \
                 -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
                 -D CMAKE_BUILD_TYPE=Release \
                 -D CMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
@@ -136,6 +137,7 @@ jobs:
           cd VTK-${{ env.VTK }}/build
           env "MACOSX_DEPLOYMENT_TARGET=11.1" cmake -G Ninja \
                 -D VTK_VERSIONED_INSTALL=ON \
+                -D VTK_CUSTOM_LIBRARY_SUFFIX="9.3" -DVTK_VERSION_SUFFIX="9.3" \
                 -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON \
                 -D CMAKE_BUILD_TYPE=Release \
                 -D CMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
@@ -153,6 +155,7 @@ jobs:
           cd VTK-${{ env.VTK }}\build          
           cmake -G Ninja ^
                 -D VTK_VERSIONED_INSTALL=ON ^
+                -D VTK_CUSTOM_LIBRARY_SUFFIX="9.3" -DVTK_VERSION_SUFFIX="9.3" ^
                 -D VTK_WHEEL_BUILD=ON -DVTK_WRAP_PYTHON=ON ^
                 -D CMAKE_BUILD_TYPE=Release ^
                 -D CMAKE_POLICY_DEFAULT_CMP0174=NEW -DCMAKE_POLICY_DEFAULT_CMP0177=NEW ^
