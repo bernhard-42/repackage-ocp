@@ -7,7 +7,7 @@ env:
   VTK: 9.3.1
   VTK_MAJOR: 9.3
   OCCT: 7.8.1
-  PY313VTK_RUNID: 12686751779
+  PY313VTK_RUNID: 12697376619
   PYWRAP: true
 
 jobs:
@@ -23,21 +23,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
-        # python-version: ["3.10", "3.11", "3.12", "3.13"]
-        # use-vtk: ["vtk", "novtk"]
-        os: ["macos-14"]
-        python-version: ["3.10"]
-        use-vtk: ["novtk"]
+        os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        use-vtk: ["vtk", "novtk"]
 
         include:
-          # - os: "macos-13"
-          #   vtk_libs: ".dylibs/libvtk*.dylib"
-          #   vtk_suffix: "/"
-          #   vtk_prefix: ""
-          #   sed_i: "gsed -i"
-          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-          #   shells: "bash"
+          - os: "macos-13"
+            vtk_libs: ".dylibs/libvtk*.dylib"
+            vtk_suffix: "/"
+            vtk_prefix: ""
+            sed_i: "gsed -i"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
           - os: "macos-14"
             vtk_libs: ".dylibs/libvtk*.dylib"
             vtk_suffix: "/"
@@ -45,26 +42,26 @@ jobs:
             sed_i: "gsed -i"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
             shells: "bash"
-        #   - os: "ubuntu-20.04"
-        #     vtk_libs: "libvtk*.so"
-        #     vtk_suffix: "/vtk-9.3/"
-        #     vtk_prefix: ""
-        #     sed_i: "sed -i"
-        #     env: "DUMMY=0"
-        #     shells: "bash"
-        #   - os: "windows-2019"
-        #     vtk_libs: "vtk*.dll"
-        #     vtk_suffix: "/"
-        #     vtk_prefix: "Library/"
-        #     sed_i: "sed -i"
-        #     shells: "bash cmd.exe"
-        # exclude:
-        #   - use-vtk: "novtk"
-        #     python-version: "3.10"
-        #   - use-vtk: "novtk"
-        #     python-version: "3.12"
-        #   - use-vtk: "novtk"
-        #     python-version: "3.13"
+          - os: "ubuntu-20.04"
+            vtk_libs: "libvtk*.so"
+            vtk_suffix: "/vtk-9.3/"
+            vtk_prefix: ""
+            sed_i: "sed -i"
+            env: "DUMMY=0"
+            shells: "bash"
+          - os: "windows-2019"
+            vtk_libs: "vtk*.dll"
+            vtk_suffix: "/"
+            vtk_prefix: "Library/"
+            sed_i: "sed -i"
+            shells: "bash cmd.exe"
+        exclude:
+          - use-vtk: "novtk"
+            python-version: "3.10"
+          - use-vtk: "novtk"
+            python-version: "3.12"
+          - use-vtk: "novtk"
+            python-version: "3.13"
 
     steps:
       - uses: actions/checkout@v4
@@ -427,26 +424,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
-        os: ["macos-14"]
+        os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
         python-version: ["3.11"]
 
         include:
-          # - os: "macos-13"
-          #   sed_i: "gsed -i"
-          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-          #   shells: "bash"
+          - os: "macos-13"
+            sed_i: "gsed -i"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
           - os: "macos-14"
             sed_i: "gsed -i"
             env: "MACOSX_DEPLOYMENT_TARGET=11.1"
             shells: "bash"
-          # - os: "ubuntu-20.04"
-          #   sed_i: "sed -i"
-          #   env: "DUMMY=0"
-          #   shells: "bash"
-          # - os: "windows-2019"
-          #   sed_i: "sed -i"
-          #   shells: "bash cmd.exe"
+          - os: "ubuntu-20.04"
+            sed_i: "sed -i"
+            env: "DUMMY=0"
+            shells: "bash"
+          - os: "windows-2019"
+            sed_i: "sed -i"
+            shells: "bash cmd.exe"
 
     steps:
       - uses: actions/checkout@v4
@@ -645,28 +641,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
-        # python-version: ["3.10", "3.11", "3.12", "3.13"]
-        # use-vtk: ["vtk", "novtk"]
-        os: ["ubuntu-20.04", "macos-14"]
-        python-version: ["3.13", "3.10", "3.12"]
-        use-vtk: ["vtk"]
+        os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        use-vtk: ["vtk", "novtk"]
 
         include:
-          # - os: "macos-13"
-          #   delocate: delocate
-          #   plat: macosx_11_1_x86_64
-          #   sed_i: "gsed -i"
-          #   module: "OCP.*.so"
-          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-          #   shells: "bash"
-          # - os: "macos-14"
-          #   delocate: delocate
-          #   plat: macosx_11_1_arm64
-          #   sed_i: "gsed -i"
-          #   module: "OCP.*.so"
-          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-          #   shells: "bash"
+          - os: "macos-13"
+            delocate: delocate
+            plat: macosx_11_1_x86_64
+            sed_i: "gsed -i"
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
+          - os: "macos-14"
+            delocate: delocate
+            plat: macosx_11_1_arm64
+            sed_i: "gsed -i"
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
           - os: "ubuntu-20.04"
             delocate: auditwheel patchelf
             plat: manylinux_2_31_x86_64
@@ -674,13 +667,13 @@ jobs:
             compilers: ""
             module: "OCP.*.so"
             env: "DUMMY=0"
-          #   shells: "bash"
-          # - os: "windows-2019"
-          #   delocate: delvewheel
-          #   plat: win_amd64
-          #   sed_i: "sed -i"
-          #   shells: "bash cmd.exe"
-          #   module: "OCP.*.pyd"
+            shells: "bash"
+          - os: "windows-2019"
+            delocate: delvewheel
+            plat: win_amd64
+            sed_i: "sed -i"
+            shells: "bash cmd.exe"
+            module: "OCP.*.pyd"
 
     steps:
       - uses: actions/checkout@v4
