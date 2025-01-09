@@ -7,7 +7,7 @@ env:
   VTK: 9.3.1
   VTK_MAJOR: 9.3
   OCCT: 7.8.1
-  PY313VTK_RUNID: 12659476146
+  PY313VTK_RUNID: 12685354917
   PYWRAP: true
 
 jobs:
@@ -290,10 +290,7 @@ jobs:
 
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             export CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" # Disables the C++11 ABI features for VTK compatibility
-          # else
-          #   EXTRAS="-D CMAKE_OSX_DEPLOYMENT_TARGET=\"11.1\" -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++"            
           fi
-
 
           if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             
@@ -322,7 +319,7 @@ jobs:
               for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
                   ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
               done
-              rm -f build/build.ninja.bak
+
           else
             env ${{ matrix.env }} cmake -S . -B build  -G Ninja \
               -D CMAKE_INSTALL_PREFIX=$HOME/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }} \
@@ -548,11 +545,6 @@ jobs:
           # TODO: remove if fixed
           ${{ matrix.sed_i }} 's/"7.7.2.1"/"${{ env.OCP }}"/' ocp.toml
 
-          # TODO: remove if fixed
-          # cd pywrap
-          # git checkout 6cbeb64e9695703c56bb6309a8351886accdeeb0
-          # cd ..
-
       - name: (Linux) Generate OCP source [PYWRAP=true]
         if: env.PYWRAP == 'true' && runner.os == 'Linux' && steps.cache-ocp-source-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
@@ -647,34 +639,34 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
+        os: ["macos-13", "macos-14", "ubuntu-20.04", "windows-2019"]
         os: ["windows-2019"]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
         use-vtk: ["vtk", "novtk"]
 
         include:
-          # - os: "macos-13"
-          #   delocate: delocate
-          #   plat: macosx_11_1_x86_64
-          #   sed_i: "gsed -i"
-          #   module: "OCP.*.so"
-          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-          #   shells: "bash"
-          # - os: "macos-14"
-          #   delocate: delocate
-          #   plat: macosx_11_1_arm64
-          #   sed_i: "gsed -i"
-          #   module: "OCP.*.so"
-          #   env: "MACOSX_DEPLOYMENT_TARGET=11.1"
-          #   shells: "bash"
-          # - os: "ubuntu-20.04"
-          #   delocate: auditwheel patchelf
-          #   plat: manylinux_2_31_x86_64
-          #   sed_i: "sed -i"
-          #   compilers: ""
-          #   module: "OCP.*.so"
-          #   env: "DUMMY=0"
-          #   shells: "bash"
+          - os: "macos-13"
+            delocate: delocate
+            plat: macosx_11_1_x86_64
+            sed_i: "gsed -i"
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
+          - os: "macos-14"
+            delocate: delocate
+            plat: macosx_11_1_arm64
+            sed_i: "gsed -i"
+            module: "OCP.*.so"
+            env: "MACOSX_DEPLOYMENT_TARGET=11.1"
+            shells: "bash"
+          - os: "ubuntu-20.04"
+            delocate: auditwheel patchelf
+            plat: manylinux_2_31_x86_64
+            sed_i: "sed -i"
+            compilers: ""
+            module: "OCP.*.so"
+            env: "DUMMY=0"
+            shells: "bash"
           - os: "windows-2019"
             delocate: delvewheel
             plat: win_amd64
@@ -806,15 +798,15 @@ jobs:
             pip install "pybind11==2.10.*" logzero toml pandas joblib path tqdm jinja2 toposort schema click lief==0.15.1 clang==15.0.7 pyparsing
           fi
 
-      - name: QUICKFIX
-        if: matrix.use-vtk == 'vtk' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
-        shell: bash -l {0}
-        run: |
-          set -euo pipefail
+      # - name: QUICKFIX
+      #   if: matrix.use-vtk == 'vtk' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
+      #   shell: bash -l {0}
+      #   run: |
+      #     set -euo pipefail
 
-          micromamba activate build-ocp
-          DEST=~/opt/local/vtk-${{ env.VTK }}
-          cp cmake/vtk-config-${{ matrix.os }}.cmake $DEST/vtk-config.cmake
+      #     micromamba activate build-ocp
+      #     DEST=~/opt/local/vtk-${{ env.VTK }}
+      #     cp cmake/vtk-config-${{ matrix.os }}.cmake $DEST/vtk-config.cmake
 
       - name: (Linux) Generate OCP build files and build OCP
         if: runner.os == 'Linux' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
@@ -846,19 +838,13 @@ jobs:
               -D CMAKE_MODULE_LINKER_FLAGS="-L $CONDA_PREFIX/lib -L $HOME/opt/local/vtk-${{ env.VTK }}/lib" \
               -D CMAKE_BUILD_WITH_INSTALL_RPATH=TRUE
 
-          if [[ "${{ matrix.use-vtk }}" == "vtk" && "${{ matrix.python-version}}" != "3.13" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
                 ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
             done
           fi
 
           ninja -C build -j ${{ steps.cpu-count.outputs.cpu_count }}
-
-          # if [[ "$RUNNER_OS" == "Linux" ]]; then
-          #   echo OCP symbols
-          #   strings build/OCP.cpython-*-x86_64-linux-gnu.so | egrep LIBC_ | grep -v @ | sort | uniq
-          #   strings build/OCP.cpython-*-x86_64-linux-gnu.so | egrep LIBCXX_ | grep -v @ | sort | uniq
-          # fi
 
       - name: (Mac) Generate OCP build files and build OCP
         if: runner.os == 'macOS' && steps.cache-ocp-restore.outputs.cache-hit != 'true'
@@ -891,7 +877,7 @@ jobs:
               -D CMAKE_CXX_STANDARD=17 \
               -D CMAKE_OSX_SYSROOT=/opt/MacOSX11.3.sdk
 
-          if [[ "${{ matrix.use-vtk }}" == "vtk" && "${{ matrix.python-version}}" != "3.13" ]]; then
+          if [[ "${{ matrix.use-vtk }}" == "vtk" ]]; then
             for l in vtkCommonCore  vtkRenderingCore  vtkRenderingFreeType  vtkFiltersGeneral  vtkInteractionStyle  vtkRenderingOpenGL2; do
                 ${{ matrix.sed_i }} "s/-l$l/-l$l-${{ env.VTK_MAJOR }}/" build/build.ninja
             done

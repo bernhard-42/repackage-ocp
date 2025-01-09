@@ -27,11 +27,7 @@ set(VTK_DLL_DIR "${HOME_DIR}/opt/local/vtk-${VTK_VERSION}/bin")
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(PYTHON_VERSION "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 
-if(PYTHON_VERSION STREQUAL "3.13")
-    set(SUFFIX "")
-else()
-    set(SUFFIX "-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
-endif()
+set(SUFFIX "-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
 
 # Define the components
 set(VTK_MODULES_ENABLED
