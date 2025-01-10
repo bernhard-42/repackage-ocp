@@ -431,12 +431,6 @@ jobs:
           name: debug_sdk_${{ matrix.os }}-py_${{ matrix.python-version }}
           path: ~/opt/local
 
-      - name: Debug Upload module
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug_module_${{ matrix.os }}-py_${{ matrix.python-version }}
-          path: ./OCP/build/${{ matrix.module }}
-
   # ========================================
   # Generate OCP sources
   # ========================================
@@ -955,17 +949,11 @@ jobs:
             ./OCP/build/${{ matrix.module }}
           key: ${{ steps.cache-ocp-restore.outputs.cache-primary-key }}
 
-      # - name: Debug Upload SDK
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: debug_sdk_${{ matrix.os }}-py_${{ matrix.python-version }}
-      #     path: ~/opt/local
-
-      # - name: Debug Upload module
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: debug_module_${{ matrix.os }}-py_${{ matrix.python-version }}
-      #     path: ./OCP/build/${{ matrix.module }}
+      - name: Debug Upload module
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug_module_${{ matrix.os }}-py_${{ matrix.python-version }}
+          path: ./OCP/build/${{ matrix.module }}
 
       # ========================================
       #               OCP wheel
