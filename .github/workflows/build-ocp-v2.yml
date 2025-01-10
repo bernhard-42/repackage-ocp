@@ -18,7 +18,7 @@ jobs:
   # TODO: Check caching strategy
 
   sdks:
-    name: Build OCCT SDK for ${{ matrix.python-version }} on ${{ matrix.os }} with VTK ${{ matrix.use-vtk }}
+    name: Build OCCT SDK for ${{ matrix.python-version }} on ${{ matrix.os }} (${{ matrix.use-vtk }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -232,7 +232,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - -
 
       - name: (All) Download and prepare OCCT SDK
-        if: matrix.python-version == '3.11' && steps.cache-occt-restore.outputs.cache-hit != 'true'
+        if: steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -273,7 +273,7 @@ jobs:
           mkdir -p ~/opt/local/occt-${{ env.OCCT }}-${{ matrix.use-vtk }}
 
       - name: (Linux, Mac) Compile and install OCCT SDK
-        if: matrix.python-version == '3.11' && runner.os  != 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
+        if: runner.os  != 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
           set -euo pipefail
@@ -338,7 +338,7 @@ jobs:
           ninja -C build install
 
       - name: (Windows) Compile and install OCCT SDK
-        if: matrix.python-version == '3.11' && runner.os  == 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
+        if: runner.os  == 'Windows' && steps.cache-occt-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: |
           call C:\Users\runneradmin\micromamba\condabin\micromamba.bat activate build-ocp 
@@ -397,7 +397,6 @@ jobs:
           ninja -C build install
 
       - name: (All) Cache OCCT build folder
-        if: matrix.python-version == '3.11'
         id: cache-occt-save
         uses: actions/cache/save@v4
         with:
