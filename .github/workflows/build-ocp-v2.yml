@@ -416,11 +416,11 @@ jobs:
       #                 SDK
       # ========================================
 
-      - name: Upload VTK and OCCT SDK archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: SDK-occt_${{ env.OCCT }}-vtk_${{ env.VTK }}_${{ matrix.use-vtk }}-Py_${{ matrix.python-version }}
-          path: ~/opt/local
+      # - name: Upload VTK and OCCT SDK archive
+      #   uses: actions/upload-artifact@v4
+      #  with:
+      #    name: SDK-occt_${{ env.OCCT }}-vtk_${{ env.VTK }}_${{ matrix.use-vtk }}-Py_${{ matrix.python-version }}
+      #    path: ~/opt/local
 
   # ========================================
   # Generate OCP sources
