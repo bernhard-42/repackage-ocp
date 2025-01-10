@@ -1225,11 +1225,7 @@ jobs:
           pip install .
           CONDA_PREFIX=$CONDA_PREFIX_BAK
 
-          if [[ ${{ matrix.python-version }} == 3.13 ]]; then
-            pytest tests -v -W ignore -k "not test_export"
-          else
-            pytest tests -v -W ignore
-          fi
+          pytest tests -v -W ignore
 
       - name: Uninstall test
         if: matrix.python-version != '3.13'
